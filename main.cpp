@@ -1,27 +1,3 @@
-/*
-    MIT License
-
-    Copyright (c) 2022 Guilherme M. Aguiar (guilhermemaguiar2022@gmail.com)
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-*/
-
 #include <iostream>
 #include <memory>
 #include <string>
@@ -42,11 +18,20 @@
 
 #include "./lib/FastNoiseLite.h"
 
+extern "C" {
+#include "lualib/lua.h"
+#include "lualib/lualib.h"
+#include "lualib/luaconf.h"
+#include "lualib/lauxlib.h"
+}
+
+#include "./src/luaScript.hpp"
 #include "./src/camera.hpp"
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.h"
-#include "./src/mesh.hpp"
 #include "./src/chunk.hpp"
+
+constexpr auto WINDOW_WIDTH {800}, WINDOW_HEIGHT {500}, FPS {60};
 
 auto camera {
     std::make_unique<Camera::Camera>()
@@ -56,12 +41,12 @@ void keyboardCallback(GLFWwindow *window);
 void mouseCallback(GLFWwindow *window, double x, double y);
 
 int main(int argc, char *argv[]) {
-    std::cout << argv[0] << std::endl;
-
     GLFWwindow *window {nullptr};
 
     try {
-        constexpr auto WINDOW_WIDTH {800}, WINDOW_HEIGHT {500}, FPS {60};
+        auto luaScript {
+            std::make_unique<LuaScript::LuaScript>("./script.lua")
+        };
 
         if (glfwInit() == GLFW_NOT_INITIALIZED) {
             throw std::string {"Falha ao iniciar o GLFW."};
@@ -88,9 +73,7 @@ int main(int argc, char *argv[]) {
         glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
         glfwSetWindowPos(window, 0, 0);
 
-        if (!STB_IMAGE::loadWindowIcon(window, "./img/icon.bmp")) {
-            throw std::string {"Falha ao carregar ícone da janela de visualização."};
-        }
+        STB_IMAGE::loadWindowIcon(window, "./img/icon.bmp");
 
         glewExperimental = true;
 
@@ -107,13 +90,11 @@ int main(int argc, char *argv[]) {
 
         camera->setFov(60.0f);
         camera->setAspect(static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
-        camera->setPosition(glm::tvec3<float>(8.0f, 16.0f, 8.0f));
+        camera->setPosition(glm::tvec3<float>(0.0f, 0.0f, -5.0f));
         camera->setSpeed(0.5f);
 
-        const int seed {1007};
-
-        auto chunks {
-            std::make_unique<Chunk::Chunk>(seed)
+        auto chunk {
+            std::make_unique<Chunk::Chunk>(STB_IMAGE::loadTexture("./img/grass.bmp"))
         };
 
         glEnable(GL_DEPTH_TEST);
@@ -135,8 +116,7 @@ int main(int argc, char *argv[]) {
 
                 auto view {camera->getViewMatrix()}, projection {camera->getProjectionMatrix()};
 
-                chunks->draw(view, projection);
-                chunks->addChunk(camera);
+                chunk->draw(view, projection);
 
                 glfwSwapBuffers(window);
                 glfwPollEvents();
@@ -148,15 +128,20 @@ int main(int argc, char *argv[]) {
         glfwDestroyWindow(window);
         glfwTerminate();
 
-        return 0;
     } catch (const std::string& error) {
+        std::ofstream file {"./log.txt"};
+
+        file << "Erro: " << error;
+
+        file.close();
+
         glfwDestroyWindow(window);
         glfwTerminate();
 
-        std::cerr << error << std::endl;
-
         return 1;
     }
+
+    return 0;
 }
 
 void keyboardCallback(GLFWwindow *window) {

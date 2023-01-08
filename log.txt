@@ -1,0 +1,1 @@
+Erro: Falha ao abrir arquivo lua.
