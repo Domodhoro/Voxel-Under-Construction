@@ -17,7 +17,7 @@ public:
         lua_close(m_L);
     }
 
-    void table(const char *name) {
+    void readTable(const char *name) {
         lua_getglobal(m_L, name);
 
         if (!lua_istable(m_L, -1)) {
@@ -26,7 +26,7 @@ public:
     }
 
     template<typename T>
-    T load(const char *key) {
+    T readNumber(const char *key) {
         lua_pushstring(m_L, key);
         lua_gettable(m_L, -2);
 
@@ -34,11 +34,26 @@ public:
             throw std::string {"Falha ao ler dado da tabela."};
         }
 
-        T result {lua_tonumber(m_L, -1)};
+        auto result {lua_tonumber(m_L, -1)};
 
         lua_pop(m_L, 1);
 
-        return result;
+        return static_cast<T>(result);
+    }
+
+    std::string readString(const char *key) {
+        lua_pushstring(m_L, key);
+        lua_gettable(m_L, -2);
+
+        if (!lua_isstring(m_L, -1)) {
+            throw std::string {"Falha ao ler dado da tabela."};
+        }
+
+        auto result {lua_tostring(m_L, -1)};
+
+        lua_pop(m_L, 1);
+
+        return static_cast<std::string>(result);
     }
 
 private:

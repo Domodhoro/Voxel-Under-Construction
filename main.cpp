@@ -32,8 +32,6 @@ extern "C" {
 #include "./src/chunkMesh.hpp"
 #include "./src/chunk.hpp"
 
-constexpr auto FPS {60};
-
 Camera::Camera camera;
 
 void keyboardCallback(GLFWwindow *window);
@@ -45,9 +43,9 @@ int main(int argc, char *argv[]) {
     try {
         LuaScript::LuaScript luaScript {"./script.lua"};
 
-        luaScript.table("window");
+        luaScript.readTable("window");
 
-        auto windowWidth {luaScript.load<int>("width")}, windowHeight {luaScript.load<int>("height")};
+        auto windowWidth {luaScript.readNumber<int>("width")}, windowHeight {luaScript.readNumber<int>("height")};
 
         if (glfwInit() == GLFW_NOT_INITIALIZED) {
             throw std::string {"Falha ao iniciar o GLFW."};
@@ -89,10 +87,10 @@ int main(int argc, char *argv[]) {
             glfwGetVideoMode(glfwGetPrimaryMonitor())
         };
 
-        luaScript.table("camera");
+        luaScript.readTable("camera");
 
-        camera.setSpeed(luaScript.load<float>("speed"));
-        camera.setFov(luaScript.load<float>("fov"));
+        camera.setSpeed(luaScript.readNumber<float>("speed"));
+        camera.setFov(luaScript.readNumber<float>("fov"));
         camera.setAspect(static_cast<float>(windowWidth) / static_cast<float>(windowHeight));
         camera.setPosition(glm::tvec3<float>(0.0f, 0.0f, -5.0f));
 
@@ -101,6 +99,8 @@ int main(int argc, char *argv[]) {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
         glFrontFace(GL_CCW);
+
+        const auto FPS {60};
 
         auto lastFrame {0.0f}, currentFrame {0.0f};
 
