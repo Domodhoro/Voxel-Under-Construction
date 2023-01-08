@@ -32,7 +32,7 @@ extern "C" {
 #include "./src/chunkMesh.hpp"
 #include "./src/chunk.hpp"
 
-constexpr auto WINDOW_WIDTH {800}, WINDOW_HEIGHT {500}, FPS {60};
+constexpr auto FPS {60};
 
 Camera::Camera camera;
 
@@ -45,6 +45,10 @@ int main(int argc, char *argv[]) {
     try {
         LuaScript::LuaScript luaScript {"./script.lua"};
 
+        luaScript.table("window");
+
+        auto windowWidth {luaScript.load<int>("width")}, windowHeight {luaScript.load<int>("height")};
+
         if (glfwInit() == GLFW_NOT_INITIALIZED) {
             throw std::string {"Falha ao iniciar o GLFW."};
         }
@@ -55,7 +59,7 @@ int main(int argc, char *argv[]) {
 
         glfwWindowHint(GLFW_RESIZABLE, false);
 
-        window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Voxel", nullptr, nullptr);
+        window = glfwCreateWindow(windowWidth, windowHeight, "Voxel", nullptr, nullptr);
 
         if (window == nullptr) {
             throw std::string {"Falha ao criar a janela de visualização."};
@@ -85,10 +89,12 @@ int main(int argc, char *argv[]) {
             glfwGetVideoMode(glfwGetPrimaryMonitor())
         };
 
-        camera.setFov(60.0f);
-        camera.setAspect(static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
+        luaScript.table("camera");
+
+        camera.setSpeed(luaScript.load<float>("speed"));
+        camera.setFov(luaScript.load<float>("fov"));
+        camera.setAspect(static_cast<float>(windowWidth) / static_cast<float>(windowHeight));
         camera.setPosition(glm::tvec3<float>(0.0f, 0.0f, -5.0f));
-        camera.setSpeed(0.5f);
 
         Chunk::Chunk chunks;
 
@@ -102,7 +108,7 @@ int main(int argc, char *argv[]) {
             currentFrame = static_cast<float>(glfwGetTime());
 
             if ((currentFrame - lastFrame) > (1.0f / static_cast<float>(FPS))) {
-                glfwSetWindowPos(window, (mode->width - WINDOW_WIDTH) / 2, (mode->height - WINDOW_HEIGHT) / 2);
+                glfwSetWindowPos(window, (mode->width - windowWidth) / 2, (mode->height - windowHeight) / 2);
 
                 keyboardCallback(window);
 
