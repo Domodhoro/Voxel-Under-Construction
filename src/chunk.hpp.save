@@ -7,11 +7,11 @@ constexpr auto SIZE_X {16}, SIZE_Y {128}, SIZE_Z {16};
 
 class Chunk {
 public:
-    Chunk() {
+    Chunk(const unsigned int& texture) : {
         for (auto x = 0; x != SIZE_X; ++x) {
             for (auto y = 0; y != SIZE_Y; ++y) {
                 for (auto z = 0; z != SIZE_Z; ++z) {
-                    m_count += ChunkMesh::Mesh(m_vertice, x, y, z, true, true, true, true, true, true);
+                    m_count += ChunkMesh::mesh(m_vertice, x, y, z, true, true, true, true, true, true);
                 }
             }
         }
@@ -35,7 +35,6 @@ public:
         }
 
         m_shader = std::make_unique<Shader::Shader>("./glsl/vertex.glsl", "./glsl/fragment.glsl");
-        m_texture = STB_IMAGE::loadTexture("./img/blocks.bmp");
     }
 
     ~Chunk() {

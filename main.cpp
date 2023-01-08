@@ -29,13 +29,12 @@ extern "C" {
 #include "./src/camera.hpp"
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.h"
+#include "./src/chunkMesh.hpp"
 #include "./src/chunk.hpp"
 
 constexpr auto WINDOW_WIDTH {800}, WINDOW_HEIGHT {500}, FPS {60};
 
-auto camera {
-    std::make_unique<Camera::Camera>()
-};
+Camera::Camera camera;
 
 void keyboardCallback(GLFWwindow *window);
 void mouseCallback(GLFWwindow *window, double x, double y);
@@ -44,9 +43,7 @@ int main(int argc, char *argv[]) {
     GLFWwindow *window {nullptr};
 
     try {
-        auto luaScript {
-            std::make_unique<LuaScript::LuaScript>("./script.lua")
-        };
+        LuaScript::LuaScript luaScript {"./script.lua"};
 
         if (glfwInit() == GLFW_NOT_INITIALIZED) {
             throw std::string {"Falha ao iniciar o GLFW."};
@@ -88,14 +85,12 @@ int main(int argc, char *argv[]) {
             glfwGetVideoMode(glfwGetPrimaryMonitor())
         };
 
-        camera->setFov(60.0f);
-        camera->setAspect(static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
-        camera->setPosition(glm::tvec3<float>(0.0f, 0.0f, -5.0f));
-        camera->setSpeed(0.5f);
+        camera.setFov(60.0f);
+        camera.setAspect(static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
+        camera.setPosition(glm::tvec3<float>(0.0f, 0.0f, -5.0f));
+        camera.setSpeed(0.5f);
 
-        auto chunk {
-            std::make_unique<Chunk::Chunk>(STB_IMAGE::loadTexture("./img/grass.bmp"))
-        };
+        Chunk::Chunk chunks;
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
@@ -114,9 +109,9 @@ int main(int argc, char *argv[]) {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glClearColor(0.5f, 0.5f, 1.0f, 1.0f);
 
-                auto view {camera->getViewMatrix()}, projection {camera->getProjectionMatrix()};
+                auto view {camera.getViewMatrix()}, projection {camera.getProjectionMatrix()};
 
-                chunk->draw(view, projection);
+                chunks.draw(view, projection);
 
                 glfwSwapBuffers(window);
                 glfwPollEvents();
@@ -150,19 +145,19 @@ void keyboardCallback(GLFWwindow *window) {
     }
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        camera->keyboardProcess(Camera::MOVEMENTS::FORWARD);
+        camera.keyboardProcess(Camera::MOVEMENTS::FORWARD);
     }
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        camera->keyboardProcess(Camera::MOVEMENTS::BACKWARD);
+        camera.keyboardProcess(Camera::MOVEMENTS::BACKWARD);
     }
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        camera->keyboardProcess(Camera::MOVEMENTS::RIGHT);
+        camera.keyboardProcess(Camera::MOVEMENTS::RIGHT);
     }
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        camera->keyboardProcess(Camera::MOVEMENTS::LEFT);
+        camera.keyboardProcess(Camera::MOVEMENTS::LEFT);
     }
 }
 
@@ -187,5 +182,5 @@ void mouseCallback(GLFWwindow *window, double x, double y) {
     offSetX *= sensitivity;
     offSetY *= sensitivity;
 
-    camera->mouseProcess(&offSetX, &offSetY);
+    camera.mouseProcess(&offSetX, &offSetY);
 }
