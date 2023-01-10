@@ -5,19 +5,9 @@ namespace Shader {
 
 class Shader {
 public:
-    Shader(const char *vertexPath, const char *fragmentPath) {
-        auto vertex {
-            compileShaderData(vertexPath, GL_VERTEX_SHADER)
-        };
-
-        auto fragment {
-            compileShaderData(fragmentPath, GL_FRAGMENT_SHADER)
-        };
-
-        m_shader = glCreateProgram();
-
-        glAttachShader(m_shader, vertex);
-        glAttachShader(m_shader, fragment);
+    Shader(const char *vertexPath, const char *fragmentPath) : m_shader {glCreateProgram()} {
+        glAttachShader(m_shader, compileShaderData(vertexPath, GL_VERTEX_SHADER));
+        glAttachShader(m_shader, compileShaderData(fragmentPath, GL_FRAGMENT_SHADER));
         glLinkProgram(m_shader);
 
         auto success {0};
@@ -31,9 +21,6 @@ public:
 
             throw std::string {"Falha ao compilar shader.\n" + std::string(infoLog)};
         }
-
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
     }
 
     ~Shader() {
@@ -72,8 +59,7 @@ private:
     unsigned int m_shader {0u};
 
     unsigned int compileShaderData(const char *dataPath, const GLenum type) {
-        std::string dataCode {read(dataPath).str()};
-
+        auto dataCode {read(dataPath).str()};
         auto dataCodeSource {dataCode.c_str()};
         auto data {glCreateShader(type)};
 

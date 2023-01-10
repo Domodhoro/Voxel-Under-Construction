@@ -1,1 +1,1 @@
-Erro: Falha ao ler arquivo lua.
+Erro: Falha ao iniciar GLEW.

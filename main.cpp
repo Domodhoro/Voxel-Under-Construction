@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <cmath>
 #include <vector>
 #include <algorithm>
 
@@ -18,14 +19,8 @@
 
 #include "./lib/FastNoiseLite.h"
 
-extern "C" {
-#include "lualib/lua.h"
-#include "lualib/lualib.h"
-#include "lualib/luaconf.h"
-#include "lualib/lauxlib.h"
-}
+constexpr auto WINDOW_WIDTH {800}, WINDOW_HEIGHT {600}, FPS {60};
 
-#include "./src/luaScript.hpp"
 #include "./src/camera.hpp"
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.h"
@@ -41,12 +36,6 @@ int main(int argc, char *argv[]) {
     GLFWwindow *window {nullptr};
 
     try {
-        LuaScript::LuaScript luaScript {"./script.lua"};
-
-        luaScript.readTable("window");
-
-        auto windowWidth {luaScript.readNumber<int>("width")}, windowHeight {luaScript.readNumber<int>("height")};
-
         if (glfwInit() == GLFW_NOT_INITIALIZED) {
             throw std::string {"Falha ao iniciar o GLFW."};
         }
@@ -57,7 +46,7 @@ int main(int argc, char *argv[]) {
 
         glfwWindowHint(GLFW_RESIZABLE, false);
 
-        window = glfwCreateWindow(windowWidth, windowHeight, "Voxel", nullptr, nullptr);
+        window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Voxel", nullptr, nullptr);
 
         if (window == nullptr) {
             throw std::string {"Falha ao criar a janela de visualização."};
@@ -87,20 +76,20 @@ int main(int argc, char *argv[]) {
             glfwGetVideoMode(glfwGetPrimaryMonitor())
         };
 
-        luaScript.readTable("camera");
-
-        camera.setSpeed(luaScript.readNumber<float>("speed"));
-        camera.setFov(luaScript.readNumber<float>("fov"));
-        camera.setAspect(static_cast<float>(windowWidth) / static_cast<float>(windowHeight));
+        camera.setSpeed(0.5f);
+        camera.setFov(60.0f);
+        camera.setAspect(static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
         camera.setPosition(glm::tvec3<float>(0.0f, 0.0f, -5.0f));
 
-        Chunk::Chunk chunks;
+        const auto seed {1007};
+
+        FastNoiseLite noise {seed};
+
+        Chunk::Chunk chunks {0, 0, noise};
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
         glFrontFace(GL_CCW);
-
-        const auto FPS {60};
 
         auto lastFrame {0.0f}, currentFrame {0.0f};
 
@@ -108,7 +97,7 @@ int main(int argc, char *argv[]) {
             currentFrame = static_cast<float>(glfwGetTime());
 
             if ((currentFrame - lastFrame) > (1.0f / static_cast<float>(FPS))) {
-                glfwSetWindowPos(window, (mode->width - windowWidth) / 2, (mode->height - windowHeight) / 2);
+                glfwSetWindowPos(window, (mode->width - WINDOW_WIDTH) / 2, (mode->height - WINDOW_HEIGHT) / 2);
 
                 keyboardCallback(window);
 
