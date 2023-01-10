@@ -11,7 +11,6 @@ enum class BLOCK_TYPE : int {
 constexpr auto SIZE_X {16}, SIZE_Y {128}, SIZE_Z {16};
 
 void populate(const int X, const int Z, FastNoiseLite& noise, std::vector<int>& block);
-
 void otimization(int x, int y, int z, std::vector<int>& block, bool& F, bool& B, bool& R, bool& L, bool& U, bool& D);
 
 class Chunk {
@@ -116,27 +115,27 @@ void populate(const int X, const int Z, FastNoiseLite& noise, std::vector<int>& 
 }
 
 void otimization(int x, int y, int z, std::vector<int>& block, bool& F, bool& B, bool& R, bool& L, bool& U, bool& D) {
-    if (x > 0 && block.at((x - 1) + y * SIZE_X + z * SIZE_X * SIZE_Y) != static_cast<short int>(BLOCK_TYPE::AIR)) {
+    if (x > 0 && block.at((x - 1) + y * SIZE_X + z * SIZE_X * SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
         L = false;
     }
 
-    if (y > 0 && block.at(x + (y - 1) * SIZE_X + z * SIZE_X * SIZE_Y) != static_cast<short int>(BLOCK_TYPE::AIR)) {
+    if (y > 0 && block.at(x + (y - 1) * SIZE_X + z * SIZE_X * SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
         D = false;
     }
 
-    if (z > 0 && block.at(x + y * SIZE_X + (z - 1) * SIZE_X * SIZE_Y) != static_cast<short int>(BLOCK_TYPE::AIR)) {
+    if (z > 0 && block.at(x + y * SIZE_X + (z - 1) * SIZE_X * SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
         F = false;
     }
 
-    if (x < (SIZE_X - 1) && block.at((x + 1) + y * SIZE_X + z * SIZE_X * SIZE_Y) != static_cast<short int>(BLOCK_TYPE::AIR)) {
+    if (x < (SIZE_X - 1) && block.at((x + 1) + y * SIZE_X + z * SIZE_X * SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
         R = false;
     }
 
-    if (y < (SIZE_Y - 1) && block.at(x + (y + 1) * SIZE_X + z * SIZE_X * SIZE_Y) != static_cast<short int>(BLOCK_TYPE::AIR)) {
+    if (y < (SIZE_Y - 1) && block.at(x + (y + 1) * SIZE_X + z * SIZE_X * SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
         U = false;
     }
 
-    if (z < (SIZE_Z - 1) && block.at(x + y * SIZE_X + (z + 1) * SIZE_X * SIZE_Y) != static_cast<short int>(BLOCK_TYPE::AIR)) {
+    if (z < (SIZE_Z - 1) && block.at(x + y * SIZE_X + (z + 1) * SIZE_X * SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
         B = false;
     }
 }
