@@ -1,8 +1,6 @@
 #ifndef CHUNK_HPP
 #define CHUNK_HPP
 
-namespace Chunk {
-
 enum class BLOCK_TYPE : int {
     AIR = 0,
     GRASS,
@@ -10,7 +8,7 @@ enum class BLOCK_TYPE : int {
     STONE
 };
 
-constexpr auto SIZE_X {16}, SIZE_Y {128}, SIZE_Z {16};
+constexpr auto CHUNK_SIZE_X {16}, CHUNK_SIZE_Y {128}, CHUNK_SIZE_Z {16};
 
 void populate(int X, int Z, FastNoiseLite& Noise, std::vector<int>& block);
 void optimize(int x, int y, int z, std::vector<int>& block, bool& F, bool& B, bool& R, bool& L, bool& U, bool& D);
@@ -18,16 +16,16 @@ void optimize(int x, int y, int z, std::vector<int>& block, bool& F, bool& B, bo
 class Chunk {
 public:
     Chunk(const int X, const int Z, FastNoiseLite& Noise) {
-        m_ShaderProgram = std::make_unique<Shader::Shader>("./glsl/vertex.glsl", "./glsl/fragment.glsl");
+        m_ShaderProgram = std::make_unique<Shader>("./glsl/vertex.glsl", "./glsl/fragment.glsl");
 
-        m_Texture = STB_IMAGE::loadTexture("./img/blocks.bmp");
+        m_Texture = loadTexture("./img/blocks.bmp");
 
         populate(X, Z, Noise, m_Block);
 
-        for (auto x = 0; x != SIZE_X; ++x) {
-            for (auto y = 0; y != SIZE_Y; ++y) {
-                for (auto z = 0; z != SIZE_Z; ++z) {
-                    if (m_Block.at(x + y * SIZE_X + z * SIZE_X * SIZE_Y) == static_cast<int>(BLOCK_TYPE::AIR)) {
+        for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
+            for (auto y = 0; y != CHUNK_SIZE_Y; ++y) {
+                for (auto z = 0; z != CHUNK_SIZE_Z; ++z) {
+                    if (m_Block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) == static_cast<int>(BLOCK_TYPE::AIR)) {
                         continue;
                     }
 
@@ -35,7 +33,7 @@ public:
 
                     optimize(x, y, z, m_Block, F, B, R, L, U, D);
 
-                    m_count += ChunkMesh::Mesh(m_Vertice, x + Z, y, z + X, F, B, R, L, U, D, static_cast<float>(BLOCK_TYPE::GRASS));
+                    m_count += Mesh(m_Vertice, x + X, y, z + Z, F, B, R, L, U, D, static_cast<float>(BLOCK_TYPE::GRASS));
                 }
             }
         }
@@ -72,9 +70,9 @@ public:
 private:
     unsigned int m_VAO {0u}, m_VBO {0u}, m_count {0u}, m_Texture {0u};
 
-    std::unique_ptr<Shader::Shader> m_ShaderProgram;
+    std::unique_ptr<Shader> m_ShaderProgram;
 
-    std::vector<ChunkMesh::Vertex> m_Vertice;
+    std::vector<Vertex> m_Vertice;
     std::vector<int> m_Block;
 
     void setup() {
@@ -99,9 +97,9 @@ private:
 };
 
 void populate(int X, int Z, FastNoiseLite& Noise, std::vector<int>& Block) {
-    for (auto x = 0; x != SIZE_X; ++x) {
-        for (auto y = 0; y != SIZE_Y; ++y) {
-            for (auto z = 0; z != SIZE_Z; ++z) {
+    for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
+        for (auto y = 0; y != CHUNK_SIZE_Y; ++y) {
+            for (auto z = 0; z != CHUNK_SIZE_Z; ++z) {
                 auto MAX {
                     Noise.GetNoise(static_cast<float>(x + Z), static_cast<float>(z + X))
                 };
@@ -117,31 +115,29 @@ void populate(int X, int Z, FastNoiseLite& Noise, std::vector<int>& Block) {
 }
 
 void optimize(int x, int y, int z, std::vector<int>& Block, bool& F, bool& B, bool& R, bool& L, bool& U, bool& D) {
-    if (x > 0 && Block.at((x - 1) + y * SIZE_X + z * SIZE_X * SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
+    if (x > 0 && Block.at((x - 1) + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
         L = false;
     }
 
-    if (y > 0 && Block.at(x + (y - 1) * SIZE_X + z * SIZE_X * SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
+    if (y > 0 && Block.at(x + (y - 1) * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
         D = false;
     }
 
-    if (z > 0 && Block.at(x + y * SIZE_X + (z - 1) * SIZE_X * SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
+    if (z > 0 && Block.at(x + y * CHUNK_SIZE_X + (z - 1) * CHUNK_SIZE_X * CHUNK_SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
         F = false;
     }
 
-    if (x < (SIZE_X - 1) && Block.at((x + 1) + y * SIZE_X + z * SIZE_X * SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
+    if (x < (CHUNK_SIZE_X - 1) && Block.at((x + 1) + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
         R = false;
     }
 
-    if (y < (SIZE_Y - 1) && Block.at(x + (y + 1) * SIZE_X + z * SIZE_X * SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
+    if (y < (CHUNK_SIZE_Y - 1) && Block.at(x + (y + 1) * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
         U = false;
     }
 
-    if (z < (SIZE_Z - 1) && Block.at(x + y * SIZE_X + (z + 1) * SIZE_X * SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
+    if (z < (CHUNK_SIZE_Z - 1) && Block.at(x + y * CHUNK_SIZE_X + (z + 1) * CHUNK_SIZE_X * CHUNK_SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
         B = false;
     }
-}
-
 }
 
 #endif

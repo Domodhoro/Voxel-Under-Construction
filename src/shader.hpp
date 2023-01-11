@@ -1,8 +1,6 @@
 #ifndef SHADER_HPP
 #define SHADER_HPP
 
-namespace Shader {
-
 class Shader {
 public:
     Shader(const char *vertexPath, const char *fragmentPath) : m_Shader {glCreateProgram()} {
@@ -97,7 +95,5 @@ private:
         return code;
     }
 };
-
-}
 
 #endif

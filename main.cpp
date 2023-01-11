@@ -27,8 +27,21 @@ constexpr auto WINDOW_WIDTH {800}, WINDOW_HEIGHT {600}, FPS {60};
 #include "./src/chunkMesh.hpp"
 #include "./src/chunk.hpp"
 
-Camera::Camera camera;
+Camera camera;
 
+FastNoiseLite Noise;
+
+struct worldCoordinate {
+    int x {0}, y {0}, z {0};
+
+    friend bool operator==(worldCoordinate lhs, worldCoordinate rhs) {
+        return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
+    }
+};
+
+std::vector<std::pair<worldCoordinate, std::unique_ptr<Chunk>>> chunks;
+
+void addChunk();
 void keyboardCallback(GLFWwindow *window);
 void mouseCallback(GLFWwindow *window, double x, double y);
 
@@ -61,7 +74,7 @@ int main(int argc, char *argv[]) {
         glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
         glfwSetWindowPos(window, 100, 100);
 
-        STB_IMAGE::loadWindowIcon(window, "./img/icon.bmp");
+        loadWindowIcon(window, "./img/icon.bmp");
 
         glewExperimental = true;
 
@@ -79,13 +92,9 @@ int main(int argc, char *argv[]) {
         camera.setSpeed(0.5f);
         camera.setFov(60.0f);
         camera.setAspect(static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
-        camera.setPosition(glm::tvec3<float>(0.0f, 0.0f, -5.0f));
+        camera.setPosition(glm::tvec3<float>(0.0f, 128.0f, -5.0f));
 
-        const auto seed {1007};
-
-        FastNoiseLite noise {seed};
-
-        Chunk::Chunk chunks {0, 0, noise};
+        Noise.SetSeed(1007);
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
@@ -106,7 +115,11 @@ int main(int argc, char *argv[]) {
 
                 auto view {camera.getViewMatrix()}, projection {camera.getProjectionMatrix()};
 
-                chunks.draw(view, projection);
+                for (auto& it : chunks) {
+                    it.second->draw(view, projection);
+                }
+
+                addChunk();
 
                 glfwSwapBuffers(window);
                 glfwPollEvents();
@@ -134,25 +147,41 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+void addChunk() {
+    worldCoordinate coord {
+        floor(camera.getPosition().x / static_cast<float>(CHUNK_SIZE_X)),
+        0,
+        floor(camera.getPosition().z / static_cast<float>(CHUNK_SIZE_Z))
+    };
+
+    auto Predicate = [&](std::pair<worldCoordinate, std::unique_ptr<Chunk>>& chunk) -> bool {
+        return chunk.first == coord;
+    };
+
+    if (std::find_if(chunks.begin(), chunks.end(), Predicate) == chunks.end()) {
+        chunks.emplace_back(coord, std::make_unique<Chunk>(coord.x * CHUNK_SIZE_X, coord.z * CHUNK_SIZE_Z, Noise));
+    }
+}
+
 void keyboardCallback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        camera.keyboardProcess(Camera::MOVEMENTS::FORWARD);
+        camera.keyboardProcess(MOVEMENTS::FORWARD);
     }
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        camera.keyboardProcess(Camera::MOVEMENTS::BACKWARD);
+        camera.keyboardProcess(MOVEMENTS::BACKWARD);
     }
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        camera.keyboardProcess(Camera::MOVEMENTS::RIGHT);
+        camera.keyboardProcess(MOVEMENTS::RIGHT);
     }
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        camera.keyboardProcess(Camera::MOVEMENTS::LEFT);
+        camera.keyboardProcess(MOVEMENTS::LEFT);
     }
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {

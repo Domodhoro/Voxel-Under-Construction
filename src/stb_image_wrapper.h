@@ -1,8 +1,6 @@
 #ifndef STB_IMAGE_WRAPPER_H
 #define STB_IMAGE_WRAPPER_H
 
-namespace STB_IMAGE {
-
 void loadWindowIcon(GLFWwindow *window, const char *iconPath) {
     GLFWimage img;
 
@@ -46,8 +44,6 @@ unsigned int loadTexture(const char *texturePath) {
     stbi_image_free(pixels);
 
     return texture;
-}
-
 }
 
 #endif

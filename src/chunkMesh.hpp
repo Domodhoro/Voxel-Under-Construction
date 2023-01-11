@@ -1,13 +1,11 @@
 #ifndef CHUNK_MESH_HPP
 #define CHUNK_MESH_HPP
 
-namespace ChunkMesh {
-
 struct Vertex {
     float x {0.0f}, y {0.0f}, z {0.0f}, u {0.0f}, v {0.0f}, t {0.0f};
 };
 
-unsigned int Mesh(std::vector<Vertex>& vertice, int X, int Y, int Z, bool F, bool B, bool R, bool L, bool U, bool D, int blockType) {
+unsigned int Mesh(std::vector<Vertex>& vertice, int X, int Y, int Z, bool F, bool B, bool R, bool L, bool U, bool D, float blockType) {
     const auto x {static_cast<float>(X)}, y {static_cast<float>(Y)}, z {static_cast<float>(Z)};
 
     auto amount {0u};
@@ -85,8 +83,6 @@ unsigned int Mesh(std::vector<Vertex>& vertice, int X, int Y, int Z, bool F, boo
     }
 
     return amount;
-}
-
 }
 
 #endif
