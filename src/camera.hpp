@@ -36,7 +36,7 @@ public:
         m_far = far;
     }
 
-    glm::tvec3<float> getPosition() {
+    glm::tvec3<float>& getPosition() {
         return m_position;
     }
 

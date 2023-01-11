@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
         };
 
         glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
-        glfwSetWindowPos(window, 0, 0);
+        glfwSetWindowPos(window, 100, 100);
 
         STB_IMAGE::loadWindowIcon(window, "./img/icon.bmp");
 
@@ -153,6 +153,10 @@ void keyboardCallback(GLFWwindow *window) {
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         camera.keyboardProcess(Camera::MOVEMENTS::LEFT);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        camera.getPosition().y += 0.5f;
     }
 }
 

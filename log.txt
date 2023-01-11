@@ -1,1 +1,2 @@
-Erro: Falha ao iniciar GLEW.
+Erro: Falha ao compilar shader.
+0:15(2): error: initializer of type float cannot be assigned to variable of type int
