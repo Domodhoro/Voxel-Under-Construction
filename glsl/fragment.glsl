@@ -6,7 +6,7 @@ out highp vec4 FragColor;
 
 in highp vec3 FragTexture;
 
-highp vec2 Sample(highp vec2 tex, highp float size, highp float x, highp float y);
+highp vec2 Sample(highp vec2 Texture, highp float Size, highp float x, highp float y);
 
 void main() {
     highp vec4 Color = vec4(1.0f);
@@ -26,6 +26,6 @@ void main() {
     FragColor = Color;
 }
 
-highp vec2 Sample(highp vec2 tex, highp float size, highp float x, highp float y) {
-    return vec2((tex.x + x) * size, (tex.y + y) * size);
+highp vec2 Sample(highp vec2 Texture, highp float Size, highp float x, highp float y) {
+    return vec2((Texture.x + x) * Size, (Texture.y + y) * Size);
 }

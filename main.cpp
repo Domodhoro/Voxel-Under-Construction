@@ -34,14 +34,15 @@ FastNoiseLite Noise;
 struct worldCoordinate {
     int x {0}, y {0}, z {0};
 
-    friend bool operator==(worldCoordinate lhs, worldCoordinate rhs) {
+    friend bool operator==(const worldCoordinate lhs, const worldCoordinate rhs) {
         return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
     }
 };
 
 std::vector<std::pair<worldCoordinate, std::unique_ptr<Chunk>>> chunks;
 
-void addChunk();
+void framebufferSizeCallback(GLFWwindow *window, int width, int height);
+void addChunk(unsigned int &Shader, unsigned int &Texture);
 void keyboardCallback(GLFWwindow *window);
 void mouseCallback(GLFWwindow *window, double x, double y);
 
@@ -50,7 +51,9 @@ int main(int argc, char *argv[]) {
 
     try {
         if (glfwInit() == GLFW_NOT_INITIALIZED) {
-            throw std::string {"Falha ao iniciar o GLFW."};
+            throw std::runtime_error {
+                "Falha ao iniciar o GLFW."
+            };
         }
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -62,15 +65,12 @@ int main(int argc, char *argv[]) {
         window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Voxel", nullptr, nullptr);
 
         if (window == nullptr) {
-            throw std::string {"Falha ao criar a janela de visualização."};
+            throw std::runtime_error {
+                "Falha ao criar a janela de visualização."
+            };
         }
 
         glfwMakeContextCurrent(window);
-
-        auto framebufferSizeCallback = [](GLFWwindow *window, int width, int height) -> void {
-            glViewport(0, 0, width, height);
-        };
-
         glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
         glfwSetWindowPos(window, 100, 100);
 
@@ -79,7 +79,9 @@ int main(int argc, char *argv[]) {
         glewExperimental = true;
 
         if (glewInit() != GLEW_OK) {
-            throw std::string {"Falha ao iniciar GLEW."};
+            throw std::runtime_error {
+                "Falha ao iniciar GLEW."
+            };
         }
 
         glfwSetCursorPosCallback(window, mouseCallback);
@@ -92,7 +94,15 @@ int main(int argc, char *argv[]) {
         camera.setSpeed(0.5f);
         camera.setFov(60.0f);
         camera.setAspect(static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
-        camera.setPosition(glm::tvec3<float>(0.0f, 128.0f, -5.0f));
+        camera.setPosition(glm::tvec3<float>(0.0f, 100.0f, 0.0f));
+
+        auto Shader {
+            shaderProgram("./glsl/vertex.glsl", "./glsl/fragment.glsl")
+        };
+
+        auto Texture {
+            loadTexture("./img/blocks.bmp")
+        };
 
         Noise.SetSeed(1007);
 
@@ -113,13 +123,13 @@ int main(int argc, char *argv[]) {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glClearColor(0.5f, 0.5f, 1.0f, 1.0f);
 
-                auto view {camera.getViewMatrix()}, projection {camera.getProjectionMatrix()};
+                auto View {camera.getViewMatrix()}, Projection {camera.getProjectionMatrix()};
 
                 for (auto& it : chunks) {
-                    it.second->draw(view, projection);
+                    it.second->draw(View, Projection);
                 }
 
-                addChunk();
+                addChunk(Shader, Texture);
 
                 glfwSwapBuffers(window);
                 glfwPollEvents();
@@ -128,18 +138,18 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        glfwDestroyWindow(window);
-        glfwTerminate();
-
-    } catch (const std::string& error) {
-        std::ofstream file {"./log.txt"};
-
-        file << "Erro: " << error;
-
-        file.close();
+        glDeleteProgram(Shader);
+        glDeleteTextures(1, &Texture);
 
         glfwDestroyWindow(window);
         glfwTerminate();
+
+    } catch (std::exception &e) {
+        glfwDestroyWindow(window);
+        glfwTerminate();
+
+        std::cout << e.what() << std::endl;
+        std::cin.get();
 
         return 1;
     }
@@ -147,7 +157,11 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void addChunk() {
+void framebufferSizeCallback(GLFWwindow *window, int width, int height) {
+    glViewport(0, 0, width, height);
+};
+
+void addChunk(unsigned int &Shader, unsigned int &Texture) {
     worldCoordinate coord {
         floor(camera.getPosition().x / static_cast<float>(CHUNK_SIZE_X)),
         0,
@@ -159,7 +173,7 @@ void addChunk() {
     };
 
     if (std::find_if(chunks.begin(), chunks.end(), Predicate) == chunks.end()) {
-        chunks.emplace_back(coord, std::make_unique<Chunk>(coord.x * CHUNK_SIZE_X, coord.z * CHUNK_SIZE_Z, Noise));
+        chunks.emplace_back(coord, std::make_unique<Chunk>(coord.x * CHUNK_SIZE_X, coord.z * CHUNK_SIZE_Z, Shader, Texture, Noise));
     }
 }
 

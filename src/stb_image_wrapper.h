@@ -7,7 +7,9 @@ void loadWindowIcon(GLFWwindow *window, const char *iconPath) {
     img.pixels = stbi_load(iconPath, &img.width, &img.height, 0, 4);
 
     if (img.pixels == nullptr) {
-        throw std::string {"Falha ao carregar textura do ícone da janela de visualização."};
+        throw std::runtime_error {
+            "Falha ao carregar textura do ícone da janela de visualização."
+        };
     }
 
     glfwSetWindowIcon(window, 1, &img);
@@ -35,7 +37,9 @@ unsigned int loadTexture(const char *texturePath) {
     };
 
     if (pixels == nullptr) {
-        throw std::string {"Falha ao carregar textura."};
+        throw std::runtime_error {
+            "Falha ao carregar textura."
+        };
     }
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);

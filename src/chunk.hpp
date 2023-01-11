@@ -10,16 +10,12 @@ enum class BLOCK_TYPE : int {
 
 constexpr auto CHUNK_SIZE_X {16}, CHUNK_SIZE_Y {128}, CHUNK_SIZE_Z {16};
 
-void populate(int X, int Z, FastNoiseLite& Noise, std::vector<int>& block);
-void optimize(int x, int y, int z, std::vector<int>& block, bool& F, bool& B, bool& R, bool& L, bool& U, bool& D);
+void populate(int X, int Z, FastNoiseLite &Noise, std::vector<int> &Block);
+void optimize(int x, int y, int z, std::vector<int> &Block, bool &F, bool &B, bool &R, bool &L, bool &U, bool &D);
 
 class Chunk {
 public:
-    Chunk(const int X, const int Z, FastNoiseLite& Noise) {
-        m_ShaderProgram = std::make_unique<Shader>("./glsl/vertex.glsl", "./glsl/fragment.glsl");
-
-        m_Texture = loadTexture("./img/blocks.bmp");
-
+    Chunk(const int X, const int Z, unsigned int &Shader, unsigned int &Texture, FastNoiseLite &Noise) : m_Shader {Shader}, m_Texture {Texture} {
         populate(X, Z, Noise, m_Block);
 
         for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
@@ -42,25 +38,22 @@ public:
     }
 
     ~Chunk() {
-        glDeleteTextures(1, &m_Texture);
-
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers(1, &m_VBO);
     }
 
-    void draw(const glm::mat4& view, const glm::mat4& projection) {
+    void draw(const glm::mat4 &View, const glm::mat4 &Projection) {
         glCullFace(GL_FRONT);
 
-        m_ShaderProgram->use();
-
+        glUseProgram(m_Shader);
         glBindTexture(GL_TEXTURE_2D, m_Texture);
         glBindVertexArray(m_VAO);
 
-        glm::mat4 model {1.0f};
+        glm::mat4 Model {1.0f};
 
-        m_ShaderProgram->setMatrix4fv("model", model);
-        m_ShaderProgram->setMatrix4fv("view", view);
-        m_ShaderProgram->setMatrix4fv("projection", projection);
+        glUniformMatrix4fv(glGetUniformLocation(m_Shader, "Model"), 1, false, glm::value_ptr(Model));
+        glUniformMatrix4fv(glGetUniformLocation(m_Shader, "View"), 1, false, glm::value_ptr(View));
+        glUniformMatrix4fv(glGetUniformLocation(m_Shader, "Projection"), 1, false, glm::value_ptr(Projection));
 
         glDrawArrays(GL_TRIANGLES, 0, m_count);
 
@@ -68,9 +61,7 @@ public:
     }
 
 private:
-    unsigned int m_VAO {0u}, m_VBO {0u}, m_count {0u}, m_Texture {0u};
-
-    std::unique_ptr<Shader> m_ShaderProgram;
+    unsigned int m_VAO {0u}, m_VBO {0u}, m_count {0u}, m_Shader {0u}, m_Texture {0u};
 
     std::vector<Vertex> m_Vertice;
     std::vector<int> m_Block;
@@ -91,12 +82,14 @@ private:
         glEnableVertexAttribArray(1);
 
         if (m_VAO == 0u) {
-            throw std::string {"Falha ao criar VAO."};
+            throw std::runtime_error {
+                "Falha ao criar 'VAO'."
+            };
         }
     }
 };
 
-void populate(int X, int Z, FastNoiseLite& Noise, std::vector<int>& Block) {
+void populate(int X, int Z, FastNoiseLite &Noise, std::vector<int> &Block) {
     for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
         for (auto y = 0; y != CHUNK_SIZE_Y; ++y) {
             for (auto z = 0; z != CHUNK_SIZE_Z; ++z) {
@@ -114,7 +107,7 @@ void populate(int X, int Z, FastNoiseLite& Noise, std::vector<int>& Block) {
     }
 }
 
-void optimize(int x, int y, int z, std::vector<int>& Block, bool& F, bool& B, bool& R, bool& L, bool& U, bool& D) {
+void optimize(int x, int y, int z, std::vector<int> &Block, bool &F, bool &B, bool &R, bool &L, bool &U, bool &D) {
     if (x > 0 && Block.at((x - 1) + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != static_cast<int>(BLOCK_TYPE::AIR)) {
         L = false;
     }
