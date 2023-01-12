@@ -1,8 +1,5 @@
 #include <iostream>
 #include <memory>
-#include <string>
-#include <fstream>
-#include <sstream>
 #include <cmath>
 #include <vector>
 #include <algorithm>
@@ -14,16 +11,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "./lib/stb_image.h"
-
 #include "./lib/FastNoiseLite.h"
 
 constexpr auto WINDOW_WIDTH {800}, WINDOW_HEIGHT {600}, FPS {60};
 
+#include "./src/shaderProgram.hpp"
+#include "./src/stb_image_wrapper.hpp"
 #include "./src/camera.hpp"
-#include "./src/shader.hpp"
-#include "./src/stb_image_wrapper.h"
 #include "./src/chunkMesh.hpp"
 #include "./src/chunk.hpp"
 
@@ -34,7 +28,7 @@ FastNoiseLite Noise;
 struct worldCoordinate {
     int x {0}, y {0}, z {0};
 
-    friend bool operator==(const worldCoordinate lhs, const worldCoordinate rhs) {
+    friend bool operator==(const worldCoordinate &lhs, const worldCoordinate &rhs) {
         return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
     }
 };
@@ -125,7 +119,7 @@ int main(int argc, char *argv[]) {
 
                 auto View {camera.getViewMatrix()}, Projection {camera.getProjectionMatrix()};
 
-                for (auto& it : chunks) {
+                for (auto &it : chunks) {
                     it.second->draw(View, Projection);
                 }
 
@@ -168,7 +162,7 @@ void addChunk(unsigned int &Shader, unsigned int &Texture) {
         floor(camera.getPosition().z / static_cast<float>(CHUNK_SIZE_Z))
     };
 
-    auto Predicate = [&](std::pair<worldCoordinate, std::unique_ptr<Chunk>>& chunk) -> bool {
+    auto Predicate = [&](std::pair<worldCoordinate, std::unique_ptr<Chunk>> &chunk) -> bool {
         return chunk.first == coord;
     };
 

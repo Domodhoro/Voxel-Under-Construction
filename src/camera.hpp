@@ -2,7 +2,7 @@
 #define CAMERA_HPP
 
 enum class MOVEMENTS : int {
-    FORWARD,
+    FORWARD = 0,
     BACKWARD,
     RIGHT,
     LEFT
@@ -10,8 +10,8 @@ enum class MOVEMENTS : int {
 
 class Camera {
 public:
-    void setPosition(const glm::tvec3<float> position) {
-        m_position = position;
+    void setPosition(const glm::tvec3<float> Position) {
+        m_Position = Position;
     }
 
     void setSpeed(const float speed) {
@@ -35,7 +35,7 @@ public:
     }
 
     glm::tvec3<float>& getPosition() {
-        return m_position;
+        return m_Position;
     }
 
     glm::mat4 getProjectionMatrix() {
@@ -43,24 +43,24 @@ public:
     }
 
     glm::mat4 getViewMatrix() {
-        return glm::lookAt(m_position, m_position + m_front, m_up);
+        return glm::lookAt(m_Position, m_Position + m_Front, m_Up);
     }
 
     void keyboardProcess(MOVEMENTS movements) {
         if (movements == MOVEMENTS::FORWARD) {
-            m_position += m_speed * m_front;
+            m_Position += m_speed * m_Front;
         }
 
         if (movements == MOVEMENTS::BACKWARD) {
-            m_position -= m_speed * glm::normalize(glm::cross(m_front, m_up));
+            m_Position -= m_speed * glm::normalize(glm::cross(m_Front, m_Up));
         }
 
         if (movements == MOVEMENTS::RIGHT) {
-            m_position -= m_speed * m_front;
+            m_Position -= m_speed * m_Front;
         }
 
         if (movements == MOVEMENTS::LEFT) {
-            m_position += m_speed * glm::normalize(glm::cross(m_front, m_up));
+            m_Position += m_speed * glm::normalize(glm::cross(m_Front, m_Up));
         }
     }
 
@@ -78,19 +78,19 @@ public:
             m_beta = -angleMax;
         }
 
-        glm::tvec3<float> direction {
+        glm::tvec3<float> Direction {
             std::cos(glm::radians(m_alpha)) * std::cos(glm::radians(m_beta)),
             std::sin(glm::radians(m_beta)),
             std::sin(glm::radians(m_alpha)) * std::cos(glm::radians(m_beta))
         };
 
-        m_front = glm::normalize(direction);
+        m_Front = glm::normalize(Direction);
     }
 
 private:
     float m_fov {60.0f}, m_aspect {1.0f}, m_near {0.001f}, m_far {1000.0f}, m_speed {1.0f}, m_alpha {90.0f}, m_beta {0.0f};
 
-    glm::tvec3<float> m_front {0.0f, 0.0f, 1.0f}, m_position {0.0f}, m_up {0.0f, 1.0f, 0.0f};
+    glm::tvec3<float> m_Front {0.0f, 0.0f, 1.0f}, m_Position {0.0f}, m_Up {0.0f, 1.0f, 0.0f};
 };
 
 #endif

@@ -51,9 +51,9 @@ public:
 
         glm::mat4 Model {1.0f};
 
-        glUniformMatrix4fv(glGetUniformLocation(m_Shader, "Model"), 1, false, glm::value_ptr(Model));
-        glUniformMatrix4fv(glGetUniformLocation(m_Shader, "View"), 1, false, glm::value_ptr(View));
-        glUniformMatrix4fv(glGetUniformLocation(m_Shader, "Projection"), 1, false, glm::value_ptr(Projection));
+        setMatrix4fv(m_Shader, "Model", Model);
+        setMatrix4fv(m_Shader, "View", View);
+        setMatrix4fv(m_Shader, "Projection", Projection);
 
         glDrawArrays(GL_TRIANGLES, 0, m_count);
 
@@ -90,6 +90,9 @@ private:
 };
 
 void populate(int X, int Z, FastNoiseLite &Noise, std::vector<int> &Block) {
+    auto base {64};
+    auto amplitude {8.0f};
+
     for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
         for (auto y = 0; y != CHUNK_SIZE_Y; ++y) {
             for (auto z = 0; z != CHUNK_SIZE_Z; ++z) {
@@ -97,7 +100,7 @@ void populate(int X, int Z, FastNoiseLite &Noise, std::vector<int> &Block) {
                     Noise.GetNoise(static_cast<float>(x + Z), static_cast<float>(z + X))
                 };
 
-                if (y < 64 + std::abs(std::floor(16.0f * MAX))) {
+                if (y < base + std::abs(std::floor(amplitude * MAX))) {
                     Block.emplace_back(static_cast<short int>(BLOCK_TYPE::GRASS));
                 } else {
                     Block.emplace_back(static_cast<short int>(BLOCK_TYPE::AIR));
