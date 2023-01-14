@@ -24,15 +24,16 @@ constexpr auto WINDOW_WIDTH {800}, WINDOW_HEIGHT {600}, FPS {60};
 #include "./src/shaderProgram.hpp"
 #include "./src/stb_image_wrapper.hpp"
 #include "./src/camera.hpp"
+#include "./src/noise.hpp"
 #include "./src/chunkMesh.hpp"
 #include "./src/chunk.hpp"
 
 Camera Camera;
 
-FastNoiseLite Noise;
+Noise Noise;
 
 struct worldCoordinate {
-    int x {0}, y {0}, z {0};
+    long int x {0}, y {0}, z {0};
 
     friend bool operator==(const worldCoordinate &lhs, const worldCoordinate &rhs) {
         return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
@@ -42,9 +43,9 @@ struct worldCoordinate {
 std::vector<std::pair<worldCoordinate, std::unique_ptr<Chunk>>> chunks;
 
 void framebufferSizeCallback(GLFWwindow *window, int width, int height);
-void addChunk(unsigned int &Texture);
 void keyboardCallback(GLFWwindow *window);
 void mouseCallback(GLFWwindow *window, double x, double y);
+void addChunk(unsigned int &Texture);
 
 int main(int argc, char *argv[]) {
     GLFWwindow *window {nullptr};
@@ -104,8 +105,6 @@ int main(int argc, char *argv[]) {
             loadTexture("./img/blocks.bmp")
         };
 
-        Noise.SetSeed(1007);
-
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
         glFrontFace(GL_CCW);
@@ -121,7 +120,7 @@ int main(int argc, char *argv[]) {
                 keyboardCallback(window);
 
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                glClearColor(0.5f, 0.5f, 1.0f, 1.0f);
+                glClearColor(0.7f, 0.8f, 1.0f, 1.0f);
 
                 auto View {Camera.getViewMatrix()}, Projection {Camera.getProjectionMatrix()};
 
@@ -159,22 +158,6 @@ int main(int argc, char *argv[]) {
 void framebufferSizeCallback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 };
-
-void addChunk(unsigned int &Texture) {
-    worldCoordinate coord {
-        floor(Camera.getPosition().x / static_cast<float>(CHUNK_SIZE_X)),
-        0,
-        floor(Camera.getPosition().z / static_cast<float>(CHUNK_SIZE_Z))
-    };
-
-    auto Predicate = [&](std::pair<worldCoordinate, std::unique_ptr<Chunk>> &chunk) -> bool {
-        return chunk.first == coord;
-    };
-
-    if (std::find_if(chunks.begin(), chunks.end(), Predicate) == chunks.end()) {
-        chunks.emplace_back(coord, std::make_unique<Chunk>(coord.x * CHUNK_SIZE_X, coord.z * CHUNK_SIZE_Z, Texture, Noise));
-    }
-}
 
 void keyboardCallback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -224,4 +207,20 @@ void mouseCallback(GLFWwindow *window, double x, double y) {
     offSetY *= sensitivity;
 
     Camera.mouseProcess(&offSetX, &offSetY);
+}
+
+void addChunk(unsigned int &Texture) {
+    worldCoordinate coord {
+        static_cast<long int>(std::floor(Camera.getPosition().x / static_cast<float>(CHUNK_SIZE_X))),
+        0,
+        static_cast<long int>(std::floor(Camera.getPosition().z / static_cast<float>(CHUNK_SIZE_Z)))
+    };
+
+    auto Predicate = [&](std::pair<worldCoordinate, std::unique_ptr<Chunk>> &chunk) -> bool {
+        return chunk.first == coord;
+    };
+
+    if (std::find_if(chunks.begin(), chunks.end(), Predicate) == chunks.end()) {
+        chunks.emplace_back(coord, std::make_unique<Chunk>(coord.x * CHUNK_SIZE_X, coord.z * CHUNK_SIZE_Z, Texture, Noise));
+    }
 }

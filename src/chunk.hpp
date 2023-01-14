@@ -8,14 +8,14 @@ enum class BLOCK_TYPE : int {
     STONE
 };
 
-constexpr auto CHUNK_SIZE_X {16}, CHUNK_SIZE_Y {256}, CHUNK_SIZE_Z {16};
+constexpr auto CHUNK_SIZE_X {16}, CHUNK_SIZE_Y {128}, CHUNK_SIZE_Z {CHUNK_SIZE_X};
 
-void populate(int X, int Z, FastNoiseLite &Noise, std::vector<int> &Block);
+void populate(int X, int Z, Noise &Noise, std::vector<int> &Block);
 void optimize(int x, int y, int z, std::vector<int> &Block, bool &F, bool &B, bool &R, bool &L, bool &U, bool &D);
 
 class Chunk {
 public:
-    Chunk(const int X, const int Z, unsigned int &Texture, FastNoiseLite &Noise) : m_Texture {Texture} {
+    Chunk(int X, int Z, unsigned int &Texture, Noise &Noise) : m_Texture {Texture} {
         populate(X, Z, Noise, m_Block);
 
         for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
@@ -90,7 +90,7 @@ private:
     }
 };
 
-void populate(int X, int Z, FastNoiseLite &Noise, std::vector<int> &Block) {
+void populate(int X, int Z, Noise &Noise, std::vector<int> &Block) {
     auto base {64};
     auto amplitude {8.0f};
 
@@ -98,7 +98,7 @@ void populate(int X, int Z, FastNoiseLite &Noise, std::vector<int> &Block) {
         for (auto y = 0; y != CHUNK_SIZE_Y; ++y) {
             for (auto z = 0; z != CHUNK_SIZE_Z; ++z) {
                 auto MAX {
-                    Noise.GetNoise(static_cast<float>(x + Z), static_cast<float>(z + X))
+                    Noise.use().GetNoise(static_cast<float>(x + Z), static_cast<float>(z + X))
                 };
 
                 if (y < base + std::abs(std::floor(amplitude * MAX))) {
