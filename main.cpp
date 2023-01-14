@@ -1,5 +1,8 @@
 #include <iostream>
 #include <memory>
+#include <string>
+#include <fstream>
+#include <sstream>
 #include <cmath>
 #include <vector>
 #include <algorithm>
@@ -11,6 +14,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "./lib/stb_image.h"
+
 #include "./lib/FastNoiseLite.h"
 
 constexpr auto WINDOW_WIDTH {800}, WINDOW_HEIGHT {600}, FPS {60};
@@ -21,7 +27,7 @@ constexpr auto WINDOW_WIDTH {800}, WINDOW_HEIGHT {600}, FPS {60};
 #include "./src/chunkMesh.hpp"
 #include "./src/chunk.hpp"
 
-Camera camera;
+Camera Camera;
 
 FastNoiseLite Noise;
 
@@ -36,7 +42,7 @@ struct worldCoordinate {
 std::vector<std::pair<worldCoordinate, std::unique_ptr<Chunk>>> chunks;
 
 void framebufferSizeCallback(GLFWwindow *window, int width, int height);
-void addChunk(unsigned int &Shader, unsigned int &Texture);
+void addChunk(unsigned int &Texture);
 void keyboardCallback(GLFWwindow *window);
 void mouseCallback(GLFWwindow *window, double x, double y);
 
@@ -60,7 +66,7 @@ int main(int argc, char *argv[]) {
 
         if (window == nullptr) {
             throw std::runtime_error {
-                "Falha ao criar a janela de visualizaÃ§Ã£o."
+                "Falha ao criar a janela de visualização."
             };
         }
 
@@ -85,13 +91,13 @@ int main(int argc, char *argv[]) {
             glfwGetVideoMode(glfwGetPrimaryMonitor())
         };
 
-        camera.setSpeed(0.5f);
-        camera.setFov(60.0f);
-        camera.setAspect(static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
-        camera.setPosition(glm::tvec3<float>(0.0f, 100.0f, 0.0f));
+        Camera.setSpeed(0.5f);
+        Camera.setFov(60.0f);
+        Camera.setAspect(static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
+        Camera.setPosition(glm::tvec3<float>(0.0f, 100.0f, 0.0f));
 
-        auto Shader {
-            shaderProgram("./glsl/vertex.glsl", "./glsl/fragment.glsl")
+        auto ShaderProgram {
+            Shader("./glsl/vertex.glsl", "./glsl/fragment.glsl")
         };
 
         auto Texture {
@@ -117,13 +123,13 @@ int main(int argc, char *argv[]) {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glClearColor(0.5f, 0.5f, 1.0f, 1.0f);
 
-                auto View {camera.getViewMatrix()}, Projection {camera.getProjectionMatrix()};
+                auto View {Camera.getViewMatrix()}, Projection {Camera.getProjectionMatrix()};
 
                 for (auto &it : chunks) {
-                    it.second->draw(View, Projection);
+                    it.second->draw(ShaderProgram, View, Projection);
                 }
 
-                addChunk(Shader, Texture);
+                addChunk(Texture);
 
                 glfwSwapBuffers(window);
                 glfwPollEvents();
@@ -132,7 +138,6 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        glDeleteProgram(Shader);
         glDeleteTextures(1, &Texture);
 
         glfwDestroyWindow(window);
@@ -155,11 +160,11 @@ void framebufferSizeCallback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 };
 
-void addChunk(unsigned int &Shader, unsigned int &Texture) {
+void addChunk(unsigned int &Texture) {
     worldCoordinate coord {
-        floor(camera.getPosition().x / static_cast<float>(CHUNK_SIZE_X)),
+        floor(Camera.getPosition().x / static_cast<float>(CHUNK_SIZE_X)),
         0,
-        floor(camera.getPosition().z / static_cast<float>(CHUNK_SIZE_Z))
+        floor(Camera.getPosition().z / static_cast<float>(CHUNK_SIZE_Z))
     };
 
     auto Predicate = [&](std::pair<worldCoordinate, std::unique_ptr<Chunk>> &chunk) -> bool {
@@ -167,7 +172,7 @@ void addChunk(unsigned int &Shader, unsigned int &Texture) {
     };
 
     if (std::find_if(chunks.begin(), chunks.end(), Predicate) == chunks.end()) {
-        chunks.emplace_back(coord, std::make_unique<Chunk>(coord.x * CHUNK_SIZE_X, coord.z * CHUNK_SIZE_Z, Shader, Texture, Noise));
+        chunks.emplace_back(coord, std::make_unique<Chunk>(coord.x * CHUNK_SIZE_X, coord.z * CHUNK_SIZE_Z, Texture, Noise));
     }
 }
 
@@ -177,23 +182,23 @@ void keyboardCallback(GLFWwindow *window) {
     }
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        camera.keyboardProcess(MOVEMENTS::FORWARD);
+        Camera.keyboardProcess(MOVEMENTS::FORWARD);
     }
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        camera.keyboardProcess(MOVEMENTS::BACKWARD);
+        Camera.keyboardProcess(MOVEMENTS::BACKWARD);
     }
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        camera.keyboardProcess(MOVEMENTS::RIGHT);
+        Camera.keyboardProcess(MOVEMENTS::RIGHT);
     }
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        camera.keyboardProcess(MOVEMENTS::LEFT);
+        Camera.keyboardProcess(MOVEMENTS::LEFT);
     }
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        camera.getPosition().y += 0.5f;
+        Camera.getPosition().y += 0.5f;
     }
 }
 
@@ -218,5 +223,5 @@ void mouseCallback(GLFWwindow *window, double x, double y) {
     offSetX *= sensitivity;
     offSetY *= sensitivity;
 
-    camera.mouseProcess(&offSetX, &offSetY);
+    Camera.mouseProcess(&offSetX, &offSetY);
 }

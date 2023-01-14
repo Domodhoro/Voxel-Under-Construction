@@ -8,14 +8,14 @@ enum class BLOCK_TYPE : int {
     STONE
 };
 
-constexpr auto CHUNK_SIZE_X {16}, CHUNK_SIZE_Y {128}, CHUNK_SIZE_Z {16};
+constexpr auto CHUNK_SIZE_X {16}, CHUNK_SIZE_Y {256}, CHUNK_SIZE_Z {16};
 
 void populate(int X, int Z, FastNoiseLite &Noise, std::vector<int> &Block);
 void optimize(int x, int y, int z, std::vector<int> &Block, bool &F, bool &B, bool &R, bool &L, bool &U, bool &D);
 
 class Chunk {
 public:
-    Chunk(const int X, const int Z, unsigned int &Shader, unsigned int &Texture, FastNoiseLite &Noise) : m_Shader {Shader}, m_Texture {Texture} {
+    Chunk(const int X, const int Z, unsigned int &Texture, FastNoiseLite &Noise) : m_Texture {Texture} {
         populate(X, Z, Noise, m_Block);
 
         for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
@@ -42,18 +42,19 @@ public:
         glDeleteBuffers(1, &m_VBO);
     }
 
-    void draw(const glm::mat4 &View, const glm::mat4 &Projection) {
+    void draw(Shader &ShaderProgram, const glm::mat4 &View, const glm::mat4 &Projection) {
         glCullFace(GL_FRONT);
 
-        glUseProgram(m_Shader);
+        ShaderProgram.use();
+
         glBindTexture(GL_TEXTURE_2D, m_Texture);
         glBindVertexArray(m_VAO);
 
         glm::mat4 Model {1.0f};
 
-        setMatrix4fv(m_Shader, "Model", Model);
-        setMatrix4fv(m_Shader, "View", View);
-        setMatrix4fv(m_Shader, "Projection", Projection);
+        ShaderProgram.setMatrix4fv("Model", Model);
+        ShaderProgram.setMatrix4fv("View", View);
+        ShaderProgram.setMatrix4fv("Projection", Projection);
 
         glDrawArrays(GL_TRIANGLES, 0, m_count);
 
@@ -61,7 +62,7 @@ public:
     }
 
 private:
-    unsigned int m_VAO {0u}, m_VBO {0u}, m_count {0u}, m_Shader {0u}, m_Texture {0u};
+    unsigned int m_VAO {0u}, m_VBO {0u}, m_count {0u}, m_Texture {0u};
 
     std::vector<Vertex> m_Vertice;
     std::vector<int> m_Block;
