@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
 
         if (window == nullptr) {
             throw std::runtime_error {
-                "Falha ao criar a janela de visualização."
+                "Falha ao criar a janela de visualizaÃ§Ã£o."
             };
         }
 
@@ -230,11 +230,7 @@ void addChunk(unsigned int &chunkTexture, FastNoiseLite &noise, glm::tvec3<float
         static_cast<long int>(std::floor(position.z / static_cast<float>(CHUNK_SIZE_Z)))
     };
 
-    auto Predicate = [&](std::pair<worldCoordinate, std::unique_ptr<Chunk>> &chunk) -> bool {
-        return chunk.first == coord;
-    };
-
-    if (std::find_if(chunks.begin(), chunks.end(), Predicate) == chunks.end()) {
+    if (std::find_if(chunks.begin(), chunks.end(), [&](std::pair<worldCoordinate, std::unique_ptr<Chunk>> &chunk) -> bool {return chunk.first == coord;}) == chunks.end()) {
         chunks.emplace_back(coord, std::make_unique<Chunk>(coord.x * CHUNK_SIZE_X, coord.z * CHUNK_SIZE_Z, chunkTexture, noise));
     }
 }
