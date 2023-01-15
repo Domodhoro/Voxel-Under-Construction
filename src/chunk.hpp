@@ -65,7 +65,7 @@ public:
         glDeleteBuffers(1, &m_VBO);
     }
 
-    void draw(Shader::Shader &shader, const glm::mat4 &View, const glm::mat4 &Projection) {
+    void draw(Shader &shader, const glm::mat4 &View, const glm::mat4 &Projection) {
         glCullFace(GL_FRONT);
 
         shader.use();
@@ -87,7 +87,7 @@ public:
 private:
     unsigned int m_VAO {0u}, m_VBO {0u}, m_count {0u}, m_texture {0u};
 
-    std::vector<ChunkMesh::Vertex> m_vertice;
+    std::vector<Vertex> m_vertice;
     std::vector<BLOCK_TYPE> m_block;
 
     void setup() {
@@ -124,7 +124,7 @@ void terrain(std::vector<BLOCK_TYPE> &block, FastNoiseLite &noise, int X, int Z)
                     base + std::abs(std::floor(amplitude * noise.GetNoise(static_cast<float>(x + Z), static_cast<float>(z + X))))
                 };
 
-                if (y <= 32) {
+                if (y <= 16) {
                     block.emplace_back(BLOCK_TYPE::STONE);
                 } else if (y > 0 && y < MAX) {
                     block.emplace_back(BLOCK_TYPE::DIRT);

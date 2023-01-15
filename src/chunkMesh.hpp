@@ -1,8 +1,6 @@
 #ifndef CHUNK_MESH_HPP
 #define CHUNK_MESH_HPP
 
-namespace ChunkMesh {
-
 struct Vertex {
     float X {0.0f}, Y {0.0f}, Z {0.0f}, U {0.0f}, V {0.0f}, T {0.0f};
 };
@@ -112,8 +110,6 @@ unsigned int Mesh(std::vector<Vertex> &Vertice, int x, int y, int z, bool &F, bo
     }
 
     return count;
-}
-
 }
 
 #endif
