@@ -2,26 +2,26 @@
 #define STB_IMAGE_WRAPPER_HPP
 
 void loadWindowIcon(GLFWwindow *window, const char *iconPath) {
-    GLFWimage Img;
+    GLFWimage img;
 
-    Img.pixels = stbi_load(iconPath, &Img.width, &Img.height, 0, 4);
+    img.pixels = stbi_load(iconPath, &img.width, &img.height, 0, 4);
 
-    if (Img.pixels == nullptr) {
+    if (img.pixels == nullptr) {
         throw std::runtime_error {
             "Falha ao carregar textura do ícone da janela de visualização."
         };
     }
 
-    glfwSetWindowIcon(window, 1, &Img);
+    glfwSetWindowIcon(window, 1, &img);
 
-    stbi_image_free(Img.pixels);
+    stbi_image_free(img.pixels);
 }
 
 unsigned int loadTexture(const char *texturePath) {
-    auto Texture {0u};
+    auto texture {0u};
 
-    glGenTextures(1, &Texture);
-    glBindTexture(GL_TEXTURE_2D, Texture);
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -47,7 +47,7 @@ unsigned int loadTexture(const char *texturePath) {
 
     stbi_image_free(pixels);
 
-    return Texture;
+    return texture;
 }
 
 #endif

@@ -63,7 +63,7 @@ public:
         glDeleteBuffers(1, &m_VBO);
     }
 
-    void draw(Shader &shader, const glm::mat4 &View, const glm::mat4 &Projection) {
+    void draw(Shader &shader, glm::mat4 &View, glm::mat4 &Projection) {
         glCullFace(GL_FRONT);
 
         shader.use();

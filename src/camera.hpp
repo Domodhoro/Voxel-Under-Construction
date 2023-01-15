@@ -10,27 +10,27 @@ enum class MOVEMENTS : int {
 
 class Camera {
 public:
-    void setPosition(const glm::tvec3<float> Position) {
+    void setPosition(glm::tvec3<float> Position) {
         m_Position = Position;
     }
 
-    void setSpeed(const float speed) {
+    void setSpeed(float speed) {
         m_speed = speed;
     }
 
-    void setFov(const float fov) {
+    void setFov(float fov) {
         m_fov = fov;
     }
 
-    void setAspect(const float aspect) {
+    void setAspect(float aspect) {
         m_aspect = aspect;
     }
 
-    void setNearPlane(const float near) {
+    void setNearPlane(float near) {
         m_near = near;
     }
 
-    void setFarPlane(const float far) {
+    void setFarPlane(float far) {
         m_far = far;
     }
 

@@ -24,6 +24,10 @@
 
 constexpr auto WINDOW_WIDTH {1200}, WINDOW_HEIGHT {600}, FPS {60}, WORLD_SIZE {3};
 
+GLFWwindow *window {nullptr};
+
+const GLFWvidmode *mode {nullptr};
+
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.hpp"
 #include "./src/camera.hpp"
@@ -42,7 +46,7 @@ struct worldCoordinate {
 
 std::vector<std::pair<worldCoordinate, std::unique_ptr<Chunk>>> chunks;
 
-void framebufferSizeCallback(GLFWwindow *window, int width, int height);
+void init();
 void keyboardCallback(GLFWwindow *window);
 void mouseCallback(GLFWwindow *window, double x, double y);
 void addChunk(unsigned int &chunkTexture, FastNoiseLite &noise, glm::tvec3<float> position);
@@ -50,49 +54,8 @@ void addChunk(unsigned int &chunkTexture, FastNoiseLite &noise, glm::tvec3<float
 int main(int argc, char *argv[]) {
     std::srand(std::time(nullptr));
 
-    GLFWwindow *window {nullptr};
-
     try {
-        if (glfwInit() == GLFW_NOT_INITIALIZED) {
-            throw std::runtime_error {
-                "Falha ao iniciar o GLFW."
-            };
-        }
-
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-        glfwWindowHint(GLFW_RESIZABLE, false);
-
-        window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Voxel", nullptr, nullptr);
-
-        if (window == nullptr) {
-            throw std::runtime_error {
-                "Falha ao criar a janela de visualizaÃ§Ã£o."
-            };
-        }
-
-        glfwMakeContextCurrent(window);
-        glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
-        glfwSetWindowPos(window, 100, 100);
-
-        loadWindowIcon(window, "./img/icon.bmp");
-
-        glewExperimental = true;
-
-        if (glewInit() != GLEW_OK) {
-            throw std::runtime_error {
-                "Falha ao iniciar GLEW."
-            };
-        }
-
-        glfwSetCursorPosCallback(window, mouseCallback);
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-        const GLFWvidmode *mode {
-            glfwGetVideoMode(glfwGetPrimaryMonitor())
-        };
+        init();
 
         camera.setSpeed(0.25f);
         camera.setFov(60.0f);
@@ -159,12 +122,11 @@ int main(int argc, char *argv[]) {
 
         glfwDestroyWindow(window);
         glfwTerminate();
-
     } catch (std::exception &e) {
         glfwDestroyWindow(window);
         glfwTerminate();
 
-        std::cout << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
         std::cin.get();
 
         return 1;
@@ -176,6 +138,47 @@ int main(int argc, char *argv[]) {
 void framebufferSizeCallback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 };
+
+void init() {
+    if (glfwInit() == GLFW_NOT_INITIALIZED) {
+        throw std::runtime_error {
+            "Falha ao iniciar o GLFW."
+        };
+    }
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    glfwWindowHint(GLFW_RESIZABLE, false);
+
+    window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Voxel", nullptr, nullptr);
+
+    if (window == nullptr) {
+        throw std::runtime_error {
+            "Falha ao criar a janela de visualização."
+        };
+    }
+
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+    glfwSetWindowPos(window, 100, 100);
+
+    loadWindowIcon(window, "./img/icon.bmp");
+
+    glewExperimental = true;
+
+    if (glewInit() != GLEW_OK) {
+        throw std::runtime_error {
+            "Falha ao iniciar GLEW."
+        };
+    }
+
+    glfwSetCursorPosCallback(window, mouseCallback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+}
 
 void keyboardCallback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
