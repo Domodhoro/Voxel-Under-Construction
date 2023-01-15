@@ -49,24 +49,6 @@ std::vector<std::pair<worldCoordinate, std::unique_ptr<Chunk>>> chunks;
 void keyboardCallback(GLFWwindow *window);
 void mouseCallback(GLFWwindow *window, double x, double y);
 
-class ChunkManager {
-public:
-    ChunkManager(int seed) : m_seed {seed} {
-
-    }
-
-    void add(Camera &camera, unsigned int &texture) {
-
-    }
-
-    void draw(Shader &shader, Camera &camera) {
-
-    }
-
-private:
-    int m_seed {1};
-};
-
 int main(int argc, char *argv[]) {
     try {
         if (glfwInit() == GLFW_NOT_INITIALIZED) {
