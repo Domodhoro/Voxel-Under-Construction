@@ -7,6 +7,8 @@
 #include <ctime>
 #include <vector>
 #include <algorithm>
+#include <thread>
+#include <future>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -38,7 +40,7 @@ struct worldCoordinate {
     }
 };
 
-std::vector<std::pair<worldCoordinate, std::unique_ptr<Chunk::Chunk>>> chunks;
+std::vector<std::pair<worldCoordinate, std::unique_ptr<Chunk>>> chunks;
 
 void framebufferSizeCallback(GLFWwindow *window, int width, int height);
 void keyboardCallback(GLFWwindow *window);
@@ -67,7 +69,7 @@ int main(int argc, char *argv[]) {
 
         if (window == nullptr) {
             throw std::runtime_error {
-                "Falha ao criar a janela de visualizaÃ§Ã£o."
+                "Falha ao criar a janela de visualização."
             };
         }
 
@@ -124,6 +126,16 @@ int main(int argc, char *argv[]) {
         while (!glfwWindowShouldClose(window)) {
             currentFrame = static_cast<float>(glfwGetTime());
 
+            for (auto x = -WORLD_SIZE; x != WORLD_SIZE; ++x) {
+                for (auto z = -WORLD_SIZE; z != WORLD_SIZE; ++z) {
+                    auto X {static_cast<float>(CHUNK_SIZE_X * x)}, Z {static_cast<float>(CHUNK_SIZE_Z * z)};
+
+                    addChunk(chunkTexture, noise, camera.getPosition() + glm::tvec3<float>(X, 0.0f, Z));
+                }
+            }
+
+            auto View {camera.getViewMatrix()}, Projection {camera.getProjectionMatrix()};
+
             if ((currentFrame - lastFrame) > (1.0f / static_cast<float>(FPS))) {
                 glfwSetWindowPos(window, (mode->width - WINDOW_WIDTH) / 2, (mode->height - WINDOW_HEIGHT) / 2);
 
@@ -131,16 +143,6 @@ int main(int argc, char *argv[]) {
 
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glClearColor(0.7f, 0.8f, 1.0f, 1.0f);
-
-                for (auto x = -WORLD_SIZE; x != WORLD_SIZE; ++x) {
-                    for (auto z = -WORLD_SIZE; z != WORLD_SIZE; ++z) {
-                        auto X {static_cast<float>(Chunk::CHUNK_SIZE_X * x)}, Z {static_cast<float>(Chunk::CHUNK_SIZE_Z * z)};
-
-                        addChunk(chunkTexture, noise, camera.getPosition() + glm::tvec3<float>(X, 0.0f, Z));
-                    }
-                }
-
-                auto View {camera.getViewMatrix()}, Projection {camera.getProjectionMatrix()};
 
                 for (auto &it : chunks) {
                     it.second->draw(chunkShader, View, Projection);
@@ -223,16 +225,16 @@ void mouseCallback(GLFWwindow *window, double x, double y) {
 
 void addChunk(unsigned int &chunkTexture, FastNoiseLite &noise, glm::tvec3<float> position) {
     worldCoordinate coord {
-        static_cast<long int>(std::floor(position.x / static_cast<float>(Chunk::CHUNK_SIZE_X))),
+        static_cast<long int>(std::floor(position.x / static_cast<float>(CHUNK_SIZE_X))),
         0,
-        static_cast<long int>(std::floor(position.z / static_cast<float>(Chunk::CHUNK_SIZE_Z)))
+        static_cast<long int>(std::floor(position.z / static_cast<float>(CHUNK_SIZE_Z)))
     };
 
-    auto Predicate = [&](std::pair<worldCoordinate, std::unique_ptr<Chunk::Chunk>> &chunk) -> bool {
+    auto Predicate = [&](std::pair<worldCoordinate, std::unique_ptr<Chunk>> &chunk) -> bool {
         return chunk.first == coord;
     };
 
     if (std::find_if(chunks.begin(), chunks.end(), Predicate) == chunks.end()) {
-        chunks.emplace_back(coord, std::make_unique<Chunk::Chunk>(coord.x * Chunk::CHUNK_SIZE_X, coord.z * Chunk::CHUNK_SIZE_Z, chunkTexture, noise));
+        chunks.emplace_back(coord, std::make_unique<Chunk>(coord.x * CHUNK_SIZE_X, coord.z * CHUNK_SIZE_Z, chunkTexture, noise));
     }
 }

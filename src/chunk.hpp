@@ -1,8 +1,6 @@
 #ifndef CHUNK_HPP
 #define CHUNK_HPP
 
-namespace Chunk {
-
 enum class BLOCK_TYPE : int {
     AIR = 0,
     GRASS,
@@ -136,8 +134,6 @@ void terrain(std::vector<BLOCK_TYPE> &block, FastNoiseLite &noise, int X, int Z)
             }
         }
     }
-}
-
 }
 
 #endif
