@@ -195,10 +195,6 @@ void keyboardCallback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         camera.keyboardProcess(MOVEMENTS::LEFT);
     }
-
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        camera.getPosition().y += 0.25f;
-    }
 }
 
 void mouseCallback(GLFWwindow *window, double x, double y) {
