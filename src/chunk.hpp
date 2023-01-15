@@ -5,17 +5,18 @@ enum class BLOCK_TYPE : int {
     AIR = 0,
     GRASS,
     DIRT,
-    STONE
+    STONE,
+    SAND
 };
 
 constexpr auto CHUNK_SIZE_X {16}, CHUNK_SIZE_Y {128}, CHUNK_SIZE_Z {CHUNK_SIZE_X};
 
-void terrain(std::vector<BLOCK_TYPE> &block, FastNoiseLite &noise, int X, int Z);
+void terrain(int base, float amplitude, std::vector<BLOCK_TYPE> &block, FastNoiseLite &noise, int X, int Z);
 
 class Chunk {
 public:
     Chunk(int X, int Z, unsigned int &texture, FastNoiseLite &noise) : m_texture {texture} {
-        terrain(m_block, noise, X, Z);
+        terrain(64, 8.0f, m_block, noise, X, Z);
 
         for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
             for (auto y = 0; y != CHUNK_SIZE_Y; ++y) {
@@ -111,10 +112,7 @@ private:
     }
 };
 
-void terrain(std::vector<BLOCK_TYPE> &block, FastNoiseLite &noise, int X, int Z) {
-    auto base {64};
-    auto amplitude {8.0f};
-
+void terrain(int base, float amplitude, std::vector<BLOCK_TYPE> &block, FastNoiseLite &noise, int X, int Z) {
     for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
         for (auto y = 0; y != CHUNK_SIZE_Y; ++y) {
             for (auto z = 0; z != CHUNK_SIZE_Z; ++z) {

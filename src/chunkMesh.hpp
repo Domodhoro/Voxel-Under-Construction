@@ -33,6 +33,13 @@ unsigned int Mesh(std::vector<Vertex> &Vertice, int x, int y, int z, bool &F, bo
         Texture.L = 4.0f;
         Texture.U = 4.0f;
         Texture.D = 4.0f;
+    } else if (id == 4.0f) {
+        Texture.F = 5.0f;
+        Texture.B = 5.0f;
+        Texture.R = 5.0f;
+        Texture.L = 5.0f;
+        Texture.U = 5.0f;
+        Texture.D = 5.0f;
     }
 
     auto count {0u};
