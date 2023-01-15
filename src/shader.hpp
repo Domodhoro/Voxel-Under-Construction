@@ -19,10 +19,6 @@ public:
         }
     }
 
-    ~Shader() {
-        glDeleteProgram(m_shader);
-    }
-
     void use() {
         glUseProgram(m_shader);
     }

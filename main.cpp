@@ -34,6 +34,8 @@ const GLFWvidmode *mode {nullptr};
 
 Camera camera;
 
+FastNoiseLite noise;
+
 struct worldCoordinate {
     long int x {0}, y {0}, z {0};
 
@@ -42,12 +44,28 @@ struct worldCoordinate {
     }
 };
 
-using chunkData = std::pair<worldCoordinate, std::unique_ptr<Chunk>>;
-
-std::vector<chunkData> chunks;
+std::vector<std::pair<worldCoordinate, std::unique_ptr<Chunk>>> chunks;
 
 void keyboardCallback(GLFWwindow *window);
 void mouseCallback(GLFWwindow *window, double x, double y);
+
+class ChunkManager {
+public:
+    ChunkManager(int seed) : m_seed {seed} {
+
+    }
+
+    void add(Camera &camera, unsigned int &texture) {
+
+    }
+
+    void draw(Shader &shader, Camera &camera) {
+
+    }
+
+private:
+    int m_seed {1};
+};
 
 int main(int argc, char *argv[]) {
     try {
@@ -108,16 +126,16 @@ int main(int argc, char *argv[]) {
             loadTexture("./img/blocks.bmp")
         };
 
-        FastNoiseLite noise {1007};
+        noise.SetSeed(1007);
 
-        auto addChunk = [&](glm::tvec3<float> position) -> void {
+        static auto addChunk = [&](glm::tvec3<float> position) -> void {
             worldCoordinate coord {
                 static_cast<long int>(std::floor(position.x / static_cast<float>(CHUNK_SIZE_X))),
                 0,
                 static_cast<long int>(std::floor(position.z / static_cast<float>(CHUNK_SIZE_Z)))
             };
 
-            auto predicate = [&](chunkData &chunk) -> bool {
+            auto predicate = [&](std::pair<worldCoordinate, std::unique_ptr<Chunk>> &chunk) -> bool {
                 return chunk.first == coord;
             };
 
@@ -135,7 +153,13 @@ int main(int argc, char *argv[]) {
         while (!glfwWindowShouldClose(window)) {
             currentFrame = static_cast<float>(glfwGetTime());
 
-            addChunk(camera.getPosition());
+            for (auto x = -2; x != 2; ++x) {
+                for (auto z = -2; z != 2; ++z) {
+                    auto X {x * static_cast<float>(CHUNK_SIZE_X)}, Z {z * static_cast<float>(CHUNK_SIZE_Z)};
+
+                    addChunk(camera.getPosition() + glm::tvec3<float>(X, 0.0f, Z));
+                }
+            }
 
             auto view {camera.getViewMatrix()}, projection {camera.getProjectionMatrix()};
 
@@ -157,11 +181,6 @@ int main(int argc, char *argv[]) {
                 lastFrame = currentFrame;
             }
         }
-
-        glDeleteTextures(1, &chunkTexture);
-
-        glfwDestroyWindow(window);
-        glfwTerminate();
     } catch (std::exception &e) {
         glfwDestroyWindow(window);
         glfwTerminate();
@@ -171,6 +190,9 @@ int main(int argc, char *argv[]) {
 
         return 1;
     }
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
 
     return 0;
 }

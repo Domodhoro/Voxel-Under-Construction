@@ -25,33 +25,33 @@ public:
                         continue;
                     }
 
-                    auto F {true}, B {true}, R {true}, L {true}, U {true}, D {true};
+                    auto front {true}, back {true}, right {true}, left {true}, up {true}, down {true};
 
-                    if (x > 0 && m_block.at((x - 1) + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
-                        L = false;
+                    if (x > 0 and m_block.at((x - 1) + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
+                        left = false;
                     }
 
-                    if (y > 0 && m_block.at(x + (y - 1) * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
-                        D = false;
+                    if (y > 0 and m_block.at(x + (y - 1) * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
+                        down = false;
                     }
 
-                    if (z > 0 && m_block.at(x + y * CHUNK_SIZE_X + (z - 1) * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
-                        F = false;
+                    if (z > 0 and m_block.at(x + y * CHUNK_SIZE_X + (z - 1) * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
+                        front = false;
                     }
 
-                    if (x < (CHUNK_SIZE_X - 1) && m_block.at((x + 1) + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
-                        R = false;
+                    if (x < (CHUNK_SIZE_X - 1) and m_block.at((x + 1) + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
+                        right = false;
                     }
 
-                    if (y < (CHUNK_SIZE_Y - 1) && m_block.at(x + (y + 1) * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
-                        U = false;
+                    if (y < (CHUNK_SIZE_Y - 1) and m_block.at(x + (y + 1) * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
+                        up = false;
                     }
 
-                    if (z < (CHUNK_SIZE_Z - 1) && m_block.at(x + y * CHUNK_SIZE_X + (z + 1) * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
-                        B = false;
+                    if (z < (CHUNK_SIZE_Z - 1) and m_block.at(x + y * CHUNK_SIZE_X + (z + 1) * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
+                        back = false;
                     }
 
-                    m_count += Mesh(m_vertice, x + X, y, z + Z, F, B, R, L, U, D, static_cast<int>(m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y)));
+                    m_count += mesh(m_vertice, x + X, y, z + Z, front, back, right, left, up, down, static_cast<int>(m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y)));
                 }
             }
         }
@@ -59,12 +59,7 @@ public:
         setup();
     }
 
-    ~Chunk() {
-        glDeleteVertexArrays(1, &m_VAO);
-        glDeleteBuffers(1, &m_VBO);
-    }
-
-    void draw(Shader &shader, glm::mat4 &View, glm::mat4 &Projection) {
+    void draw(Shader &shader, glm::mat4 &view, glm::mat4 &projection) {
         glCullFace(GL_FRONT);
 
         shader.use();
@@ -72,11 +67,11 @@ public:
         glBindTexture(GL_TEXTURE_2D, m_texture);
         glBindVertexArray(m_VAO);
 
-        glm::mat4 Model {1.0f};
+        auto model {glm::mat4(1.0f)};
 
-        shader.setMatrix4fv("Model", Model);
-        shader.setMatrix4fv("View", View);
-        shader.setMatrix4fv("Projection", Projection);
+        shader.setMatrix4fv("model", model);
+        shader.setMatrix4fv("view", view);
+        shader.setMatrix4fv("projection", projection);
 
         glDrawArrays(GL_TRIANGLES, 0, m_count);
 
