@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 
         if (window == nullptr) {
             throw std::runtime_error {
-                "Falha ao criar a janela de visualização."
+                "Falha ao criar a janela de visualizaÃ§Ã£o."
             };
         }
 
@@ -132,18 +132,18 @@ int main(int argc, char *argv[]) {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glClearColor(0.7f, 0.8f, 1.0f, 1.0f);
 
-                auto View {camera.getViewMatrix()}, Projection {camera.getProjectionMatrix()};
-
-                for (auto &it : chunks) {
-                    it.second->draw(chunkShader, View, Projection);
-                }
-
                 for (auto x = -WORLD_SIZE; x != WORLD_SIZE; ++x) {
                     for (auto z = -WORLD_SIZE; z != WORLD_SIZE; ++z) {
                         auto X {static_cast<float>(Chunk::CHUNK_SIZE_X * x)}, Z {static_cast<float>(Chunk::CHUNK_SIZE_Z * z)};
 
                         addChunk(chunkTexture, noise, camera.getPosition() + glm::tvec3<float>(X, 0.0f, Z));
                     }
+                }
+
+                auto View {camera.getViewMatrix()}, Projection {camera.getProjectionMatrix()};
+
+                for (auto &it : chunks) {
+                    it.second->draw(chunkShader, View, Projection);
                 }
 
                 glfwSwapBuffers(window);
