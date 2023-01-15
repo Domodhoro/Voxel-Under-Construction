@@ -7,8 +7,6 @@
 #include <ctime>
 #include <vector>
 #include <algorithm>
-#include <thread>
-#include <future>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -156,7 +154,7 @@ void init() {
 
     if (window == nullptr) {
         throw std::runtime_error {
-            "Falha ao criar a janela de visualização."
+            "Falha ao criar a janela de visualizaÃ§Ã£o."
         };
     }
 
