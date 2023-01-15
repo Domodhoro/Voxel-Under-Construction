@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
 
         if (window == nullptr) {
             throw std::runtime_error {
-                "Falha ao criar a janela de visualização."
+                "Falha ao criar a janela de visualizaÃ§Ã£o."
             };
         }
 
@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
 
         noise.SetSeed(1007);
 
-        static auto addChunk = [&](glm::tvec3<float> position) -> void {
+        auto addChunk = [&](glm::tvec3<float> position) -> void {
             worldCoordinate coord {
                 static_cast<long int>(std::floor(position.x / static_cast<float>(CHUNK_SIZE_X))),
                 0,
