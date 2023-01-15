@@ -19,18 +19,17 @@
 
 #include "./lib/FastNoiseLite.h"
 
-constexpr auto WINDOW_WIDTH {800}, WINDOW_HEIGHT {600}, FPS {60};
+constexpr auto WINDOW_WIDTH {1200}, WINDOW_HEIGHT {600}, FPS {60};
 
-#include "./src/shaderProgram.hpp"
+#include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.hpp"
 #include "./src/camera.hpp"
-#include "./src/noise.hpp"
 #include "./src/chunkMesh.hpp"
 #include "./src/chunk.hpp"
 
-Camera Camera;
+Camera::Camera camera;
 
-Noise Noise;
+FastNoiseLite noise;
 
 struct worldCoordinate {
     long int x {0}, y {0}, z {0};
@@ -40,12 +39,12 @@ struct worldCoordinate {
     }
 };
 
-std::vector<std::pair<worldCoordinate, std::unique_ptr<Chunk>>> chunks;
+std::vector<std::pair<worldCoordinate, std::unique_ptr<Chunk::Chunk>>> chunks;
 
 void framebufferSizeCallback(GLFWwindow *window, int width, int height);
 void keyboardCallback(GLFWwindow *window);
 void mouseCallback(GLFWwindow *window, double x, double y);
-void addChunk(unsigned int &Texture);
+void addChunk(unsigned int &chunkTexture);
 
 int main(int argc, char *argv[]) {
     GLFWwindow *window {nullptr};
@@ -75,7 +74,7 @@ int main(int argc, char *argv[]) {
         glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
         glfwSetWindowPos(window, 100, 100);
 
-        loadWindowIcon(window, "./img/icon.bmp");
+        Texture::loadWindowIcon(window, "./img/icon.bmp");
 
         glewExperimental = true;
 
@@ -92,17 +91,17 @@ int main(int argc, char *argv[]) {
             glfwGetVideoMode(glfwGetPrimaryMonitor())
         };
 
-        Camera.setSpeed(0.5f);
-        Camera.setFov(60.0f);
-        Camera.setAspect(static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
-        Camera.setPosition(glm::tvec3<float>(0.0f, 100.0f, 0.0f));
+        camera.setSpeed(0.5f);
+        camera.setFov(60.0f);
+        camera.setAspect(static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
+        camera.setPosition(glm::tvec3<float>(0.0f, 100.0f, 0.0f));
 
-        auto ShaderProgram {
-            Shader("./glsl/vertex.glsl", "./glsl/fragment.glsl")
+        auto chunkShader {
+            Shader::Shader("./glsl/vertex.glsl", "./glsl/fragment.glsl")
         };
 
-        auto Texture {
-            loadTexture("./img/blocks.bmp")
+        auto chunkTexture {
+            Texture::loadTexture("./img/blocks.bmp")
         };
 
         glEnable(GL_DEPTH_TEST);
@@ -122,13 +121,13 @@ int main(int argc, char *argv[]) {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glClearColor(0.7f, 0.8f, 1.0f, 1.0f);
 
-                auto View {Camera.getViewMatrix()}, Projection {Camera.getProjectionMatrix()};
+                auto View {camera.getViewMatrix()}, Projection {camera.getProjectionMatrix()};
 
                 for (auto &it : chunks) {
-                    it.second->draw(ShaderProgram, View, Projection);
+                    it.second->draw(chunkShader, View, Projection);
                 }
 
-                addChunk(Texture);
+                addChunk(chunkTexture);
 
                 glfwSwapBuffers(window);
                 glfwPollEvents();
@@ -137,7 +136,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        glDeleteTextures(1, &Texture);
+        glDeleteTextures(1, &chunkTexture);
 
         glfwDestroyWindow(window);
         glfwTerminate();
@@ -165,23 +164,23 @@ void keyboardCallback(GLFWwindow *window) {
     }
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        Camera.keyboardProcess(MOVEMENTS::FORWARD);
+        camera.keyboardProcess(Camera::MOVEMENTS::FORWARD);
     }
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        Camera.keyboardProcess(MOVEMENTS::BACKWARD);
+        camera.keyboardProcess(Camera::MOVEMENTS::BACKWARD);
     }
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        Camera.keyboardProcess(MOVEMENTS::RIGHT);
+        camera.keyboardProcess(Camera::MOVEMENTS::RIGHT);
     }
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        Camera.keyboardProcess(MOVEMENTS::LEFT);
+        camera.keyboardProcess(Camera::MOVEMENTS::LEFT);
     }
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        Camera.getPosition().y += 0.5f;
+        camera.getPosition().y += 0.5f;
     }
 }
 
@@ -206,21 +205,21 @@ void mouseCallback(GLFWwindow *window, double x, double y) {
     offSetX *= sensitivity;
     offSetY *= sensitivity;
 
-    Camera.mouseProcess(&offSetX, &offSetY);
+    camera.mouseProcess(&offSetX, &offSetY);
 }
 
-void addChunk(unsigned int &Texture) {
+void addChunk(unsigned int &chunkTexture) {
     worldCoordinate coord {
-        static_cast<long int>(std::floor(Camera.getPosition().x / static_cast<float>(CHUNK_SIZE_X))),
+        static_cast<long int>(std::floor(camera.getPosition().x / static_cast<float>(Chunk::CHUNK_SIZE_X))),
         0,
-        static_cast<long int>(std::floor(Camera.getPosition().z / static_cast<float>(CHUNK_SIZE_Z)))
+        static_cast<long int>(std::floor(camera.getPosition().z / static_cast<float>(Chunk::CHUNK_SIZE_Z)))
     };
 
-    auto Predicate = [&](std::pair<worldCoordinate, std::unique_ptr<Chunk>> &chunk) -> bool {
+    auto Predicate = [&](std::pair<worldCoordinate, std::unique_ptr<Chunk::Chunk>> &chunk) -> bool {
         return chunk.first == coord;
     };
 
     if (std::find_if(chunks.begin(), chunks.end(), Predicate) == chunks.end()) {
-        chunks.emplace_back(coord, std::make_unique<Chunk>(coord.x * CHUNK_SIZE_X, coord.z * CHUNK_SIZE_Z, Texture, Noise));
+        chunks.emplace_back(coord, std::make_unique<Chunk::Chunk>(coord.x * Chunk::CHUNK_SIZE_X, coord.z * Chunk::CHUNK_SIZE_Z, chunkTexture, noise));
     }
 }

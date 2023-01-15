@@ -17,6 +17,8 @@ void main() {
         Color = texture(TextureSampler, Sample(FragTexture.xy, 0.25f , 1.0f, 0.0f));
     } else if (FragTexture.z == 3.0f) {
         Color = texture(TextureSampler, Sample(FragTexture.xy, 0.25f , 2.0f, 0.0f));
+    } else if (FragTexture.z == 4.0f) {
+        Color = texture(TextureSampler, Sample(FragTexture.xy, 0.25f , 3.0f, 0.0f));
     }
 
     if (Color.r == 1.0f && Color.g != 1.0f && Color.b == 1.0f) {

@@ -1,6 +1,8 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
+namespace Camera {
+
 enum class MOVEMENTS : int {
     FORWARD = 0,
     BACKWARD,
@@ -92,5 +94,7 @@ private:
 
     glm::tvec3<float> m_Front {0.0f, 0.0f, 1.0f}, m_Position {0.0f}, m_Up {0.0f, 1.0f, 0.0f};
 };
+
+}
 
 #endif
