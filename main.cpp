@@ -29,7 +29,6 @@ const GLFWvidmode *mode {nullptr};
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.hpp"
 #include "./src/camera.hpp"
-#include "./src/chunkMesh.hpp"
 #include "./src/chunk.hpp"
 
 Camera camera;
@@ -43,8 +42,6 @@ struct worldCoordinate {
         return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
     }
 };
-
-std::vector<std::pair<worldCoordinate, std::unique_ptr<Chunk>>> chunks;
 
 void keyboardCallback(GLFWwindow *window);
 void mouseCallback(GLFWwindow *window, double x, double y);
@@ -67,7 +64,7 @@ int main(int argc, char *argv[]) {
 
         if (window == nullptr) {
             throw std::runtime_error {
-                "Falha ao criar a janela de visualizaÃ§Ã£o."
+                "Falha ao criar a janela de visualização."
             };
         }
 
@@ -110,19 +107,21 @@ int main(int argc, char *argv[]) {
 
         noise.SetSeed(1007);
 
+        std::vector<std::pair<worldCoordinate, std::unique_ptr<Chunk>>> chunks;
+
         auto addChunk = [&](glm::tvec3<float> position) -> void {
-            worldCoordinate coord {
+            worldCoordinate coordinates {
                 static_cast<long int>(std::floor(position.x / static_cast<float>(CHUNK_SIZE_X))),
                 0,
                 static_cast<long int>(std::floor(position.z / static_cast<float>(CHUNK_SIZE_Z)))
             };
 
             auto predicate = [&](std::pair<worldCoordinate, std::unique_ptr<Chunk>> &chunk) -> bool {
-                return chunk.first == coord;
+                return chunk.first == coordinates;
             };
 
             if (std::find_if(chunks.begin(), chunks.end(), predicate) == chunks.end()) {
-                chunks.emplace_back(coord, std::make_unique<Chunk>(coord.x * CHUNK_SIZE_X, coord.z * CHUNK_SIZE_Z, chunkTexture, noise));
+                chunks.emplace_back(coordinates, std::make_unique<Chunk>(coordinates.x * CHUNK_SIZE_X, coordinates.z * CHUNK_SIZE_Z, chunkTexture, noise));
             }
         };
 
@@ -135,13 +134,7 @@ int main(int argc, char *argv[]) {
         while (!glfwWindowShouldClose(window)) {
             currentFrame = static_cast<float>(glfwGetTime());
 
-            for (auto x = -2; x != 2; ++x) {
-                for (auto z = -2; z != 2; ++z) {
-                    auto X {x * static_cast<float>(CHUNK_SIZE_X)}, Z {z * static_cast<float>(CHUNK_SIZE_Z)};
-
-                    addChunk(camera.getPosition() + glm::tvec3<float>(X, 0.0f, Z));
-                }
-            }
+            addChunk(camera.getPosition());
 
             auto view {camera.getViewMatrix()}, projection {camera.getProjectionMatrix()};
 

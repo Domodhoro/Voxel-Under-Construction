@@ -1,6 +1,9 @@
 #ifndef CHUNK_HPP
 #define CHUNK_HPP
 
+constexpr auto CHUNK_SIZE_X {16}, CHUNK_SIZE_Y {128}, CHUNK_SIZE_Z {CHUNK_SIZE_X}, BASE {64};
+constexpr auto AMPLITUDE {8.0f};
+
 enum class BLOCK_TYPE : int {
     AIR = 0,
     GRASS,
@@ -9,14 +12,23 @@ enum class BLOCK_TYPE : int {
     SAND
 };
 
-constexpr auto CHUNK_SIZE_X {16}, CHUNK_SIZE_Y {128}, CHUNK_SIZE_Z {CHUNK_SIZE_X};
+struct Vertex {
+    float X {0.0f}, Y {0.0f}, Z {0.0f}, U {0.0f}, V {0.0f}, T {0.0f};
+};
 
-void terrain(int base, float amplitude, std::vector<BLOCK_TYPE> &block, FastNoiseLite &noise, int X, int Z);
+struct Faces {
+    bool F {true}, B {true}, R {true}, L {true}, U {true}, D {true};
+};
+
+unsigned int mesh(std::vector<Vertex> &Vertice, int x, int y, int z, Faces &faces, int blockType);
+
+void generateTerrain(std::vector<BLOCK_TYPE> &block, FastNoiseLite &noise, int X, int Z);
+void otimizeFaces(Faces &faces, int x, int y, int z, std::vector<BLOCK_TYPE> &block);
 
 class Chunk {
 public:
     Chunk(int X, int Z, unsigned int &texture, FastNoiseLite &noise) : m_texture {texture} {
-        terrain(64, 8.0f, m_block, noise, X, Z);
+        generateTerrain(m_block, noise, X, Z);
 
         for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
             for (auto y = 0; y != CHUNK_SIZE_Y; ++y) {
@@ -25,33 +37,11 @@ public:
                         continue;
                     }
 
-                    auto front {true}, back {true}, right {true}, left {true}, up {true}, down {true};
+                    Faces faces;
 
-                    if (x > 0 and m_block.at((x - 1) + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
-                        left = false;
-                    }
+                    otimizeFaces(faces, x, y, z, m_block);
 
-                    if (y > 0 and m_block.at(x + (y - 1) * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
-                        down = false;
-                    }
-
-                    if (z > 0 and m_block.at(x + y * CHUNK_SIZE_X + (z - 1) * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
-                        front = false;
-                    }
-
-                    if (x < (CHUNK_SIZE_X - 1) and m_block.at((x + 1) + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
-                        right = false;
-                    }
-
-                    if (y < (CHUNK_SIZE_Y - 1) and m_block.at(x + (y + 1) * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
-                        up = false;
-                    }
-
-                    if (z < (CHUNK_SIZE_Z - 1) and m_block.at(x + y * CHUNK_SIZE_X + (z + 1) * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
-                        back = false;
-                    }
-
-                    m_count += mesh(m_vertice, x + X, y, z + Z, front, back, right, left, up, down, static_cast<int>(m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y)));
+                    m_count += mesh(m_vertice, x + X, y, z + Z, faces, static_cast<int>(m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y)));
                 }
             }
         }
@@ -107,12 +97,12 @@ private:
     }
 };
 
-void terrain(int base, float amplitude, std::vector<BLOCK_TYPE> &block, FastNoiseLite &noise, int X, int Z) {
+void generateTerrain(std::vector<BLOCK_TYPE> &block, FastNoiseLite &noise, int X, int Z) {
     for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
         for (auto y = 0; y != CHUNK_SIZE_Y; ++y) {
             for (auto z = 0; z != CHUNK_SIZE_Z; ++z) {
                 auto MAX {
-                    base + std::abs(std::floor(amplitude * noise.GetNoise(static_cast<float>(x + Z), static_cast<float>(z + X))))
+                    BASE + std::abs(std::floor(AMPLITUDE * noise.GetNoise(static_cast<float>(x + Z), static_cast<float>(z + X))))
                 };
 
                 if (y <= 16) {
@@ -127,6 +117,160 @@ void terrain(int base, float amplitude, std::vector<BLOCK_TYPE> &block, FastNois
             }
         }
     }
+}
+
+void otimizeFaces(Faces &faces, int x, int y, int z, std::vector<BLOCK_TYPE> &block) {
+    if (x > 0 && block.at((x - 1) + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
+        faces.L = false;
+    }
+
+    if (y > 0 && block.at(x + (y - 1) * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
+        faces.D = false;
+    }
+
+    if (z > 0 && block.at(x + y * CHUNK_SIZE_X + (z - 1) * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
+        faces.F = false;
+    }
+
+    if (x < (CHUNK_SIZE_X - 1) && block.at((x + 1) + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
+        faces.R = false;
+    }
+
+    if (y < (CHUNK_SIZE_Y - 1) && block.at(x + (y + 1) * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
+        faces.U = false;
+    }
+
+    if (z < (CHUNK_SIZE_Z - 1) && block.at(x + y * CHUNK_SIZE_X + (z + 1) * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) {
+        faces.B = false;
+    }
+}
+
+unsigned int mesh(std::vector<Vertex> &Vertice, int x, int y, int z, Faces &faces, int blockType) {
+    const auto X {static_cast<float>(x)}, Y {static_cast<float>(y)}, Z {static_cast<float>(z)};
+
+    struct Textures {
+        float F {0.0f}, B {0.0f}, R {0.0f}, L {0.0f}, U {0.0f}, D {0.0f};
+    };
+
+    Textures textures;
+
+    switch (blockType) {
+    case static_cast<int>(BLOCK_TYPE::GRASS):
+        textures.F = 2.0f;
+        textures.B = 2.0f;
+        textures.R = 2.0f;
+        textures.L = 2.0f;
+        textures.U = 1.0f;
+        textures.D = 3.0f;
+        break;
+    case static_cast<int>(BLOCK_TYPE::DIRT):
+        textures.F = 3.0f;
+        textures.B = 3.0f;
+        textures.R = 3.0f;
+        textures.L = 3.0f;
+        textures.U = 3.0f;
+        textures.D = 3.0f;
+        break;
+    case static_cast<int>(BLOCK_TYPE::STONE):
+        textures.F = 4.0f;
+        textures.B = 4.0f;
+        textures.R = 4.0f;
+        textures.L = 4.0f;
+        textures.U = 4.0f;
+        textures.D = 4.0f;
+        break;
+    case static_cast<int>(BLOCK_TYPE::SAND):
+        textures.F = 5.0f;
+        textures.B = 5.0f;
+        textures.R = 5.0f;
+        textures.L = 5.0f;
+        textures.U = 5.0f;
+        textures.D = 5.0f;
+        break;
+    default:
+        textures.F = 0.0f;
+        textures.B = 0.0f;
+        textures.R = 0.0f;
+        textures.L = 0.0f;
+        textures.U = 0.0f;
+        textures.D = 0.0f;
+    }
+
+    auto count {0u};
+
+    if (faces.F) {
+        Vertice.push_back({X - 0.5f, Y - 0.5f, Z - 0.5f, 1.0f, 0.0f, textures.F});
+        Vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, textures.F});
+        Vertice.push_back({X + 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 1.0f, textures.F});
+
+        Vertice.push_back({X - 0.5f, Y - 0.5f, Z - 0.5f, 1.0f, 0.0f, textures.F});
+        Vertice.push_back({X + 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 1.0f, textures.F});
+        Vertice.push_back({X - 0.5f, Y + 0.5f, Z - 0.5f, 1.0f, 1.0f, textures.F});
+
+        count += 6u;
+    }
+
+    if (faces.B) {
+        Vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 0.0f, 0.0f, textures.B});
+        Vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, textures.B});
+        Vertice.push_back({X + 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 0.0f, textures.B});
+
+        Vertice.push_back({X - 0.5f, Y + 0.5f, Z + 0.5f, 0.0f, 1.0f, textures.B});
+        Vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, textures.B});
+        Vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 0.0f, 0.0f, textures.B});
+
+        count += 6u;
+    }
+
+    if (faces.R) {
+        Vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 1.0f, 0.0f, textures.R});
+        Vertice.push_back({X + 0.5f, Y - 0.5f, Z + 0.5f, 0.0f, 0.0f, textures.R});
+        Vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 0.0f, 1.0f, textures.R});
+
+        Vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 1.0f, 0.0f, textures.R});
+        Vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 0.0f, 1.0f, textures.R});
+        Vertice.push_back({X + 0.5f, Y + 0.5f, Z - 0.5f, 1.0f, 1.0f, textures.R});
+
+        count += 6u;
+    }
+
+    if (faces.L) {
+        Vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 0.0f, textures.L});
+        Vertice.push_back({X - 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, textures.L});
+        Vertice.push_back({X - 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, textures.L});
+
+        Vertice.push_back({X - 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 1.0f, textures.L});
+        Vertice.push_back({X - 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, textures.L});
+        Vertice.push_back({X - 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, textures.L});
+
+        count += 6u;
+    }
+
+    if (faces.U) {
+        Vertice.push_back({X + 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 1.0f, textures.U});
+        Vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, textures.U});
+        Vertice.push_back({X - 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 0.0f, textures.U});
+
+        Vertice.push_back({X + 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 1.0f, textures.U});
+        Vertice.push_back({X - 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 0.0f, textures.U});
+        Vertice.push_back({X - 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 0.0f, textures.U});
+
+        count += 6u;
+    }
+
+    if (faces.D) {
+        Vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 1.0f, textures.D});
+        Vertice.push_back({X + 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 0.0f, textures.D});
+        Vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, textures.D});
+
+        Vertice.push_back({X - 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 1.0f, textures.D});
+        Vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 1.0f, textures.D});
+        Vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, textures.D});
+
+        count += 6u;
+    }
+
+    return count;
 }
 
 #endif
