@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     };
 
     if (!window) {
-        printf("Falha ao criar a janela de visualização.");
+        printf("Falha ao criar a janela de visualizaÃ§Ã£o.");
         return 1;
     }
 
@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
     glfwSetWindowPos(window, window_pos_x, window_pos_y);
 
     if (!stb_image_wrapper::load_window_icon(window, "./img/icon.bmp")) {
-        printf("Falha ao carregar textura do ícone da janela de visualização.");
+        printf("Falha ao carregar textura do Ã­cone da janela de visualizaÃ§Ã£o.");
         return 1;
     }
 
@@ -150,6 +150,8 @@ int main(int argc, char *argv[]) {
             last_frame = current_frame;
         }
     }
+    
+    glDeleteTextures(1, &chunk_texture);
 
     glfwTerminate();
 
