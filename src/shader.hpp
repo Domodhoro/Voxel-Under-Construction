@@ -1,90 +1,56 @@
 #ifndef SHADER_HPP
 #define SHADER_HPP
 
-class Shader {
-public:
-    Shader(const char *vertexPath, const char *fragmentPath) : m_shader {glCreateProgram()} {
-        glAttachShader(m_shader, compileShaderData(vertexPath, GL_VERTEX_SHADER));
-        glAttachShader(m_shader, compileShaderData(fragmentPath, GL_FRAGMENT_SHADER));
-        glLinkProgram(m_shader);
+namespace shader {
+
+struct shader {
+    shader(const char *vertex_path, const char *fragment_path) : m_shader {glCreateProgram()} {
+        glAttachShader(m_shader, compile_shader_data(vertex_path, GL_VERTEX_SHADER));
+        glAttachShader(m_shader, compile_shader_data(fragment_path, GL_FRAGMENT_SHADER));
+        glLinkProgram (m_shader);
 
         auto success {0};
 
         glGetProgramiv(m_shader, GL_LINK_STATUS, &success);
 
-        if (!success) {
-            throw std::runtime_error {
-                "Falha ao compilar 'shader'."
-            };
-        }
+        if (!success) printf("Falha ao compilar 'shader'.");
     }
 
-    void use() {
-        glUseProgram(m_shader);
-    }
-
-    void setBool(const char *name, bool &value) {
-        glUniform1i(glGetUniformLocation(m_shader, name), static_cast<int>(value));
-    }
-
-    void setInt(const char *name, int &value) {
-        glUniform1i(glGetUniformLocation(m_shader, name), value);
-    }
-
-    void setFloat(const char *name, float &value) {
-        glUniform1f(glGetUniformLocation(m_shader, name), value);
-    }
-
-    void setVec2(const char *name, const glm::tvec2<float> &value) {
-        glUniform2fv(glGetUniformLocation(m_shader, name), 1, glm::value_ptr(value));
-    }
-
-    void setVec3(const char *name, const glm::tvec3<float> &value) {
-        glUniform3fv(glGetUniformLocation(m_shader, name), 1, glm::value_ptr(value));
-    }
-
-    void setMatrix4fv(const char *name, const glm::mat4 &matrix) {
-        glUniformMatrix4fv(glGetUniformLocation(m_shader, name), 1, false, glm::value_ptr(matrix));
-    }
+    void use      ()                                                 { glUseProgram      (m_shader); }
+    void set_bool (const char *name, bool &value)                    { glUniform1i       (glGetUniformLocation(m_shader, name), static_cast<int>(value)); }
+    void set_int  (const char *name, int &value)                     { glUniform1i       (glGetUniformLocation(m_shader, name), value); }
+    void set_float(const char *name, float &value)                   { glUniform1f       (glGetUniformLocation(m_shader, name), value); }
+    void set_vec2 (const char *name, const glm::tvec2<float> &value) { glUniform2fv      (glGetUniformLocation(m_shader, name), 1, glm::value_ptr(value)); }
+    void set_vec3 (const char *name, const glm::tvec3<float> &value) { glUniform3fv      (glGetUniformLocation(m_shader, name), 1, glm::value_ptr(value)); }
+    void set_mat4 (const char *name, const glm::mat4 &matrix)        { glUniformMatrix4fv(glGetUniformLocation(m_shader, name), 1, false, glm::value_ptr(matrix)); }
 
 private:
     unsigned int m_shader {0u};
 
-    unsigned int compileShaderData(const char *dataPath, GLenum type) {
-        auto dataCode {read(dataPath).str()};
-        auto shaderCode {dataCode.c_str()};
-        auto Data {glCreateShader(type)};
+    unsigned int compile_shader_data(const char *data_path, GLenum type) {
+        auto data_code   {read_file(data_path)};
+        auto shader_code {data_code.c_str()};
+        auto data        {glCreateShader(type)};
 
-        glShaderSource(Data, 1, &shaderCode, nullptr);
-        glCompileShader(Data);
+        glShaderSource (data, 1, &shader_code, nullptr);
+        glCompileShader(data);
 
         auto success {0};
 
-        glGetShaderiv(Data, GL_COMPILE_STATUS, &success);
+        glGetShaderiv(data, GL_COMPILE_STATUS, &success);
 
-        if (success == 0) {
-            if (type == GL_VERTEX_SHADER) {
-                throw std::runtime_error {
-                    "Falha ao compilar 'vertex'."
-                };
-            } else if (type == GL_FRAGMENT_SHADER) {
-                throw std::runtime_error {
-                    "Falha ao compilar 'fragment'."
-                };
-            }
+        if (success == 0u) {
+            if (type == GL_VERTEX_SHADER)   printf("Falha ao compilar 'vertex'.");
+            if (type == GL_FRAGMENT_SHADER) printf("Falha ao compilar 'fragment'.");
         }
 
-        return Data;
+        return data;
     }
 
-    std::stringstream read(const char *filePath) {
-        std::ifstream file {filePath};
+    std::string read_file(const char *file_path) {
+        std::ifstream file {file_path};
 
-        if (!file.is_open()) {
-            throw std::runtime_error {
-                "Falha ao abrir arquivo GLSL."
-            };
-        }
+        if (!file.is_open()) printf("Falha ao abrir arquivo GLSL.");
 
         std::stringstream code;
 
@@ -92,8 +58,10 @@ private:
 
         file.close();
 
-        return code;
+        return code.str();
     }
 };
+
+}
 
 #endif
