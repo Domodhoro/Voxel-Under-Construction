@@ -19,9 +19,20 @@
 
 #include "./lib/FastNoiseLite.h"
 
+struct program_exception {
+   program_exception(const char *description) : m_description(description) {}
+
+   ~program_exception() { exit(EXIT_FAILURE); }
+
+   const char *get_description() { return m_description; }
+
+private:
+   const char *m_description {nullptr};
+};
+
 constexpr auto WINDOW_WIDTH  {1200};
 constexpr auto WINDOW_HEIGHT {600};
-constexpr auto WINDOW_TITLE  {"Voxel"};
+constexpr auto WINDOW_TITLE  {"Voxel Engine"};
 constexpr auto FPS           {60};
 
 #include "./src/shader.hpp"
@@ -40,43 +51,46 @@ static void mouse_callback           (GLFWwindow *window, double x, double y);
 int main(int argc, char *argv[]) {
     printf("%s\n", argv[0]);
 
-    if (glfwInit() == GLFW_NOT_INITIALIZED) {
-        printf("Falha ao iniciar o GLFW.");
-        return 1;
+    setlocale(LC_ALL, "");
+
+    try {
+        if (glfwInit() == GLFW_NOT_INITIALIZED) throw program_exception {"Falha ao iniciar o GLFW."};
+
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    } catch (program_exception &e) {
+        printf("%s", e.get_description());
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DECORATED, false);
     glfwWindowHint(GLFW_RESIZABLE, false);
 
-    GLFWwindow *window {
-        glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr)
-    };
+    GLFWwindow *window {nullptr};
 
-    if (!window) {
-        printf("Falha ao criar a janela de visualização.");
-        return 1;
+    try {
+        window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr);
+
+        if (!window) throw program_exception {"Falha ao criar a janela de visualiza��o."};
+
+        glfwMakeContextCurrent(window);
+    } catch (program_exception &e) {
+        printf("%s", e.get_description());
     }
-
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     auto window_pos_x {100}, window_pos_y {100};
 
     glfwSetWindowPos(window, window_pos_x, window_pos_y);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    if (!stb_image_wrapper::load_window_icon(window, "./img/icon.bmp")) {
-        printf("Falha ao carregar textura do ícone da janela de visualização.");
-        return 1;
-    }
+    stb_image_wrapper::load_window_icon(window, "./img/icon.bmp");
 
-    glewExperimental = true;
+    try {
+        glewExperimental = true;
 
-    if (glewInit() != GLEW_OK) {
-        printf("Falha ao iniciar GLEW.");
-        return 1;
+        if (glewInit() != GLEW_OK) throw program_exception {"Falha ao iniciar GLEW."};
+    } catch (program_exception &e) {
+        printf("%s", e.get_description());
     }
 
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -94,9 +108,9 @@ int main(int argc, char *argv[]) {
     cam.set_speed   (0.5f);
     cam.set_FOV     (60.0f);
     cam.set_aspect  (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
-    cam.set_position(glm::tvec3<float>(0.0f, 100.0f, 0.0f));
+    cam.set_position(glm::tvec3<float>(0.0f, 40.0f, 0.0f));
 
-    auto chunk_shader  { shader::shader("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl") };
+    auto chunk_shader  { shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl") };
     auto chunk_texture { stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
     struct world_coords {
@@ -150,7 +164,7 @@ int main(int argc, char *argv[]) {
             last_frame = current_frame;
         }
     }
-    
+
     glDeleteTextures(1, &chunk_texture);
 
     glfwTerminate();

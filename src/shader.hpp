@@ -3,20 +3,22 @@
 
 namespace shader {
 
-struct shader {
-    shader(const char *vertex_path, const char *fragment_path) : m_shader {glCreateProgram()} {
-        glAttachShader(m_shader, compile_shader_data(vertex_path, GL_VERTEX_SHADER));
-        glAttachShader(m_shader, compile_shader_data(fragment_path, GL_FRAGMENT_SHADER));
-        glLinkProgram (m_shader);
+struct shader_program {
+    shader_program(const char *vertex_path, const char *fragment_path) : m_shader {glCreateProgram()} {
+        try {
+            glAttachShader(m_shader, compile_shader_data(vertex_path, GL_VERTEX_SHADER));
+            glAttachShader(m_shader, compile_shader_data(fragment_path, GL_FRAGMENT_SHADER));
+            glLinkProgram (m_shader);
 
-        auto success {0};
+            auto success {0};
 
-        glGetProgramiv(m_shader, GL_LINK_STATUS, &success);
+            glGetProgramiv(m_shader, GL_LINK_STATUS, &success);
 
-        if (!success) printf("Falha ao compilar 'shader'.");
+            if (!success) throw program_exception {"Falha ao compilar 'shader'."};
+        } catch (program_exception &e) { printf("%s", e.get_description()); }
     }
 
-    ~shader() { glDeleteProgram(m_shader); }
+    ~shader_program() { glDeleteProgram(m_shader); }
 
     void use      ()                                                 { glUseProgram      (m_shader); }
     void set_bool (const char *name, bool &value)                    { glUniform1i       (glGetUniformLocation(m_shader, name), static_cast<int>(value)); }
@@ -34,31 +36,34 @@ private:
         auto shader_code {data_code.c_str()};
         auto data        {glCreateShader(type)};
 
-        glShaderSource (data, 1, &shader_code, nullptr);
-        glCompileShader(data);
+        try {
+            glShaderSource (data, 1, &shader_code, nullptr);
+            glCompileShader(data);
 
-        auto success {0};
+            auto success {0};
 
-        glGetShaderiv(data, GL_COMPILE_STATUS, &success);
+            glGetShaderiv(data, GL_COMPILE_STATUS, &success);
 
-        if (success == 0u) {
-            if (type == GL_VERTEX_SHADER)   printf("Falha ao compilar 'vertex'.");
-            if (type == GL_FRAGMENT_SHADER) printf("Falha ao compilar 'fragment'.");
-        }
+            if (success == 0u) {
+                if (type == GL_VERTEX_SHADER)   throw program_exception {"Falha ao compilar 'vertex'."};
+                if (type == GL_FRAGMENT_SHADER) throw program_exception {"Falha ao compilar 'fragment'."};
+            }
+        } catch (program_exception &e) { printf("%s", e.get_description()); }
 
         return data;
     }
 
     std::string read_file(const char *file_path) {
-        std::ifstream file {file_path};
+        std::ifstream file     {file_path};
+        std::stringstream code {};
 
-        if (!file.is_open()) printf("Falha ao abrir arquivo GLSL.");
+        try {
+            if (!file.is_open()) throw program_exception {"Falha ao abrir arquivo GLSL."};
 
-        std::stringstream code;
+            code << file.rdbuf();
 
-        code << file.rdbuf();
-
-        file.close();
+            file.close();
+        } catch (program_exception &e) { printf("%s", e.get_description()); }
 
         return code.str();
     }

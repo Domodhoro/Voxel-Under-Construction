@@ -13,7 +13,7 @@ enum struct MOVEMENTS : int {
 struct camera {
     void set_position  (glm::tvec3<float> Position) { m_Position = Position; }
     void set_speed     (float speed)                { m_speed    = speed; }
-    void set_FOV       (float fov)                  { m_fov      = fov; }
+    void set_FOV       (float FOV)                  { m_fov      = FOV; }
     void set_aspect    (float aspect)               { m_aspect   = aspect; }
     void set_near_plane(float near)                 { m_near     = near; }
     void set_far_plane (float far)                  { m_far      = far; }

@@ -4,9 +4,9 @@
 namespace chunk {
 
 constexpr auto CHUNK_SIZE_X {16};
-constexpr auto CHUNK_SIZE_Y {128};
+constexpr auto CHUNK_SIZE_Y {64};
 constexpr auto CHUNK_SIZE_Z {CHUNK_SIZE_X};
-constexpr auto BASE         {64};
+constexpr auto BASE         {32};
 constexpr auto AMPLITUDE    {8.0f};
 
 enum struct BLOCK_TYPE : int {
@@ -17,7 +17,7 @@ enum struct BLOCK_TYPE : int {
     SAND
 };
 
-struct Vertex {
+struct vertex {
     float X {0.0f};
     float Y {0.0f};
     float Z {0.0f};
@@ -26,7 +26,7 @@ struct Vertex {
     float T {0.0f};
 };
 
-struct Faces {
+struct face {
     bool F {true};
     bool B {true};
     bool R {true};
@@ -35,7 +35,7 @@ struct Faces {
     bool D {true};
 };
 
-void mesh(std::vector<Vertex> &vertice, unsigned int &count, int x, int y, int z, Faces &faces, int block_type);
+void mesh(std::vector<vertex> &vertice, unsigned int &count, int x, int y, int z, face &face, int block_type);
 
 struct chunk {
     chunk(int X, int Z, unsigned int &texture, FastNoiseLite &noise) : m_texture {texture} {
@@ -53,16 +53,16 @@ struct chunk {
         for (auto x = 0; x != CHUNK_SIZE_X; ++x) for (auto y = 0; y != CHUNK_SIZE_Y; ++y) for (auto z = 0; z != CHUNK_SIZE_Z; ++z) {
             if (m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) == BLOCK_TYPE::AIR)  continue;
 
-            Faces faces;
+            face face;
 
-            if (x > 0                  && m_block.at((x - 1)  +  y        * CHUNK_SIZE_X +  z      * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) faces.L = false;
-            if (y > 0                  && m_block.at( x       + (y - 1)   * CHUNK_SIZE_X +  z      * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) faces.D = false;
-            if (z > 0                  && m_block.at( x       +  y        * CHUNK_SIZE_X + (z - 1) * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) faces.F = false;
-            if (x < (CHUNK_SIZE_X - 1) && m_block.at( (x + 1) +  y        * CHUNK_SIZE_X +  z      * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) faces.R = false;
-            if (y < (CHUNK_SIZE_Y - 1) && m_block.at( x       + (y + 1)   * CHUNK_SIZE_X +  z      * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) faces.U = false;
-            if (z < (CHUNK_SIZE_Z - 1) && m_block.at( x       +  y        * CHUNK_SIZE_X + (z + 1) * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) faces.B = false;
+            if (x > 0                  && m_block.at((x - 1)  +  y        * CHUNK_SIZE_X +  z      * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) face.L = false;
+            if (y > 0                  && m_block.at( x       + (y - 1)   * CHUNK_SIZE_X +  z      * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) face.D = false;
+            if (z > 0                  && m_block.at( x       +  y        * CHUNK_SIZE_X + (z - 1) * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) face.F = false;
+            if (x < (CHUNK_SIZE_X - 1) && m_block.at( (x + 1) +  y        * CHUNK_SIZE_X +  z      * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) face.R = false;
+            if (y < (CHUNK_SIZE_Y - 1) && m_block.at( x       + (y + 1)   * CHUNK_SIZE_X +  z      * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) face.U = false;
+            if (z < (CHUNK_SIZE_Z - 1) && m_block.at( x       +  y        * CHUNK_SIZE_X + (z + 1) * CHUNK_SIZE_X * CHUNK_SIZE_Y) != BLOCK_TYPE::AIR) face.B = false;
 
-            mesh(m_vertice, m_count, x + X, y, z + Z, faces, static_cast<int>(m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y)));
+            mesh(m_vertice, m_count, x + X, y, z + Z, face, static_cast<int>(m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y)));
         }
 
         setup();
@@ -73,7 +73,7 @@ struct chunk {
         glDeleteBuffers     (1, &m_VBO);
     }
 
-    void draw(shader::shader &shader, camera::camera &camera) {
+    void draw(shader::shader_program &shader, camera::camera &camera) {
         glCullFace(GL_FRONT);
 
         shader.use();
@@ -95,7 +95,7 @@ private:
     unsigned int m_count   {0u};
     unsigned int m_texture {0u};
 
-    std::vector<Vertex>     m_vertice;
+    std::vector<vertex>     m_vertice;
     std::vector<BLOCK_TYPE> m_block;
 
     void setup() {
@@ -103,17 +103,21 @@ private:
         glGenBuffers     (1, &m_VBO);
         glBindVertexArray(m_VAO);
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferData(GL_ARRAY_BUFFER, m_vertice.size() * 6 * sizeof(float), &m_vertice.at(0), GL_STATIC_DRAW);
+        try {
+            glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+            glBufferData(GL_ARRAY_BUFFER, m_vertice.size() * 6 * sizeof(float), &m_vertice.at(0), GL_STATIC_DRAW);
 
-        glVertexAttribPointer    (0, 3, GL_FLOAT, false, 6 * sizeof(float), (void*)(0 * sizeof(float)));
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer    (1, 3, GL_FLOAT, false, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
+            glVertexAttribPointer    (0, 3, GL_FLOAT, false, 6 * sizeof(float), (void*)(0 * sizeof(float)));
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer    (1, 3, GL_FLOAT, false, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+            glEnableVertexAttribArray(1);
+
+            if (m_VAO == 0u) throw program_exception {"Falha ao criar VAO."};
+        } catch (program_exception &e) { printf("%s", e.get_description()); }
     }
 };
 
-void mesh(std::vector<Vertex> &vertice, unsigned int &count, int x, int y, int z, Faces &faces, int block_type) {
+void mesh(std::vector<vertex> &vertice, unsigned int &count, int x, int y, int z, face &face, int block_type) {
     const auto X {static_cast<float>(x)}, Y {static_cast<float>(y)}, Z {static_cast<float>(z)};
 
     struct Textures {
@@ -169,7 +173,7 @@ void mesh(std::vector<Vertex> &vertice, unsigned int &count, int x, int y, int z
         textures.D = 0.0f;
     }
 
-    if (faces.F) {
+    if (face.F) {
         vertice.push_back({X - 0.5f, Y - 0.5f, Z - 0.5f, 1.0f, 0.0f, textures.F});
         vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, textures.F});
         vertice.push_back({X + 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 1.0f, textures.F});
@@ -181,7 +185,7 @@ void mesh(std::vector<Vertex> &vertice, unsigned int &count, int x, int y, int z
         count += 6u;
     }
 
-    if (faces.B) {
+    if (face.B) {
         vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 0.0f, 0.0f, textures.B});
         vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, textures.B});
         vertice.push_back({X + 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 0.0f, textures.B});
@@ -193,7 +197,7 @@ void mesh(std::vector<Vertex> &vertice, unsigned int &count, int x, int y, int z
         count += 6u;
     }
 
-    if (faces.R) {
+    if (face.R) {
         vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 1.0f, 0.0f, textures.R});
         vertice.push_back({X + 0.5f, Y - 0.5f, Z + 0.5f, 0.0f, 0.0f, textures.R});
         vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 0.0f, 1.0f, textures.R});
@@ -205,7 +209,7 @@ void mesh(std::vector<Vertex> &vertice, unsigned int &count, int x, int y, int z
         count += 6u;
     }
 
-    if (faces.L) {
+    if (face.L) {
         vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 0.0f, textures.L});
         vertice.push_back({X - 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, textures.L});
         vertice.push_back({X - 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, textures.L});
@@ -217,7 +221,7 @@ void mesh(std::vector<Vertex> &vertice, unsigned int &count, int x, int y, int z
         count += 6u;
     }
 
-    if (faces.U) {
+    if (face.U) {
         vertice.push_back({X + 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 1.0f, textures.U});
         vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, textures.U});
         vertice.push_back({X - 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 0.0f, textures.U});
@@ -229,7 +233,7 @@ void mesh(std::vector<Vertex> &vertice, unsigned int &count, int x, int y, int z
         count += 6u;
     }
 
-    if (faces.D) {
+    if (face.D) {
         vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 1.0f, textures.D});
         vertice.push_back({X + 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 0.0f, textures.D});
         vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, textures.D});
