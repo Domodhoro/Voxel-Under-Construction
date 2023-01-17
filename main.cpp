@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
     cam.set_aspect  (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
     cam.set_position(glm::tvec3<float>(0.0f, 100.0f, 0.0f));
 
-    auto chunk_shader  { shader::shader("./glsl/chunkVertex.glsl", "./glsl/chunkFragment.glsl") };
+    auto chunk_shader  { shader::shader("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl") };
     auto chunk_texture { stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
     struct world_coords {
@@ -160,10 +160,11 @@ static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 static void keyboard_callback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)      cam.keyboard_process(camera::MOVEMENTS::FORWARD);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)      cam.keyboard_process(camera::MOVEMENTS::BACKWARD);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)      cam.keyboard_process(camera::MOVEMENTS::RIGHT);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)      cam.keyboard_process(camera::MOVEMENTS::LEFT);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cam.keyboard_process(camera::MOVEMENTS::FORWARD);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_process(camera::MOVEMENTS::BACKWARD);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_process(camera::MOVEMENTS::RIGHT);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_process(camera::MOVEMENTS::LEFT);
 }
 
 static void mouse_callback(GLFWwindow *window, double x, double y) {

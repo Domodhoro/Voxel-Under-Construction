@@ -16,6 +16,8 @@ struct shader {
         if (!success) printf("Falha ao compilar 'shader'.");
     }
 
+    ~shader() { glDeleteProgram(m_shader); }
+
     void use      ()                                                 { glUseProgram      (m_shader); }
     void set_bool (const char *name, bool &value)                    { glUniform1i       (glGetUniformLocation(m_shader, name), static_cast<int>(value)); }
     void set_int  (const char *name, int &value)                     { glUniform1i       (glGetUniformLocation(m_shader, name), value); }
