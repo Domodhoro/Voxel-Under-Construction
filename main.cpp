@@ -19,8 +19,18 @@
 
 #include "./lib/FastNoiseLite.h"
 
+extern "C" {
+
+#include "./lualib/lua.h"
+#include "./lualib/lualib.h"
+#include "./lualib/lauxlib.h"
+#include "./lualib/luaconf.h"
+
+}
+
 #include "./src/settings.hpp"
 #include "./src/util.hpp"
+#include "./src/lua_script.hpp"
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.hpp"
 #include "./src/camera.hpp"
@@ -40,6 +50,8 @@ int main(int argc, char *argv[]) {
     printf("%s\n", argv[0]);
 
     setlocale(LC_ALL, "portuguese");
+
+    lua_script::lua_script {"./script.lua"};
 
     try {
         if (glfwInit() == GLFW_NOT_INITIALIZED) throw util::program_exception {"Falha ao iniciar o GLFW."};
