@@ -19,28 +19,16 @@
 
 #include "./lib/FastNoiseLite.h"
 
-struct program_exception {
-   program_exception(const char *description) : m_description(description) {}
-
-   ~program_exception() { exit(EXIT_FAILURE); }
-
-   const char *get_description() { return m_description; }
-
-private:
-   const char *m_description {nullptr};
-};
-
-constexpr auto WINDOW_WIDTH  {1200};
-constexpr auto WINDOW_HEIGHT {600};
-constexpr auto WINDOW_TITLE  {"Voxel Engine"};
-constexpr auto FPS           {60};
-
+#include "./src/settings.hpp"
+#include "./src/util.hpp"
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.hpp"
 #include "./src/camera.hpp"
+#include "./src/chunk_mesh.hpp"
 #include "./src/chunk.hpp"
+#include "./src/chunk_manager.hpp"
 
-camera::camera cam {};
+camera::camera cam {settings::ASPECT};
 
 FastNoiseLite noise {1007};
 
@@ -51,15 +39,15 @@ static void mouse_callback           (GLFWwindow *window, double x, double y);
 int main(int argc, char *argv[]) {
     printf("%s\n", argv[0]);
 
-    setlocale(LC_ALL, "");
+    setlocale(LC_ALL, "portuguese");
 
     try {
-        if (glfwInit() == GLFW_NOT_INITIALIZED) throw program_exception {"Falha ao iniciar o GLFW."};
+        if (glfwInit() == GLFW_NOT_INITIALIZED) throw util::program_exception {"Falha ao iniciar o GLFW."};
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    } catch (program_exception &e) {
+    } catch (util::program_exception &e) {
         printf("%s", e.get_description());
     }
 
@@ -69,12 +57,12 @@ int main(int argc, char *argv[]) {
     GLFWwindow *window {nullptr};
 
     try {
-        window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr);
+        window = glfwCreateWindow(settings::WINDOW_WIDTH, settings::WINDOW_HEIGHT, settings::WINDOW_TITLE, nullptr, nullptr);
 
-        if (!window) throw program_exception {"Falha ao criar a janela de visualização."};
+        if (!window) throw util::program_exception {"Falha ao criar a janela de visualização."};
 
         glfwMakeContextCurrent(window);
-    } catch (program_exception &e) {
+    } catch (util::program_exception &e) {
         printf("%s", e.get_description());
     }
 
@@ -88,8 +76,8 @@ int main(int argc, char *argv[]) {
     try {
         glewExperimental = true;
 
-        if (glewInit() != GLEW_OK) throw program_exception {"Falha ao iniciar GLEW."};
-    } catch (program_exception &e) {
+        if (glewInit() != GLEW_OK) throw util::program_exception {"Falha ao iniciar GLEW."};
+    } catch (util::program_exception &e) {
         printf("%s", e.get_description());
     }
 
@@ -100,42 +88,19 @@ int main(int argc, char *argv[]) {
         glfwGetVideoMode(glfwGetPrimaryMonitor())
     };
 
-    window_pos_x = (mode->width  - WINDOW_WIDTH)  / 2;
-    window_pos_y = (mode->height - WINDOW_HEIGHT) / 2;
+    window_pos_x = (mode->width  - settings::WINDOW_WIDTH)  / 2;
+    window_pos_y = (mode->height - settings::WINDOW_HEIGHT) / 2;
 
     glfwSetWindowPos(window, window_pos_x, window_pos_y);
 
-    cam.set_speed   (0.5f);
-    cam.set_FOV     (60.0f);
-    cam.set_aspect  (static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT));
+    cam.set_speed   (settings::CAMERA_SPEED);
+    cam.set_FOV     (settings::CAMERA_FOV);
     cam.set_position(glm::tvec3<float>(0.0f, 40.0f, 0.0f));
 
     auto chunk_shader  { shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl") };
     auto chunk_texture { stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
-    struct world_coords {
-        int x {0};
-        int y {0};
-        int z {0};
-    };
-
-    std::vector<std::pair<world_coords, std::unique_ptr<chunk::chunk>>> chunks;
-
-    auto add_chunk = [&](glm::tvec3<float> position) -> void {
-        world_coords coordinates {
-            static_cast<int>(std::floor(position.x / static_cast<float>(chunk::CHUNK_SIZE_X))),
-            0,
-            static_cast<int>(std::floor(position.z / static_cast<float>(chunk::CHUNK_SIZE_Z)))
-        };
-
-        auto predicate = [&](std::pair<world_coords, std::unique_ptr<chunk::chunk>> &chunk) -> bool {
-            return chunk.first.x == coordinates.x && chunk.first.y == coordinates.y && chunk.first.z == coordinates.z;
-        };
-
-        if (std::find_if(chunks.begin(), chunks.end(), predicate) == chunks.end()) {
-            chunks.emplace_back(coordinates, std::make_unique<chunk::chunk>(coordinates.x * chunk::CHUNK_SIZE_X, coordinates.z * chunk::CHUNK_SIZE_Z, chunk_texture, noise));
-        }
-    };
+    chunk_manager::chunk_manager chunk_manager {chunk_texture};
 
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);
@@ -146,17 +111,15 @@ int main(int argc, char *argv[]) {
     while (!glfwWindowShouldClose(window)) {
         current_frame = static_cast<float>(glfwGetTime());
 
-        add_chunk(cam.get_position());
+        chunk_manager.add(cam.get_position(), noise);
 
-        if ((current_frame - last_frame) > (1.0f / static_cast<float>(FPS))) {
+        if ((current_frame - last_frame) > (1.0f / static_cast<float>(settings::FPS))) {
             keyboard_callback(window);
 
             glClear     (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glClearColor(0.7f, 0.8f, 1.0f, 1.0f);
 
-            for (auto &it : chunks) {
-                it.second->draw(chunk_shader, cam);
-            }
+            chunk_manager.draw(chunk_shader, cam);
 
             glfwSwapBuffers(window);
             glfwPollEvents ();
@@ -172,39 +135,37 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-static void framebuffer_size_callback(GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); };
+static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+    glViewport(0, 0, width, height);
+}
 
 static void keyboard_callback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cam.keyboard_process(camera::MOVEMENTS::FORWARD);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_process(camera::MOVEMENTS::BACKWARD);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_process(camera::MOVEMENTS::RIGHT);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_process(camera::MOVEMENTS::LEFT);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cam.keyboard_process(util::CAMERA_MOVEMENTS::FORWARD);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_process(util::CAMERA_MOVEMENTS::BACKWARD);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_process(util::CAMERA_MOVEMENTS::RIGHT);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_process(util::CAMERA_MOVEMENTS::LEFT);
 }
 
 static void mouse_callback(GLFWwindow *window, double x, double y) {
-    static auto firstMouse {true};
-    static auto lastX      {0.0f};
-    static auto lastY      {0.0f};
+    static auto first_mouse {true};
+    static auto last_x      {0.0f};
+    static auto last_y      {0.0f};
 
-    if (firstMouse) {
-        lastX = static_cast<float>(x);
-        lastY = static_cast<float>(y);
-
-        firstMouse = false;
+    if (first_mouse) {
+        last_x      = static_cast<float>(x);
+        last_y      = static_cast<float>(y);
+        first_mouse = false;
     }
 
-    auto offSetX {x - lastX};
-    auto offSetY {lastY - y};
+    auto off_set_x {x - last_x};
+    auto off_set_y {last_y - y};
 
-    lastX = x;
-    lastY = y;
+    last_x     = x;
+    last_y     = y;
+    off_set_x *= settings::CAMERA_SENSITIVITY;
+    off_set_y *= settings::CAMERA_SENSITIVITY;
 
-    const auto sensitivity {0.1f};
-
-    offSetX *= sensitivity;
-    offSetY *= sensitivity;
-
-    cam.mouse_process(offSetX, offSetY);
+    cam.mouse_process(off_set_x, off_set_y);
 }

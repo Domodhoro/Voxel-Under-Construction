@@ -9,12 +9,14 @@ void load_window_icon(GLFWwindow *window, const char *icon_path) {
     try {
         img.pixels = stbi_load(icon_path, &img.width, &img.height, 0, 4);
 
-        if (!img.pixels) throw program_exception {"Falha ao carregar ícone da janela de visualização"};
+        if (!img.pixels) throw util::program_exception {"Falha ao carregar ícone da janela de visualização"};
 
         glfwSetWindowIcon(window, 1, &img);
 
         stbi_image_free(img.pixels);
-    } catch (program_exception &e) { printf("%s", e.get_description()); }
+    } catch (util::program_exception &e) {
+        printf("%s", e.get_description());
+    }
 }
 
 unsigned int load_texture(const char *texture_path) {
@@ -36,13 +38,15 @@ unsigned int load_texture(const char *texture_path) {
     try {
         auto pixels {stbi_load(texture_path, &width, &height, &channels, 0)};
 
-        if (!pixels) throw program_exception {"Falha ao carregar textura."};
+        if (!pixels) throw util::program_exception {"Falha ao carregar textura."};
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
         glGenerateMipmap(GL_TEXTURE_2D);
 
         stbi_image_free(pixels);
-    } catch (program_exception &e) { printf("%s\n", e.get_description()); }
+    } catch (util::program_exception &e) {
+        printf("%s\n", e.get_description());
+    }
 
     return texture;
 }

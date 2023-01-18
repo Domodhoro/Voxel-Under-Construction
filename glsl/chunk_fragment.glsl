@@ -22,4 +22,6 @@ void main() {
     FragColor = color;
 }
 
-highp vec2 tex_sample(highp vec2 tex, highp float size, highp float x, highp float y) { return vec2((tex.x + x) * size, (tex.y + y) * size); }
+highp vec2 tex_sample(highp vec2 tex, highp float size, highp float x, highp float y) {
+    return vec2((tex.x + x) * size, (tex.y + y) * size);
+}
