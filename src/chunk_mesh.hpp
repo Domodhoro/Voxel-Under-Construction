@@ -3,7 +3,7 @@
 
 namespace chunk_mesh {
 
-void mesh(std::vector<util::vertex> &vertice, unsigned int &count, const int x, const int y, const int z, const util::face &face, const int block_type) {
+static void mesh(std::vector<util::vertex> &vertice, unsigned int &count, const int x, const int y, const int z, const util::face &face, const int block_type) {
     const auto X {static_cast<float>(x)};
     const auto Y {static_cast<float>(y)};
     const auto Z {static_cast<float>(z)};

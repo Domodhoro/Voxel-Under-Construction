@@ -4,7 +4,7 @@
 namespace lua_script {
 
 struct lua_script {
-    lua_script(const char *script_path) : m_L {luaL_newstate()} {
+    lua_script(const char* script_path) : m_L {luaL_newstate()} {
         luaL_openlibs(m_L);
 
         try {

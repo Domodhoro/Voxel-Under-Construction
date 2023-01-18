@@ -123,7 +123,8 @@ int main(int argc, char *argv[]) {
     while (!glfwWindowShouldClose(window)) {
         current_frame = static_cast<float>(glfwGetTime());
 
-        chunk_manager.add(cam.get_position(), noise);
+        chunk_manager.add_chunk   (cam.get_position(), noise);
+        chunk_manager.remove_chunk(cam.get_position());
 
         if ((current_frame - last_frame) > (1.0f / static_cast<float>(settings::FPS))) {
             keyboard_callback(window);

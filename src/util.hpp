@@ -56,14 +56,16 @@ struct world_coords {
 };
 
 struct program_exception {
-   program_exception(const char *description) : m_description(description) {}
+    program_exception(const char *description) : m_description(description) {}
 
-   ~program_exception() { exit(EXIT_FAILURE); }
+    ~program_exception() {
+       exit(EXIT_FAILURE);
+    }
 
-   const char *get_description() const { return m_description; }
+    const char *get_description() const { return m_description; }
 
 private:
-   const char *m_description {nullptr};
+    const char *m_description {nullptr};
 };
 
 }

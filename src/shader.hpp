@@ -62,7 +62,7 @@ private:
         std::stringstream code {};
 
         try {
-            if (!file.is_open()) throw util::program_exception {"Falha ao abrir arquivo GLSL."};
+            if (!file.is_open()) throw util::program_exception {"Falha ao abrir arquivo 'GLSL'."};
 
             code << file.rdbuf();
 
