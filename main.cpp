@@ -20,12 +20,10 @@
 #include "./lib/FastNoiseLite.h"
 
 extern "C" {
-
 #include "./lualib/lua.h"
 #include "./lualib/lualib.h"
 #include "./lualib/lauxlib.h"
 #include "./lualib/luaconf.h"
-
 }
 
 #include "./src/settings.hpp"
@@ -38,7 +36,9 @@ extern "C" {
 #include "./src/chunk.hpp"
 #include "./src/chunk_manager.hpp"
 
-camera::camera cam {settings::ASPECT};
+lua_script::lua_script lua {"./script.lua"};
+
+camera::camera cam {static_cast<float>(settings::WINDOW_WIDTH) / static_cast<float>(settings::WINDOW_HEIGHT)};
 
 FastNoiseLite noise {1007};
 
@@ -50,8 +50,6 @@ int main(int argc, char *argv[]) {
     printf("%s\n", argv[0]);
 
     setlocale(LC_ALL, "portuguese");
-
-    lua_script::lua_script {"./script.lua"};
 
     try {
         if (glfwInit() == GLFW_NOT_INITIALIZED) throw util::program_exception {"Falha ao iniciar o GLFW."};
