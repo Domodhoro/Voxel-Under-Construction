@@ -5,6 +5,24 @@ namespace framebuffer {
 
 struct framebuffer {
     framebuffer() {
+        glGenVertexArrays(1, &m_VAO);
+        glGenBuffers     (1, &m_VBO);
+        glBindVertexArray(m_VAO);
+
+        try {
+            glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(util::quad), &util::quad, GL_STATIC_DRAW);
+
+            glVertexAttribPointer    (0, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(0 * sizeof(float)));
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer    (1, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+            glEnableVertexAttribArray(1);
+
+            if (m_VAO == 0u) throw util::program_exception {"Falha ao criar VAO do 'framebuffer'."};
+        } catch (util::program_exception &e) {
+            printf("%s", e.get_description());
+        }
+
         auto RBO {0u};
 
         try {
@@ -29,13 +47,12 @@ struct framebuffer {
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        setup();
     }
 
     ~framebuffer() {
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers     (1, &m_VBO);
+        glDeleteTextures    (1, &m_texture_color_buffer);
     }
 
     void clear_color(const float r, const float g, const float b) const {
@@ -63,35 +80,6 @@ private:
     unsigned int m_VBO                  {0u};
     unsigned int m_FBO                  {0u};
     unsigned int m_texture_color_buffer {0u};
-
-    void setup() {
-        float quad[] = {
-            -1.0f,  1.0f,  0.0f, 1.0f,
-            -1.0f, -1.0f,  0.0f, 0.0f,
-             1.0f, -1.0f,  1.0f, 0.0f,
-            -1.0f,  1.0f,  0.0f, 1.0f,
-             1.0f, -1.0f,  1.0f, 0.0f,
-             1.0f,  1.0f,  1.0f, 1.0f
-        };
-
-        glGenVertexArrays(1, &m_VAO);
-        glGenBuffers     (1, &m_VBO);
-        glBindVertexArray(m_VAO);
-
-        try {
-            glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(quad), &quad, GL_STATIC_DRAW);
-
-            glVertexAttribPointer    (0, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(0 * sizeof(float)));
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer    (1, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-            glEnableVertexAttribArray(1);
-
-            if (m_VAO == 0u) throw util::program_exception {"Falha ao criar VAO do 'framebuffer'."};
-        } catch (util::program_exception &e) {
-            printf("%s", e.get_description());
-        }
-    }
 };
 
 }

@@ -18,6 +18,15 @@ enum struct BLOCK_TYPE : int {
     SAND
 };
 
+const float quad[24] = {
+    -1.0f, 1.0f, 0.0f, 1.0f,
+    -1.0f,-1.0f, 0.0f, 0.0f,
+     1.0f,-1.0f, 1.0f, 0.0f,
+    -1.0f, 1.0f, 0.0f, 1.0f,
+     1.0f,-1.0f, 1.0f, 0.0f,
+     1.0f, 1.0f, 1.0f, 1.0f
+};
+
 struct vertex {
     float X {0.0f};
     float Y {0.0f};

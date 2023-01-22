@@ -43,7 +43,8 @@ const auto aspect {
     static_cast<float>(settings::WINDOW_WIDTH) / static_cast<float>(settings::WINDOW_HEIGHT)
 };
 
-camera::camera cam       {aspect};
+camera::camera cam {aspect};
+
 noise::noise chunk_noise {settings::WORLD_SEED};
 
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -107,18 +108,18 @@ int main(int argc, char *argv[]) {
 
     glfwSetWindowPos(window, window_pos_x, window_pos_y);
 
-    auto framebuffer_shader {shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")};
-
-    framebuffer::framebuffer window_framebuffer {};
-
     cam.set_speed   (settings::CAMERA_SPEED);
     cam.set_FOV     (settings::CAMERA_FOV);
-    cam.set_position(glm::tvec3<float>(0.0f, 40.0f, 0.0f));
+    cam.set_position(glm::tvec3<float>(8.0f, 52.0f, 8.0f));
 
     auto chunk_shader  {shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
     auto chunk_texture {stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
     chunk_manager::chunk_manager chunk_manager {};
+
+    auto framebuffer_shader {shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")};
+
+    framebuffer::framebuffer window_framebuffer {};
 
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);
