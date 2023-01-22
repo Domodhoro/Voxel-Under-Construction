@@ -51,7 +51,7 @@ unsigned int load_texture(const char *texture_path) {
     return texture;
 }
 
-unsigned int load_cube_map_texture(const std::vector<const char*> &faces) {
+unsigned int load_cube_map_texture(const std::vector<std::string> &faces) {
     auto texture {0u};
 
     glGenTextures(1, &texture);
@@ -68,7 +68,7 @@ unsigned int load_cube_map_texture(const std::vector<const char*> &faces) {
     auto channels {0};
 
     for (auto i = 0; i != faces.size(); ++i) {
-        auto pixels {stbi_load(faces.at(i), &width, &height, &channels, 0)};
+        auto pixels {stbi_load(faces.at(i).c_str(), &width, &height, &channels, 0)};
 
         try {
             if (!pixels) throw util::program_exception {"Falha ao abrir os arquivos de textura."};

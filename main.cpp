@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
 
     chunk_manager::chunk_manager chunk_manager {};
 
-    std::vector<const char*> sky_texture {
+    std::vector<std::string> sky_texture {
         "img/skybox/right.bmp",
         "img/skybox/left.bmp",
         "img/skybox/down.bmp",
