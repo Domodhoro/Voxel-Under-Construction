@@ -4,13 +4,10 @@
 namespace chunk {
 
 struct chunk {
-    chunk(const int X, const int Z, const unsigned int &texture, const FastNoiseLite &noise) : m_texture {texture} {
+    chunk(const int X, const int Z, const FastNoiseLite &noise) {
         for (auto x = 0; x != settings::CHUNK_SIZE_X; ++x) for (auto y = 0; y != settings::CHUNK_SIZE_Y; ++y) for (auto z = 0; z != settings::CHUNK_SIZE_Z; ++z) {
-            const auto base      {32};
-            const auto amplitude {8.0f};
-
             auto MAX {
-                base + abs(floor(amplitude * noise.GetNoise(static_cast<float>(x + Z), static_cast<float>(z + X))))
+                32 + abs(floor(8.0f * noise.GetNoise(static_cast<float>(x + Z), static_cast<float>(z + X))))
             };
 
             if      (y <= 16)          m_block.push_back(util::BLOCK_TYPE::STONE);
@@ -42,12 +39,12 @@ struct chunk {
         glDeleteBuffers     (1, &m_VBO);
     }
 
-    void draw(shader::shader_program &shader, camera::camera &camera) const {
+    void draw(const shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) const {
         glCullFace(GL_FRONT);
 
         shader.use();
 
-        glBindTexture    (GL_TEXTURE_2D, m_texture);
+        glBindTexture    (GL_TEXTURE_2D, texture);
         glBindVertexArray(m_VAO);
 
         shader.set_mat4("View", camera.get_view_matrix());
@@ -59,10 +56,9 @@ struct chunk {
     }
 
 private:
-    unsigned int m_VAO     {0u};
-    unsigned int m_VBO     {0u};
-    unsigned int m_count   {0u};
-    unsigned int m_texture {0u};
+    unsigned int m_VAO   {0u};
+    unsigned int m_VBO   {0u};
+    unsigned int m_count {0u};
 
     std::vector<util::vertex>     m_vertice;
     std::vector<util::BLOCK_TYPE> m_block;

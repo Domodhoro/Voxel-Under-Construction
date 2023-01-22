@@ -4,9 +4,7 @@
 namespace chunk_manager {
 
 struct chunk_manager {
-    chunk_manager(unsigned int &texture) : m_texture {texture} {}
-
-    void add_chunk(const glm::tvec3<float> &position, FastNoiseLite &noise) {
+    void add_chunk(const glm::tvec3<float> &position, const FastNoiseLite &noise) {
         auto coords {chunk_coords(position)};
 
         auto predicate = [&](std::pair<util::world_coords, std::unique_ptr<chunk::chunk>> &chunk) -> bool {
@@ -17,22 +15,20 @@ struct chunk_manager {
             const auto X {coords.x * settings::CHUNK_SIZE_X};
             const auto Z {coords.z * settings::CHUNK_SIZE_Z};
 
-            m_chunks.emplace_back(coords, std::make_unique<chunk::chunk>(X, Z, m_texture, noise));
+            m_chunks.emplace_back(coords, std::make_unique<chunk::chunk>(X, Z, noise));
         }
     }
 
     void remove_chunk(const glm::tvec3<float> &position) {}
 
-    void draw(shader::shader_program &shader, camera::camera &cam) const {
+    void draw(const shader::shader_program &shader, const unsigned int &texture, camera::camera &cam) const {
         for (auto &it : m_chunks) {
-            it.second->draw(shader, cam);
+            it.second->draw(shader, texture, cam);
         }
     }
 
 private:
     std::vector<std::pair<util::world_coords, std::unique_ptr<chunk::chunk>>> m_chunks;
-
-    unsigned int m_texture {0u};
 
     util::world_coords chunk_coords(const glm::tvec3<float> &position) const {
         util::world_coords coords {

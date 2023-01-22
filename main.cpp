@@ -38,7 +38,11 @@ extern "C" {
 
 lua_script::lua_script lua {"./script.lua"};
 
-camera::camera cam {static_cast<float>(settings::WINDOW_WIDTH) / static_cast<float>(settings::WINDOW_HEIGHT)};
+const auto aspect {
+    static_cast<float>(settings::WINDOW_WIDTH) / static_cast<float>(settings::WINDOW_HEIGHT)
+};
+
+camera::camera cam {aspect};
 
 FastNoiseLite noise {1007};
 
@@ -110,7 +114,7 @@ int main(int argc, char *argv[]) {
     auto chunk_shader  { shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl") };
     auto chunk_texture { stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
-    chunk_manager::chunk_manager chunk_manager {chunk_texture};
+    chunk_manager::chunk_manager chunk_manager {};
 
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);
@@ -130,7 +134,7 @@ int main(int argc, char *argv[]) {
             glClear     (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glClearColor(0.7f, 0.8f, 1.0f, 1.0f);
 
-            chunk_manager.draw(chunk_shader, cam);
+            chunk_manager.draw(chunk_shader, chunk_texture, cam);
 
             glfwSwapBuffers(window);
             glfwPollEvents ();
@@ -141,7 +145,8 @@ int main(int argc, char *argv[]) {
 
     glDeleteTextures(1, &chunk_texture);
 
-    glfwTerminate();
+    glfwDestroyWindow(window);
+    glfwTerminate    ();
 
     return 0;
 }
