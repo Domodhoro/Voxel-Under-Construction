@@ -1,3 +1,27 @@
+/*
+    MIT License
+
+    Copyright (c) 2023 Guilherme M. Aguiar (guilhermemaguiar2022@gmail.com)
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+*/
+
 #include <iostream>
 #include <memory>
 #include <string>
@@ -33,6 +57,7 @@ extern "C" {
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.hpp"
 #include "./src/framebuffer.hpp"
+#include "./src/skybox.hpp"
 #include "./src/noise.hpp"
 #include "./src/chunk.hpp"
 #include "./src/chunk_manager.hpp"
@@ -43,12 +68,11 @@ const auto aspect {
     static_cast<float>(settings::WINDOW_WIDTH) / static_cast<float>(settings::WINDOW_HEIGHT)
 };
 
-camera::camera cam {aspect};
-
+camera::camera cam       {aspect};
 noise::noise chunk_noise {settings::WORLD_SEED};
 
-static void keyboard_callback        (GLFWwindow *window);
-static void mouse_callback           (GLFWwindow *window, double x, double y);
+static void keyboard_callback(GLFWwindow *window);
+static void mouse_callback   (GLFWwindow *window, double x, double y);
 
 int main(int argc, char *argv[]) {
     printf("%s\n", argv[0]);
@@ -117,6 +141,20 @@ int main(int argc, char *argv[]) {
 
     chunk_manager::chunk_manager chunk_manager {};
 
+    std::vector<const char*> sky_texture {
+        "img/skybox/right.bmp",
+        "img/skybox/left.bmp",
+        "img/skybox/down.bmp",
+        "img/skybox/up.bmp",
+        "img/skybox/front.bmp",
+        "img/skybox/back.bmp"
+    };
+
+    auto skybox_shader  {shader::shader_program("./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl")};
+    auto skybox_texture {stb_image_wrapper::load_cube_map_texture(sky_texture)};
+
+    skybox::skybox world_skybox {};
+
     auto framebuffer_shader {
         shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")
     };
@@ -140,11 +178,10 @@ int main(int argc, char *argv[]) {
         if ((current_frame - last_frame) > (1.0f / static_cast<float>(settings::FPS))) {
             keyboard_callback(window);
 
-            window_framebuffer.clear_color(0.7f, 0.8f, 1.0f);
-
-            chunk_manager.draw(chunk_shader, chunk_texture, cam);
-
-            window_framebuffer.apply(framebuffer_shader);
+            window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
+            world_skybox.draw             (skybox_shader, skybox_texture, cam);
+            chunk_manager.draw            (chunk_shader, chunk_texture, cam);
+            window_framebuffer.apply      (framebuffer_shader);
 
             glfwSwapBuffers(window);
             glfwPollEvents ();

@@ -51,6 +51,39 @@ unsigned int load_texture(const char *texture_path) {
     return texture;
 }
 
+unsigned int load_cube_map_texture(const std::vector<const char*> &faces) {
+    auto texture {0u};
+
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    auto width    {0};
+    auto height   {0};
+    auto channels {0};
+
+    for (auto i = 0; i != faces.size(); ++i) {
+        auto pixels {stbi_load(faces.at(i), &width, &height, &channels, 0)};
+
+        try {
+            if (!pixels) throw util::program_exception {"Falha ao abrir os arquivos de textura."};
+
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+
+            stbi_image_free(pixels);
+        } catch (util::program_exception &e) {
+            printf("%s\n", e.get_description());
+        }
+    }
+
+    return texture;
+}
+
 }
 
 #endif
