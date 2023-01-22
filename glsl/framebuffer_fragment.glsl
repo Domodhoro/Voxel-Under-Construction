@@ -8,7 +8,7 @@ in  highp vec2 FragTexture;
 uniform int Type;
 
 void main() {
-    highp vec3 color    = texture(screenTexture, FragTexture).rgb;
+    highp vec3 color = texture(screenTexture, FragTexture).rgb;
 
     switch (Type) {
     case 0:

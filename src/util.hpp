@@ -10,21 +10,18 @@ enum struct CAMERA_MOVEMENTS : int {
     LEFT
 };
 
+enum struct FRAMEBUFFER_TYPE : int {
+    DEFAULT = 0,
+    INVERT_COLOR,
+    GRAY_SCALE
+};
+
 enum struct BLOCK_TYPE : int {
     AIR = 0,
     GRASS,
     DIRT,
     STONE,
     SAND
-};
-
-const float quad[24] = {
-    -1.0f, 1.0f, 0.0f, 1.0f,
-    -1.0f,-1.0f, 0.0f, 0.0f,
-     1.0f,-1.0f, 1.0f, 0.0f,
-    -1.0f, 1.0f, 0.0f, 1.0f,
-     1.0f,-1.0f, 1.0f, 0.0f,
-     1.0f, 1.0f, 1.0f, 1.0f
 };
 
 struct vertex {

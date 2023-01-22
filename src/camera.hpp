@@ -6,14 +6,15 @@ namespace camera {
 struct camera {
     camera(const float aspect) : m_aspect {aspect} {}
 
-    void set_position  (const glm::tvec3<float> Position) { m_Position = Position; }
-    void set_speed     (const float speed)                { m_speed    = speed; }
-    void set_FOV       (const float FOV)                  { m_fov      = FOV; }
-    void set_near_plane(const float near)                 { m_near     = near; }
-    void set_far_plane (const float far)                  { m_far      = far; }
+    void set_position   (const glm::tvec3<float> Position) { m_Position    = Position; }
+    void set_speed      (const float speed)                { m_speed       = speed; }
+    void set_sensitivity(const float sensitivity)          { m_sensitivity = sensitivity; }
+    void set_FOV        (const float FOV)                  { m_FOV         = FOV; }
+    void set_near_plane (const float near)                 { m_near        = near; }
+    void set_far_plane  (const float far)                  { m_far         = far; }
 
     glm::tvec3<float> &get_position          () { return m_Position; }
-    glm::mat4          get_projection_matrix () { return glm::perspective(glm::radians(m_fov), m_aspect, m_near, m_far); }
+    glm::mat4          get_projection_matrix () { return glm::perspective(glm::radians(m_FOV), m_aspect, m_near, m_far); }
     glm::mat4          get_view_matrix       () { return glm::lookAt     (m_Position, m_Position + m_Front, m_Up); }
 
     void keyboard_process(const util::CAMERA_MOVEMENTS CAMERA_MOVEMENTS) {
@@ -24,8 +25,8 @@ struct camera {
     }
 
     void mouse_process(double &off_set_x, double &off_set_y) {
-        m_alpha += static_cast<float>(off_set_x);
-        m_beta  += static_cast<float>(off_set_y);
+        m_alpha += static_cast<float>(off_set_x) * m_sensitivity;
+        m_beta  += static_cast<float>(off_set_y) * m_sensitivity;
 
         const auto angle_max {89.0f};
 
@@ -40,13 +41,14 @@ struct camera {
     }
 
 private:
-    float m_fov    {60.0f};
-    float m_aspect {1.0f};
-    float m_near   {0.001f};
-    float m_far    {1000.0f};
-    float m_speed  {1.0f};
-    float m_alpha  {90.0f};
-    float m_beta   {0.0f};
+    float m_aspect      {1.0f};
+    float m_speed       {1.0f};
+    float m_sensitivity {0.1f};
+    float m_FOV         {60.0f};
+    float m_near        {0.001f};
+    float m_far         {1000.0f};
+    float m_alpha       {90.0f};
+    float m_beta        {0.0f};
 
     glm::tvec3<float> m_Front     {0.0f, 0.0f, 1.0f};
     glm::tvec3<float> m_Position  {0.0f};

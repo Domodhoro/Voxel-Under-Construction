@@ -47,7 +47,6 @@ camera::camera cam {aspect};
 
 noise::noise chunk_noise {settings::WORLD_SEED};
 
-static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 static void keyboard_callback        (GLFWwindow *window);
 static void mouse_callback           (GLFWwindow *window, double x, double y);
 
@@ -84,7 +83,7 @@ int main(int argc, char *argv[]) {
     auto window_pos_x {100}, window_pos_y {100};
 
     glfwSetWindowPos(window, window_pos_x, window_pos_y);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetFramebufferSizeCallback(window, framebuffer::framebuffer_size_callback);
 
     stb_image_wrapper::load_window_icon(window, "./img/icon.bmp");
 
@@ -108,18 +107,23 @@ int main(int argc, char *argv[]) {
 
     glfwSetWindowPos(window, window_pos_x, window_pos_y);
 
-    cam.set_speed   (settings::CAMERA_SPEED);
-    cam.set_FOV     (settings::CAMERA_FOV);
-    cam.set_position(glm::tvec3<float>(8.0f, 52.0f, 8.0f));
+    cam.set_speed      (settings::CAMERA_SPEED);
+    cam.set_sensitivity(settings::CAMERA_SENSITIVITY);
+    cam.set_FOV        (settings::CAMERA_FOV);
+    cam.set_position   (glm::tvec3<float>(8.0f, 52.0f, 8.0f));
 
     auto chunk_shader  {shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
     auto chunk_texture {stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
     chunk_manager::chunk_manager chunk_manager {};
 
-    auto framebuffer_shader {shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")};
+    auto framebuffer_shader {
+        shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")
+    };
 
-    framebuffer::framebuffer window_framebuffer {framebuffer::FRAMEBUFFER_TYPE::DEFAULT};
+    framebuffer::framebuffer window_framebuffer {
+        settings::WINDOW_WIDTH, settings::WINDOW_HEIGHT, util::FRAMEBUFFER_TYPE::DEFAULT
+    };
 
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);
@@ -157,10 +161,6 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
-
 static void keyboard_callback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
@@ -184,10 +184,8 @@ static void mouse_callback(GLFWwindow *window, double x, double y) {
     auto off_set_x {x - last_x};
     auto off_set_y {last_y - y};
 
-    last_x     = x;
-    last_y     = y;
-    off_set_x *= settings::CAMERA_SENSITIVITY;
-    off_set_y *= settings::CAMERA_SENSITIVITY;
+    last_x = x;
+    last_y = y;
 
     cam.mouse_process(off_set_x, off_set_y);
 }

@@ -3,21 +3,26 @@
 
 namespace framebuffer {
 
-enum struct FRAMEBUFFER_TYPE : int {
-    DEFAULT = 0,
-    INVERT_COLOR,
-    GRAY_SCALE
-};
+static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 struct framebuffer {
-    framebuffer(const FRAMEBUFFER_TYPE type) : m_type {type} {
+    framebuffer(const int width, const int height, const util::FRAMEBUFFER_TYPE type) : m_type {type} {
+        const float quad[24] = {
+            -1.0f, 1.0f, 0.0f, 1.0f,
+            -1.0f,-1.0f, 0.0f, 0.0f,
+             1.0f,-1.0f, 1.0f, 0.0f,
+            -1.0f, 1.0f, 0.0f, 1.0f,
+             1.0f,-1.0f, 1.0f, 0.0f,
+             1.0f, 1.0f, 1.0f, 1.0f
+        };
+
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers     (1, &m_VBO);
         glBindVertexArray(m_VAO);
 
         try {
             glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(util::quad), &util::quad, GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(quad), &quad, GL_STATIC_DRAW);
 
             glVertexAttribPointer    (0, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(0 * sizeof(float)));
             glEnableVertexAttribArray(0);
@@ -37,14 +42,14 @@ struct framebuffer {
 
             glGenTextures         (1, &m_texture_color_buffer);
             glBindTexture         (GL_TEXTURE_2D, m_texture_color_buffer);
-            glTexImage2D          (GL_TEXTURE_2D, 0, GL_RGB, settings::WINDOW_WIDTH, settings::WINDOW_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+            glTexImage2D          (GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
             glTexParameteri       (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri       (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture_color_buffer, 0);
 
             glGenRenderbuffers       (1, &RBO);
             glBindRenderbuffer       (GL_RENDERBUFFER, RBO);
-            glRenderbufferStorage    (GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, settings::WINDOW_WIDTH, settings::WINDOW_HEIGHT);
+            glRenderbufferStorage    (GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
 
             if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) throw util::program_exception {"Falha ao criar 'framebuffer'."};
@@ -75,8 +80,7 @@ struct framebuffer {
         glClearColor     (1.0f, 1.0f, 1.0f, 1.0f);
         glClear          (GL_COLOR_BUFFER_BIT);
 
-        shader.use();
-
+        shader.use    ();
         shader.set_int("Type", static_cast<int>(m_type));
 
         glBindVertexArray(m_VAO);
@@ -85,12 +89,16 @@ struct framebuffer {
     }
 
 private:
-    FRAMEBUFFER_TYPE m_type             {FRAMEBUFFER_TYPE::DEFAULT};
+    util::FRAMEBUFFER_TYPE m_type       {util::FRAMEBUFFER_TYPE::DEFAULT};
     unsigned int m_VAO                  {0u};
     unsigned int m_VBO                  {0u};
     unsigned int m_FBO                  {0u};
     unsigned int m_texture_color_buffer {0u};
 };
+
+static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+    glViewport(0, 0, width, height);
+}
 
 }
 
