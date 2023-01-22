@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
     try {
         window = glfwCreateWindow(settings::WINDOW_WIDTH, settings::WINDOW_HEIGHT, settings::WINDOW_TITLE, nullptr, nullptr);
 
-        if (!window) throw util::program_exception {"Falha ao criar a janela de visualização."};
+        if (!window) throw util::program_exception {"Falha ao criar a janela de visualizaÃ§Ã£o."};
 
         glfwMakeContextCurrent(window);
     } catch (util::program_exception &e) {
@@ -191,6 +191,7 @@ int main(int argc, char *argv[]) {
     }
 
     glDeleteTextures(1, &chunk_texture);
+    glDeleteTextures(1, &skybox_texture);
 
     glfwDestroyWindow(window);
     glfwTerminate    ();
