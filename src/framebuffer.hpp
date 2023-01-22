@@ -7,14 +7,14 @@ static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 struct framebuffer {
     framebuffer(const int width, const int height, const util::FRAMEBUFFER_TYPE type) : m_type {type} {
-        const float quad[24] = {
-            -1.0f, 1.0f, 0.0f, 1.0f,
-            -1.0f,-1.0f, 0.0f, 0.0f,
-             1.0f,-1.0f, 1.0f, 0.0f,
-            -1.0f, 1.0f, 0.0f, 1.0f,
-             1.0f,-1.0f, 1.0f, 0.0f,
-             1.0f, 1.0f, 1.0f, 1.0f
-        };
+        std::vector<util::vertex_2d> vertice;
+
+        vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
+        vertice.push_back({-1.0f,-1.0f, 0.0f, 0.0f});
+        vertice.push_back({ 1.0f,-1.0f, 1.0f, 0.0f});
+        vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
+        vertice.push_back({ 1.0f,-1.0f, 1.0f, 0.0f});
+        vertice.push_back({ 1.0f, 1.0f, 1.0f, 1.0f});
 
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers     (1, &m_VBO);
@@ -22,7 +22,7 @@ struct framebuffer {
 
         try {
             glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(quad), &quad, GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, vertice.size() * 4 * sizeof(float), &vertice.at(0), GL_STATIC_DRAW);
 
             glVertexAttribPointer    (0, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(0 * sizeof(float)));
             glEnableVertexAttribArray(0);

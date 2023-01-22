@@ -24,12 +24,24 @@ enum struct BLOCK_TYPE : int {
     SAND
 };
 
-struct vertex {
+struct vertex_2d {
+    float X {0.0f};
+    float Y {0.0f};
+    float U {0.0f};
+    float V {0.0f};
+};
+
+struct vertex_3d {
     float X {0.0f};
     float Y {0.0f};
     float Z {0.0f};
     float U {0.0f};
     float V {0.0f};
+};
+
+struct vertex_3d_t {
+    vertex_3d vertices;
+
     float T {0.0f};
 };
 
