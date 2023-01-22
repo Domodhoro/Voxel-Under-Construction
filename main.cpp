@@ -32,8 +32,8 @@ extern "C" {
 #include "./src/camera.hpp"
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.hpp"
+#include "./src/framebuffer.hpp"
 #include "./src/noise.hpp"
-#include "./src/chunk_mesh.hpp"
 #include "./src/chunk.hpp"
 #include "./src/chunk_manager.hpp"
 
@@ -107,12 +107,16 @@ int main(int argc, char *argv[]) {
 
     glfwSetWindowPos(window, window_pos_x, window_pos_y);
 
+    auto framebuffer_shader {shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")};
+
+    framebuffer::framebuffer window_framebuffer {};
+
     cam.set_speed   (settings::CAMERA_SPEED);
     cam.set_FOV     (settings::CAMERA_FOV);
     cam.set_position(glm::tvec3<float>(0.0f, 40.0f, 0.0f));
 
-    auto chunk_shader  { shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl") };
-    auto chunk_texture { stb_image_wrapper::load_texture("./img/blocks.bmp")};
+    auto chunk_shader  {shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
+    auto chunk_texture {stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
     chunk_manager::chunk_manager chunk_manager {};
 
@@ -131,10 +135,11 @@ int main(int argc, char *argv[]) {
         if ((current_frame - last_frame) > (1.0f / static_cast<float>(settings::FPS))) {
             keyboard_callback(window);
 
-            glClear     (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glClearColor(0.7f, 0.8f, 1.0f, 1.0f);
+            window_framebuffer.clear_color(0.7f, 0.8f, 1.0f);
 
             chunk_manager.draw(chunk_shader, chunk_texture, cam);
+
+            window_framebuffer.apply(framebuffer_shader);
 
             glfwSwapBuffers(window);
             glfwPollEvents ();
