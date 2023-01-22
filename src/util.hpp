@@ -39,8 +39,14 @@ struct vertex_3d {
     float V {0.0f};
 };
 
+struct vertex_2d_t {
+    vertex_2d vertice;
+
+    float T {0.0f};
+};
+
 struct vertex_3d_t {
-    vertex_3d vertices;
+    vertex_3d vertice;
 
     float T {0.0f};
 };
