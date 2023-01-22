@@ -13,6 +13,10 @@ struct lua_script {
             printf("%s", e.get_description());
         }
 
+        lua_getglobal(m_L, "world");
+
+        settings::WORLD_SEED = get_number("seed");
+
         lua_getglobal(m_L, "window");
 
         settings::WINDOW_WIDTH  = static_cast<int>(get_number("width"));

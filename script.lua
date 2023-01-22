@@ -4,6 +4,10 @@ window = {
     title  = "Voxel-Engine"
 }
 
+world  = {
+    seed = 1007
+}
+
 camera = {
     speed       = 0.5,
     FOV         = 60.0,

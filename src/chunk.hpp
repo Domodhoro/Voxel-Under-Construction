@@ -4,10 +4,10 @@
 namespace chunk {
 
 struct chunk {
-    chunk(const int X, const int Z, const FastNoiseLite &noise) {
+    chunk(const int X, const int Z, const noise::noise &noise) {
         for (auto x = 0; x != settings::CHUNK_SIZE_X; ++x) for (auto y = 0; y != settings::CHUNK_SIZE_Y; ++y) for (auto z = 0; z != settings::CHUNK_SIZE_Z; ++z) {
             auto MAX {
-                32 + abs(floor(8.0f * noise.GetNoise(static_cast<float>(x + Z), static_cast<float>(z + X))))
+                32 + abs(floor(8.0f * noise.get(static_cast<float>(x + Z), static_cast<float>(z + X))))
             };
 
             if      (y <= 16)          m_block.push_back(util::BLOCK_TYPE::STONE);

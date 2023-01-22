@@ -29,9 +29,10 @@ extern "C" {
 #include "./src/settings.hpp"
 #include "./src/util.hpp"
 #include "./src/lua_script.hpp"
+#include "./src/camera.hpp"
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.hpp"
-#include "./src/camera.hpp"
+#include "./src/noise.hpp"
 #include "./src/chunk_mesh.hpp"
 #include "./src/chunk.hpp"
 #include "./src/chunk_manager.hpp"
@@ -42,9 +43,8 @@ const auto aspect {
     static_cast<float>(settings::WINDOW_WIDTH) / static_cast<float>(settings::WINDOW_HEIGHT)
 };
 
-camera::camera cam {aspect};
-
-FastNoiseLite noise {1007};
+camera::camera cam       {aspect};
+noise::noise chunk_noise {settings::WORLD_SEED};
 
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 static void keyboard_callback        (GLFWwindow *window);
@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
     while (!glfwWindowShouldClose(window)) {
         current_frame = static_cast<float>(glfwGetTime());
 
-        chunk_manager.add_chunk   (cam.get_position(), noise);
+        chunk_manager.add_chunk   (cam.get_position(), chunk_noise);
         chunk_manager.remove_chunk(cam.get_position());
 
         if ((current_frame - last_frame) > (1.0f / static_cast<float>(settings::FPS))) {

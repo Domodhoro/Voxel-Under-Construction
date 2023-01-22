@@ -4,7 +4,7 @@
 namespace chunk_manager {
 
 struct chunk_manager {
-    void add_chunk(const glm::tvec3<float> &position, const FastNoiseLite &noise) {
+    void add_chunk(const glm::tvec3<float> &position, const noise::noise &noise) {
         auto coords {chunk_coords(position)};
 
         auto predicate = [&](std::pair<util::world_coords, std::unique_ptr<chunk::chunk>> &chunk) -> bool {
