@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
 
     auto framebuffer_shader {shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")};
 
-    framebuffer::framebuffer window_framebuffer {};
+    framebuffer::framebuffer window_framebuffer {framebuffer::FRAMEBUFFER_TYPE::DEFAULT};
 
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);

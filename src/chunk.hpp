@@ -79,7 +79,7 @@ private:
             glVertexAttribPointer    (1, 3, GL_FLOAT, false, 6 * sizeof(float), (void*)(3 * sizeof(float)));
             glEnableVertexAttribArray(1);
 
-            if (m_VAO == 0u) throw util::program_exception {"Falha ao criar VAO."};
+            if (m_VAO == 0u) throw util::program_exception {"Falha ao criar VAO do 'chunk'."};
         } catch (util::program_exception &e) {
             printf("%s", e.get_description());
         }

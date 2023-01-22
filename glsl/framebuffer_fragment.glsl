@@ -5,14 +5,22 @@ uniform sampler2D screenTexture;
 out highp vec4 FragColor;
 in  highp vec2 FragTexture;
 
+uniform int Type;
+
 void main() {
-    highp vec3 color = texture(screenTexture, FragTexture).rgb;
-    FragColor        = vec4(color, 1.0);
+    highp vec3 color    = texture(screenTexture, FragTexture).rgb;
 
-    //highp vec3 color = vec3(1.0 - texture(screenTexture, FragTexture)).rbg;
-    //FragColor        = vec4(color, 1.0);
-
-    //FragColor           = texture(screenTexture, FragTexture);
-    //highp float average = 0.5f * (FragColor.r + FragColor.g + FragColor.b);
-    //FragColor           = vec4(average, average, average, 1.0);
+    switch (Type) {
+    case 0:
+        FragColor = vec4(color, 1.0f);
+        break;
+    case 1:
+        color     = vec3(1.0f - color);
+        FragColor = vec4(color, 1.0f);
+        break;
+    case 2:
+        FragColor = vec4(color, 1.0f);
+        FragColor = vec4(vec3(0.5f * (color.r + color.g + color.b)), 1.0f);
+        break;
+    }
 }

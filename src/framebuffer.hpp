@@ -3,8 +3,14 @@
 
 namespace framebuffer {
 
+enum struct FRAMEBUFFER_TYPE : int {
+    DEFAULT = 0,
+    INVERT_COLOR,
+    GRAY_SCALE
+};
+
 struct framebuffer {
-    framebuffer() {
+    framebuffer(const FRAMEBUFFER_TYPE type) : m_type {type} {
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers     (1, &m_VBO);
         glBindVertexArray(m_VAO);
@@ -50,6 +56,7 @@ struct framebuffer {
     }
 
     ~framebuffer() {
+        glDeleteFramebuffers(1, &m_FBO);
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers     (1, &m_VBO);
         glDeleteTextures    (1, &m_texture_color_buffer);
@@ -70,12 +77,15 @@ struct framebuffer {
 
         shader.use();
 
+        shader.set_int("Type", static_cast<int>(m_type));
+
         glBindVertexArray(m_VAO);
         glBindTexture    (GL_TEXTURE_2D, m_texture_color_buffer);
         glDrawArrays     (GL_TRIANGLES, 0, 6);
     }
 
 private:
+    FRAMEBUFFER_TYPE m_type             {FRAMEBUFFER_TYPE::DEFAULT};
     unsigned int m_VAO                  {0u};
     unsigned int m_VBO                  {0u};
     unsigned int m_FBO                  {0u};
