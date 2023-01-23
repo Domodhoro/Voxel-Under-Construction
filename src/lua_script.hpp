@@ -7,11 +7,7 @@ struct lua_script {
     lua_script(const char* script_path) : m_L {luaL_newstate()} {
         luaL_openlibs(m_L);
 
-        try {
-            if (luaL_dofile(m_L, script_path) != LUA_OK) throw util::program_exception {"Falha ao ler script Lua."};
-        } catch (util::program_exception &e) {
-            printf("%s", e.get_description());
-        }
+        if (luaL_dofile(m_L, script_path) != LUA_OK) my_exception {__FILE__, __LINE__, "falha ao ler script lua"};
 
         lua_getglobal(m_L, "world");
 

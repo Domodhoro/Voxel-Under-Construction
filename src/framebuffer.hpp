@@ -20,42 +20,34 @@ struct framebuffer {
         glGenBuffers     (1, &m_VBO);
         glBindVertexArray(m_VAO);
 
-        try {
-            glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-            glBufferData(GL_ARRAY_BUFFER, vertice.size() * 4 * sizeof(float), &vertice.at(0), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertice.size() * 4 * sizeof(float), &vertice.at(0), GL_STATIC_DRAW);
 
-            glVertexAttribPointer    (0, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(0 * sizeof(float)));
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer    (1, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-            glEnableVertexAttribArray(1);
+        glVertexAttribPointer    (0, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(0 * sizeof(float)));
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer    (1, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+        glEnableVertexAttribArray(1);
 
-            if (m_VAO == 0u) throw util::program_exception {"Falha ao criar VAO do 'framebuffer'."};
-        } catch (util::program_exception &e) {
-            printf("%s", e.get_description());
-        }
+        if (m_VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'framebuffer'"};
 
         auto RBO {0u};
 
-        try {
-            glGenFramebuffers(1, &m_FBO);
-            glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
+        glGenFramebuffers(1, &m_FBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
 
-            glGenTextures         (1, &m_texture_color_buffer);
-            glBindTexture         (GL_TEXTURE_2D, m_texture_color_buffer);
-            glTexImage2D          (GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-            glTexParameteri       (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri       (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture_color_buffer, 0);
+        glGenTextures         (1, &m_texture_color_buffer);
+        glBindTexture         (GL_TEXTURE_2D, m_texture_color_buffer);
+        glTexImage2D          (GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri       (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri       (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture_color_buffer, 0);
 
-            glGenRenderbuffers       (1, &RBO);
-            glBindRenderbuffer       (GL_RENDERBUFFER, RBO);
-            glRenderbufferStorage    (GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+        glGenRenderbuffers       (1, &RBO);
+        glBindRenderbuffer       (GL_RENDERBUFFER, RBO);
+        glRenderbufferStorage    (GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
 
-            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) throw util::program_exception {"Falha ao criar 'framebuffer'."};
-        } catch (util::program_exception &e) {
-            printf("%s", e.get_description());
-        }
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) my_exception {__FILE__, __LINE__, "falha ao criar 'framebuffer'"};
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }

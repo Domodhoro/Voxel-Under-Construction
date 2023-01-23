@@ -6,17 +6,13 @@ namespace stb_image_wrapper {
 void load_window_icon(GLFWwindow *window, const char *icon_path) {
     GLFWimage img;
 
-    try {
-        img.pixels = stbi_load(icon_path, &img.width, &img.height, 0, 4);
+    img.pixels = stbi_load(icon_path, &img.width, &img.height, 0, 4);
 
-        if (!img.pixels) throw util::program_exception {"Falha ao carregar ícone da janela de visualização"};
+    if (img.pixels == nullptr) my_exception {__FILE__, __LINE__, "falha ao carregar ícone da janela de visualização"};
 
-        glfwSetWindowIcon(window, 1, &img);
+    glfwSetWindowIcon(window, 1, &img);
 
-        stbi_image_free(img.pixels);
-    } catch (util::program_exception &e) {
-        printf("%s", e.get_description());
-    }
+    stbi_image_free(img.pixels);
 }
 
 unsigned int load_texture(const char *texture_path) {
@@ -35,18 +31,14 @@ unsigned int load_texture(const char *texture_path) {
     auto height   {0};
     auto channels {0};
 
-    try {
-        auto pixels {stbi_load(texture_path, &width, &height, &channels, 0)};
+    auto pixels {stbi_load(texture_path, &width, &height, &channels, 0)};
 
-        if (!pixels) throw util::program_exception {"Falha ao carregar textura."};
+    if (pixels == nullptr) my_exception {__FILE__, __LINE__, "falha ao carregar textura"};
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-        glGenerateMipmap(GL_TEXTURE_2D);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
-        stbi_image_free(pixels);
-    } catch (util::program_exception &e) {
-        printf("%s\n", e.get_description());
-    }
+    stbi_image_free(pixels);
 
     return texture;
 }
@@ -70,15 +62,11 @@ unsigned int load_cube_map_texture(const std::vector<std::string> &faces) {
     for (auto i = 0; i != faces.size(); ++i) {
         auto pixels {stbi_load(faces.at(i).c_str(), &width, &height, &channels, 0)};
 
-        try {
-            if (!pixels) throw util::program_exception {"Falha ao abrir os arquivos de textura."};
+        if (pixels == nullptr) my_exception {__FILE__, __LINE__, "falha ao abrir os arquivos de textura"};
 
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
-            stbi_image_free(pixels);
-        } catch (util::program_exception &e) {
-            printf("%s\n", e.get_description());
-        }
+        stbi_image_free(pixels);
     }
 
     return texture;

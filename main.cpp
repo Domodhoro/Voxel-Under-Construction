@@ -50,6 +50,19 @@ extern "C" {
 #include "./lualib/luaconf.h"
 }
 
+struct my_exception {
+    my_exception(const char *file, int line, const char *description) {
+        printf("Ops! Uma falha ocorreu...\n\n");
+        printf("File:        %s\n", basename(file));
+        printf("Line:        %i\n", line);
+        printf("Description: %s\n", description);
+    }
+
+    ~my_exception() {
+        exit(EXIT_FAILURE);
+    }
+};
+
 #include "./src/settings.hpp"
 #include "./src/util.hpp"
 #include "./src/lua_script.hpp"
@@ -75,34 +88,22 @@ static void keyboard_callback(GLFWwindow *window);
 static void mouse_callback   (GLFWwindow *window, double x, double y);
 
 int main(int argc, char *argv[]) {
-    printf("%s\n", argv[0]);
+    if (glfwInit() == GLFW_NOT_INITIALIZED) my_exception {__FILE__, __LINE__, "falha ao iniciar o GLFW"};
 
-    setlocale(LC_ALL, "portuguese");
-
-    try {
-        if (glfwInit() == GLFW_NOT_INITIALIZED) throw util::program_exception {"Falha ao iniciar o GLFW."};
-
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    } catch (util::program_exception &e) {
-        printf("%s", e.get_description());
-    }
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     glfwWindowHint(GLFW_DECORATED, false);
     glfwWindowHint(GLFW_RESIZABLE, false);
 
     GLFWwindow *window {nullptr};
 
-    try {
-        window = glfwCreateWindow(settings::WINDOW_WIDTH, settings::WINDOW_HEIGHT, settings::WINDOW_TITLE, nullptr, nullptr);
+    window = glfwCreateWindow(settings::WINDOW_WIDTH, settings::WINDOW_HEIGHT, settings::WINDOW_TITLE, nullptr, nullptr);
 
-        if (!window) throw util::program_exception {"Falha ao criar a janela de visualizaÃ§Ã£o."};
+    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
 
-        glfwMakeContextCurrent(window);
-    } catch (util::program_exception &e) {
-        printf("%s", e.get_description());
-    }
+    glfwMakeContextCurrent(window);
 
     auto window_pos_x {100}, window_pos_y {100};
 
@@ -111,13 +112,9 @@ int main(int argc, char *argv[]) {
 
     stb_image_wrapper::load_window_icon(window, "./img/icon.bmp");
 
-    try {
-        glewExperimental = true;
+    glewExperimental = true;
 
-        if (glewInit() != GLEW_OK) throw util::program_exception {"Falha ao iniciar GLEW."};
-    } catch (util::program_exception &e) {
-        printf("%s", e.get_description());
-    }
+    if (glewInit() != GLEW_OK) my_exception {__FILE__, __LINE__, "falha ao iniciar GLEW"};
 
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);

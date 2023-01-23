@@ -5,19 +5,15 @@ namespace shader {
 
 struct shader_program {
     shader_program(const char *vertex_path, const char *fragment_path) : m_shader {glCreateProgram()} {
-        try {
-            glAttachShader(m_shader, compile_shader_data(vertex_path, GL_VERTEX_SHADER));
-            glAttachShader(m_shader, compile_shader_data(fragment_path, GL_FRAGMENT_SHADER));
-            glLinkProgram (m_shader);
+        glAttachShader(m_shader, compile_shader_data(vertex_path, GL_VERTEX_SHADER));
+        glAttachShader(m_shader, compile_shader_data(fragment_path, GL_FRAGMENT_SHADER));
+        glLinkProgram (m_shader);
 
-            auto success {0};
+        auto success {0};
 
-            glGetProgramiv(m_shader, GL_LINK_STATUS, &success);
+        glGetProgramiv(m_shader, GL_LINK_STATUS, &success);
 
-            if (!success) throw util::program_exception {"Falha ao compilar 'shader'."};
-        } catch (util::program_exception &e) {
-            printf("%s", e.get_description());
-        }
+        if (!success) my_exception {__FILE__, __LINE__, "falha ao compilar 'shader'"};
     }
 
     ~shader_program() { glDeleteProgram(m_shader); }
@@ -38,20 +34,16 @@ private:
         auto shader_code {data_code.c_str()};
         auto data        {glCreateShader(type)};
 
-        try {
-            glShaderSource (data, 1, &shader_code, nullptr);
-            glCompileShader(data);
+        glShaderSource (data, 1, &shader_code, nullptr);
+        glCompileShader(data);
 
-            auto success {0};
+        auto success {0};
 
-            glGetShaderiv(data, GL_COMPILE_STATUS, &success);
+        glGetShaderiv(data, GL_COMPILE_STATUS, &success);
 
-            if (success == 0u) {
-                if (type == GL_VERTEX_SHADER)   throw util::program_exception {"Falha ao compilar 'vertex'."};
-                if (type == GL_FRAGMENT_SHADER) throw util::program_exception {"Falha ao compilar 'fragment'."};
-            }
-        } catch (util::program_exception &e) {
-            printf("%s", e.get_description());
+        if (success == 0u) {
+            if (type == GL_VERTEX_SHADER)   my_exception {__FILE__, __LINE__, "falha ao compilar 'vertex'"};
+            if (type == GL_FRAGMENT_SHADER) my_exception {__FILE__, __LINE__, "falha ao compilar 'fragment'"};
         }
 
         return data;
@@ -61,15 +53,11 @@ private:
         std::ifstream file     {file_path};
         std::stringstream code {};
 
-        try {
-            if (!file.is_open()) throw util::program_exception {"Falha ao abrir arquivo 'GLSL'."};
+        if (!file.is_open()) my_exception {__FILE__, __LINE__, "falha ao abrir arquivo 'GLSL'"};
 
-            code << file.rdbuf();
+        code << file.rdbuf();
 
-            file.close();
-        } catch (util::program_exception &e) {
-            printf("%s", e.get_description());
-        }
+        file.close();
 
         return code.str();
     }

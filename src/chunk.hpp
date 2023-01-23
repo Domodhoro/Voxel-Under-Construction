@@ -12,7 +12,7 @@ struct chunk {
                 32 + abs(floor(8.0f * noise.get(static_cast<float>(x + Z), static_cast<float>(z + X))))
             };
 
-            if      (y <= 16)          m_block.push_back(util::BLOCK_TYPE::STONE);
+            if      (y <= MAX - 2)     m_block.push_back(util::BLOCK_TYPE::STONE);
             else if (y > 0 && y < MAX) m_block.push_back(util::BLOCK_TYPE::DIRT);
             else if (y == MAX)         m_block.push_back(util::BLOCK_TYPE::GRASS);
             else                       m_block.push_back(util::BLOCK_TYPE::AIR);
@@ -70,19 +70,15 @@ private:
         glGenBuffers     (1, &m_VBO);
         glBindVertexArray(m_VAO);
 
-        try {
-            glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-            glBufferData(GL_ARRAY_BUFFER, m_vertice.size() * 6 * sizeof(float), &m_vertice.at(0), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+        glBufferData(GL_ARRAY_BUFFER, m_vertice.size() * 6 * sizeof(float), &m_vertice.at(0), GL_STATIC_DRAW);
 
-            glVertexAttribPointer    (0, 3, GL_FLOAT, false, 6 * sizeof(float), (void*)(0 * sizeof(float)));
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer    (1, 3, GL_FLOAT, false, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-            glEnableVertexAttribArray(1);
+        glVertexAttribPointer    (0, 3, GL_FLOAT, false, 6 * sizeof(float), (void*)(0 * sizeof(float)));
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer    (1, 3, GL_FLOAT, false, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
 
-            if (m_VAO == 0u) throw util::program_exception {"Falha ao criar VAO do 'chunk'."};
-        } catch (util::program_exception &e) {
-            printf("%s", e.get_description());
-        }
+        if (m_VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'chunk'"};
     }
 
     util::BLOCK_TYPE get_block_type(int x, int y, int z) const {
