@@ -97,9 +97,9 @@ int main(int argc, char *argv[]) {
     glfwWindowHint(GLFW_DECORATED, false);
     glfwWindowHint(GLFW_RESIZABLE, false);
 
-    GLFWwindow *window {nullptr};
-
-    window = glfwCreateWindow(settings::WINDOW_WIDTH, settings::WINDOW_HEIGHT, settings::WINDOW_TITLE, nullptr, nullptr);
+    GLFWwindow *window {
+        glfwCreateWindow(settings::WINDOW_WIDTH, settings::WINDOW_HEIGHT, settings::WINDOW_TITLE, nullptr, nullptr)
+    };
 
     if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
 

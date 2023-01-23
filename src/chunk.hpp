@@ -12,7 +12,8 @@ struct chunk {
                 32 + abs(floor(8.0f * noise.get(static_cast<float>(x + Z), static_cast<float>(z + X))))
             };
 
-            if      (y <= MAX - 2)     m_block.push_back(util::BLOCK_TYPE::STONE);
+            if      (y == 0)           m_block.push_back(util::BLOCK_TYPE::MAGMA);
+            else if (y <= MAX - 2)     m_block.push_back(util::BLOCK_TYPE::STONE);
             else if (y > 0 && y < MAX) m_block.push_back(util::BLOCK_TYPE::DIRT);
             else if (y == MAX)         m_block.push_back(util::BLOCK_TYPE::GRASS);
             else                       m_block.push_back(util::BLOCK_TYPE::AIR);
@@ -105,6 +106,9 @@ static void mesh(std::vector<util::vertex_3d_t> &vertice, unsigned int &count, c
         break;
     case static_cast<int>(util::BLOCK_TYPE::SAND):
         tex = {5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f};
+        break;
+    case static_cast<int>(util::BLOCK_TYPE::MAGMA):
+        tex = {6.0f, 6.0f, 6.0f, 6.0f, 6.0f, 6.0f};
         break;
     }
 
