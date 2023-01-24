@@ -62,13 +62,13 @@ struct chunk {
     }
 
 private:
-    unsigned int m_VAO   {0u};
-    unsigned int m_VBO   {0u};
-    unsigned int m_EBO   {0u};
+    unsigned int m_VAO {0u};
+    unsigned int m_VBO {0u};
+    unsigned int m_EBO {0u};
 
     std::vector<tools::BLOCK_TYPE>  m_block;
     std::vector<tools::vertex_3d_t> m_vertice;
-    std::vector<unsigned int> m_indices;
+    std::vector<unsigned int>       m_indices;
 
     void setup() {
         glGenVertexArrays(1, &m_VAO);
