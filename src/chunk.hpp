@@ -69,6 +69,7 @@ private:
     void setup() {
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers     (1, &m_VBO);
+
         glBindVertexArray(m_VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
