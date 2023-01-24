@@ -73,6 +73,7 @@ struct skybox {
         shader.set_mat4("Projection", cam.get_projection_matrix());
 
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
         glBindVertexArray(0);
 
         glDepthMask(true);
