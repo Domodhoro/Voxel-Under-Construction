@@ -5,84 +5,7 @@ namespace skybox {
 
 struct skybox {
     skybox() {
-        m_vertice.push_back({-0.5f, 0.5f,-0.5f, 0.0f, 0.0f});
-        m_vertice.push_back({-0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
-        m_vertice.push_back({ 0.5f,-0.5f,-0.5f, 1.0f, 1.0f});
-        m_vertice.push_back({ 0.5f, 0.5f,-0.5f, 1.0f, 0.0f});
-
-        m_indices.push_back(0);
-        m_indices.push_back(1);
-        m_indices.push_back(3);
-
-        m_indices.push_back(3);
-        m_indices.push_back(1);
-        m_indices.push_back(2);
-
-        m_vertice.push_back({-0.5f, 0.5f, 0.5f, 0.0f, 0.0f});
-        m_vertice.push_back({-0.5f,-0.5f, 0.5f, 0.0f, 1.0f});
-        m_vertice.push_back({ 0.5f,-0.5f, 0.5f, 1.0f, 1.0f});
-        m_vertice.push_back({ 0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
-
-        m_indices.push_back(5);
-        m_indices.push_back(4);
-        m_indices.push_back(7);
-
-        m_indices.push_back(5);
-        m_indices.push_back(7);
-        m_indices.push_back(6);
-
-        m_vertice.push_back({ 0.5f, 0.5f,-0.5f, 0.0f, 0.0f});
-        m_vertice.push_back({ 0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
-        m_vertice.push_back({ 0.5f,-0.5f, 0.5f, 1.0f, 1.0f});
-        m_vertice.push_back({ 0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
-
-        m_indices.push_back(8);
-        m_indices.push_back(9);
-        m_indices.push_back(11);
-
-        m_indices.push_back(11);
-        m_indices.push_back(9);
-        m_indices.push_back(10);
-
-        m_vertice.push_back({-0.5f, 0.5f,-0.5f, 0.0f, 0.0f});
-        m_vertice.push_back({-0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
-        m_vertice.push_back({-0.5f,-0.5f, 0.5f, 1.0f, 1.0f});
-        m_vertice.push_back({-0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
-
-        m_indices.push_back(13);
-        m_indices.push_back(12);
-        m_indices.push_back(15);
-
-        m_indices.push_back(13);
-        m_indices.push_back(15);
-        m_indices.push_back(14);
-
-        m_vertice.push_back({-0.5f, 0.5f, 0.5f, 0.0f, 0.0f});
-        m_vertice.push_back({-0.5f, 0.5f,-0.5f, 0.0f, 1.0f});
-        m_vertice.push_back({ 0.5f, 0.5f,-0.5f, 1.0f, 1.0f});
-        m_vertice.push_back({ 0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
-
-        m_indices.push_back(16);
-        m_indices.push_back(17);
-        m_indices.push_back(19);
-
-        m_indices.push_back(19);
-        m_indices.push_back(17);
-        m_indices.push_back(18);
-
-        m_vertice.push_back({-0.5f,-0.5f, 0.5f, 0.0f, 0.0f});
-        m_vertice.push_back({-0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
-        m_vertice.push_back({ 0.5f,-0.5f,-0.5f, 1.0f, 1.0f});
-        m_vertice.push_back({ 0.5f,-0.5f, 0.5f, 1.0f, 0.0f});
-
-        m_indices.push_back(21);
-        m_indices.push_back(20);
-        m_indices.push_back(23);
-
-        m_indices.push_back(21);
-        m_indices.push_back(23);
-        m_indices.push_back(22);
-
+        mesh ();
         setup();
     }
 
@@ -144,6 +67,49 @@ private:
         glEnableVertexAttribArray(1);
 
         if (m_VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'skybox'"};
+    }
+
+    void mesh() {
+        m_vertice.push_back({-0.5f, 0.5f,-0.5f, 0.0f, 0.0f});
+        m_vertice.push_back({-0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
+        m_vertice.push_back({ 0.5f,-0.5f,-0.5f, 1.0f, 1.0f});
+        m_vertice.push_back({ 0.5f, 0.5f,-0.5f, 1.0f, 0.0f});
+
+        m_vertice.push_back({-0.5f, 0.5f, 0.5f, 0.0f, 0.0f});
+        m_vertice.push_back({-0.5f,-0.5f, 0.5f, 0.0f, 1.0f});
+        m_vertice.push_back({ 0.5f,-0.5f, 0.5f, 1.0f, 1.0f});
+        m_vertice.push_back({ 0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
+
+        m_vertice.push_back({ 0.5f, 0.5f,-0.5f, 0.0f, 0.0f});
+        m_vertice.push_back({ 0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
+        m_vertice.push_back({ 0.5f,-0.5f, 0.5f, 1.0f, 1.0f});
+        m_vertice.push_back({ 0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
+
+        m_vertice.push_back({-0.5f, 0.5f,-0.5f, 0.0f, 0.0f});
+        m_vertice.push_back({-0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
+        m_vertice.push_back({-0.5f,-0.5f, 0.5f, 1.0f, 1.0f});
+        m_vertice.push_back({-0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
+
+        m_vertice.push_back({-0.5f, 0.5f, 0.5f, 0.0f, 0.0f});
+        m_vertice.push_back({-0.5f, 0.5f,-0.5f, 0.0f, 1.0f});
+        m_vertice.push_back({ 0.5f, 0.5f,-0.5f, 1.0f, 1.0f});
+        m_vertice.push_back({ 0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
+
+        m_vertice.push_back({-0.5f,-0.5f, 0.5f, 0.0f, 0.0f});
+        m_vertice.push_back({-0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
+        m_vertice.push_back({ 0.5f,-0.5f,-0.5f, 1.0f, 1.0f});
+        m_vertice.push_back({ 0.5f,-0.5f, 0.5f, 1.0f, 0.0f});
+
+        const std::initializer_list<unsigned int> indices {
+             0u,  1u,  3u,  3u,  1u,  2u,
+             5u,  4u,  7u,  5u,  7u,  6u,
+             8u,  9u, 11u, 11u,  9u, 10u,
+            13u, 12u, 15u, 13u, 15u, 14u,
+            16u, 17u, 19u, 19u, 17u, 18u,
+            21u, 20u, 23u, 21u, 23u, 22u
+        };
+
+        m_indices.insert(m_indices.end(), indices);
     }
 };
 

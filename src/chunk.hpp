@@ -17,7 +17,7 @@ struct chunk {
             else                       m_block.push_back(tools::BLOCK_TYPE::AIR);
         }
 
-        auto index {0u};
+        auto i {0u};
 
         for (auto x = 0; x != CHUNK_SIZE_X; ++x) for (auto y = 0; y != CHUNK_SIZE_Y; ++y) for (auto z = 0; z != CHUNK_SIZE_Z; ++z) {
             if (get_block_type(x, y, z) == tools::BLOCK_TYPE::AIR)  continue;
@@ -31,7 +31,7 @@ struct chunk {
             if (y < (CHUNK_SIZE_Y - 1) && get_block_type(x, y + 1, z) != tools::BLOCK_TYPE::AIR) face.U = false;
             if (z < (CHUNK_SIZE_Z - 1) && get_block_type(x, y, z + 1) != tools::BLOCK_TYPE::AIR) face.B = false;
 
-            mesh(index, x + X, y, z + Z, face, static_cast<int>(get_block_type(x, y, z)));
+            mesh(i, x + X, y, z + Z, face, static_cast<int>(get_block_type(x, y, z)));
         }
 
         setup();
@@ -42,7 +42,7 @@ struct chunk {
         glDeleteBuffers     (1, &m_VBO);
         glDeleteBuffers     (1, &m_EBO);
     }
-    
+
     void set_block_type(int x, int y, int z, tools::BLOCK_TYPE type) {
         m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) = type;
     }
@@ -130,7 +130,7 @@ private:
             m_vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 1.0f, 0.0f, tex.F});
             m_vertice.push_back({X + 0.5f, Y + 0.5f, Z - 0.5f, 1.0f, 1.0f, tex.F});
 
-            std::initializer_list indices {
+            const std::initializer_list<unsigned int> indices {
                 i + 0, i + 1, i + 3, i + 3, i + 1, i + 2
             };
 
@@ -145,7 +145,7 @@ private:
             m_vertice.push_back({X + 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 0.0f, tex.B});
             m_vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, tex.B});
 
-            std::initializer_list indices {
+            const std::initializer_list<unsigned int> indices {
                 i + 1, i + 0, i + 3, i + 1, i + 3, i + 2
             };
 
@@ -160,7 +160,7 @@ private:
             m_vertice.push_back({X + 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 0.0f, tex.R});
             m_vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, tex.R});
 
-            std::initializer_list indices {
+            const std::initializer_list<unsigned int> indices {
                 i + 0, i + 1, i + 3, i + 3, i + 1, i + 2
             };
 
@@ -175,7 +175,7 @@ private:
             m_vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 0.0f, tex.L});
             m_vertice.push_back({X - 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, tex.L});
 
-            std::initializer_list indices {
+            const std::initializer_list<unsigned int> indices {
                 i + 1, i + 0, i + 3, i + 1, i + 3, i + 2
             };
 
@@ -190,7 +190,7 @@ private:
             m_vertice.push_back({X+0.5f,Y+0.5f,Z-0.5f, 1.0f, 0.0f, tex.U});
             m_vertice.push_back({X+0.5f,Y+0.5f,Z+0.5f, 1.0f, 1.0f, tex.U});
 
-            std::initializer_list indices {
+            const std::initializer_list<unsigned int> indices {
                 i + 0, i + 1, i + 3, i + 3, i + 1, i + 2
             };
 
@@ -205,7 +205,7 @@ private:
             m_vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 1.0f, 0.0f, tex.D});
             m_vertice.push_back({X + 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 1.0f, tex.D});
 
-            std::initializer_list indices {
+            const std::initializer_list<unsigned int> indices {
                 i + 1, i + 0, i + 3, i + 1, i + 3, i + 2
             };
 
