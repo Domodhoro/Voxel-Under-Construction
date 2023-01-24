@@ -36,7 +36,7 @@ struct noise {
     }
 
 private:
-    FastNoiseLite m_noise[settings::NOISE_MAX];
+    FastNoiseLite m_noise[NOISE_MAX];
 };
 
 }

@@ -11,19 +11,20 @@ struct lua_script {
 
         lua_getglobal(m_L, "world");
 
-        settings::WORLD_SEED = get_number("seed");
+        WORLD_SEED = static_cast<int>(get_number("seed"));
+        WORLD_SIZE = static_cast<int>(get_number("size"));
 
         lua_getglobal(m_L, "window");
 
-        settings::WINDOW_WIDTH  = static_cast<int>(get_number("width"));
-        settings::WINDOW_HEIGHT = static_cast<int>(get_number("height"));
-        settings::WINDOW_TITLE  = get_string("title");
+        WINDOW_WIDTH  = static_cast<int>(get_number("width"));
+        WINDOW_HEIGHT = static_cast<int>(get_number("height"));
+        WINDOW_TITLE  = get_string("title");
 
         lua_getglobal(m_L, "camera");
 
-        settings::CAMERA_SPEED       = get_number("speed");
-        settings::CAMERA_FOV         = get_number("FOV");
-        settings::CAMERA_SENSITIVITY = get_number("sensitivity");
+        CAMERA_SPEED       = get_number("speed");
+        CAMERA_FOV         = get_number("FOV");
+        CAMERA_SENSITIVITY = get_number("sensitivity");
     }
 
     ~lua_script() {

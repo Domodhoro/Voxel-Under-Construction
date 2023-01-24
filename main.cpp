@@ -1,27 +1,3 @@
-/*
-    MIT License
-
-    Copyright (c) 2023 Guilherme M. Aguiar (guilhermemaguiar2022@gmail.com)
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-*/
-
 #include <iostream>
 #include <memory>
 #include <string>
@@ -50,6 +26,12 @@ extern "C" {
 #include "./lualib/luaconf.h"
 }
 
+constexpr auto FPS          {60};
+constexpr auto NOISE_MAX    {3};
+constexpr auto CHUNK_SIZE_X {16};
+constexpr auto CHUNK_SIZE_Y {64};
+constexpr auto CHUNK_SIZE_Z {CHUNK_SIZE_X};
+
 struct my_exception {
     my_exception(const char *file, int line, const char *description) {
         printf("Ops! Uma falha ocorreu...\n\n");
@@ -63,9 +45,17 @@ struct my_exception {
     }
 };
 
-#include "./src/settings.hpp"
-#include "./src/util.hpp"
+auto WORLD_SEED         {1007};
+auto WORLD_SIZE         {2};
+auto WINDOW_WIDTH       {1200};
+auto WINDOW_HEIGHT      {600};
+auto WINDOW_TITLE       {"Voxel-Engine"};
+auto CAMERA_SPEED       {0.5f};
+auto CAMERA_FOV         {60.0f};
+auto CAMERA_SENSITIVITY {0.1f};
+
 #include "./src/lua_script.hpp"
+#include "./src/tools.hpp"
 #include "./src/camera.hpp"
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.hpp"
@@ -76,18 +66,16 @@ struct my_exception {
 #include "./src/chunk_manager.hpp"
 
 lua_script::lua_script lua {"./script.lua"};
+camera::camera cam         {static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)};
+noise::noise chunk_noise   {WORLD_SEED};
 
-const auto aspect {
-    static_cast<float>(settings::WINDOW_WIDTH) / static_cast<float>(settings::WINDOW_HEIGHT)
-};
-
-camera::camera cam       {aspect};
-noise::noise chunk_noise {settings::WORLD_SEED};
-
-static void keyboard_callback(GLFWwindow *window);
-static void mouse_callback   (GLFWwindow *window, double x, double y);
+static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+static void keyboard_callback        (GLFWwindow *window);
+static void mouse_callback           (GLFWwindow *window, double x, double y);
 
 int main(int argc, char *argv[]) {
+    printf("%s\n", argv[0]);
+
     if (glfwInit() == GLFW_NOT_INITIALIZED) my_exception {__FILE__, __LINE__, "falha ao iniciar o GLFW"};
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -98,7 +86,7 @@ int main(int argc, char *argv[]) {
     glfwWindowHint(GLFW_RESIZABLE, false);
 
     GLFWwindow *window {
-        glfwCreateWindow(settings::WINDOW_WIDTH, settings::WINDOW_HEIGHT, settings::WINDOW_TITLE, nullptr, nullptr)
+        glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr)
     };
 
     if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
@@ -108,7 +96,7 @@ int main(int argc, char *argv[]) {
     auto window_pos_x {100}, window_pos_y {100};
 
     glfwSetWindowPos(window, window_pos_x, window_pos_y);
-    glfwSetFramebufferSizeCallback(window, framebuffer::framebuffer_size_callback);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     stb_image_wrapper::load_window_icon(window, "./img/icon.bmp");
 
@@ -123,14 +111,14 @@ int main(int argc, char *argv[]) {
         glfwGetVideoMode(glfwGetPrimaryMonitor())
     };
 
-    window_pos_x = (mode->width  - settings::WINDOW_WIDTH)  / 2;
-    window_pos_y = (mode->height - settings::WINDOW_HEIGHT) / 2;
+    window_pos_x = (mode->width  - WINDOW_WIDTH)  / 2;
+    window_pos_y = (mode->height - WINDOW_HEIGHT) / 2;
 
     glfwSetWindowPos(window, window_pos_x, window_pos_y);
 
-    cam.set_speed      (settings::CAMERA_SPEED);
-    cam.set_sensitivity(settings::CAMERA_SENSITIVITY);
-    cam.set_FOV        (settings::CAMERA_FOV);
+    cam.set_speed      (CAMERA_SPEED);
+    cam.set_sensitivity(CAMERA_SENSITIVITY);
+    cam.set_FOV        (CAMERA_FOV);
     cam.set_position   (glm::tvec3<float>(8.0f, 52.0f, 8.0f));
 
     auto chunk_shader  {shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
@@ -157,7 +145,7 @@ int main(int argc, char *argv[]) {
     };
 
     framebuffer::framebuffer window_framebuffer {
-        settings::WINDOW_WIDTH, settings::WINDOW_HEIGHT, util::FRAMEBUFFER_TYPE::DEFAULT
+        WINDOW_WIDTH, WINDOW_HEIGHT, tools::FRAMEBUFFER_TYPE::DEFAULT
     };
 
     glEnable   (GL_DEPTH_TEST);
@@ -169,10 +157,17 @@ int main(int argc, char *argv[]) {
     while (!glfwWindowShouldClose(window)) {
         current_frame = static_cast<float>(glfwGetTime());
 
-        chunk_manager.add_chunk   (cam.get_position(), chunk_noise);
-        chunk_manager.remove_chunk(cam.get_position());
+        for (auto x = 1 - WORLD_SIZE; x != WORLD_SIZE; ++x) for (auto z = 1 - WORLD_SIZE; z != WORLD_SIZE; ++z) {
+            const glm::tvec3<float> aux {
+                static_cast<float>(x * CHUNK_SIZE_X),
+                0.0f,
+                static_cast<float>(z * CHUNK_SIZE_Z)
+            };
 
-        if ((current_frame - last_frame) > (1.0f / static_cast<float>(settings::FPS))) {
+            chunk_manager.add_chunk(cam.get_position() + aux, chunk_noise);
+        }
+
+        if ((current_frame - last_frame) > (1.0f / static_cast<float>(FPS))) {
             keyboard_callback(window);
 
             window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
@@ -196,13 +191,17 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+    glViewport(0, 0, width, height);
+}
+
 static void keyboard_callback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cam.keyboard_process(util::CAMERA_MOVEMENTS::FORWARD);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_process(util::CAMERA_MOVEMENTS::BACKWARD);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_process(util::CAMERA_MOVEMENTS::RIGHT);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_process(util::CAMERA_MOVEMENTS::LEFT);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::FORWARD);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::BACKWARD);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::RIGHT);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::LEFT);
 }
 
 static void mouse_callback(GLFWwindow *window, double x, double y) {

@@ -3,11 +3,9 @@
 
 namespace framebuffer {
 
-static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-
 struct framebuffer {
-    framebuffer(const int width, const int height, const util::FRAMEBUFFER_TYPE type) : m_type {type} {
-        std::vector<util::vertex_2d> vertice;
+    framebuffer(const int width, const int height, const tools::FRAMEBUFFER_TYPE type) : m_type {type} {
+        std::vector<tools::vertex_2d> vertice;
 
         vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
         vertice.push_back({-1.0f,-1.0f, 0.0f, 0.0f});
@@ -81,16 +79,13 @@ struct framebuffer {
     }
 
 private:
-    util::FRAMEBUFFER_TYPE m_type       {util::FRAMEBUFFER_TYPE::DEFAULT};
+    tools::FRAMEBUFFER_TYPE m_type {tools::FRAMEBUFFER_TYPE::DEFAULT};
+
     unsigned int m_VAO                  {0u};
     unsigned int m_VBO                  {0u};
     unsigned int m_FBO                  {0u};
     unsigned int m_texture_color_buffer {0u};
 };
-
-static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
 
 }
 

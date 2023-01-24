@@ -83,7 +83,7 @@ private:
     unsigned int m_VAO {0u};
     unsigned int m_VBO {0u};
 
-    std::vector<util::vertex_3d> m_vertice;
+    std::vector<tools::vertex_3d> m_vertice;
 
     void setup() {
         glGenVertexArrays(1, &m_VAO);
