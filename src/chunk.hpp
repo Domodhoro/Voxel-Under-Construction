@@ -42,6 +42,14 @@ struct chunk {
         glDeleteBuffers     (1, &m_VBO);
         glDeleteBuffers     (1, &m_EBO);
     }
+    
+    void set_block_type(int x, int y, int z, tools::BLOCK_TYPE type) {
+        m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) = type;
+    }
+
+    tools::BLOCK_TYPE get_block_type(int x, int y, int z) const {
+        return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y);
+    }
 
     void draw(const shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) const {
         glCullFace(GL_FRONT);
@@ -89,10 +97,6 @@ private:
         glEnableVertexAttribArray(1);
 
         if (m_VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'chunk'"};
-    }
-
-    tools::BLOCK_TYPE get_block_type(int x, int y, int z) const {
-        return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y);
     }
 
     void mesh(unsigned int &i, const int x, const int y, const int z, const tools::face &face, const int block_type) {
