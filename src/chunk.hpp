@@ -91,7 +91,7 @@ private:
         if (m_VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'chunk'"};
     }
 
-    tools::BLOCK_TYPE &get_block_type(int x, int y, int z) {
+    tools::BLOCK_TYPE get_block_type(int x, int y, int z) const {
         return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y);
     }
 
