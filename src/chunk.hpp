@@ -17,6 +17,8 @@ struct chunk {
             else                       m_block.push_back(tools::BLOCK_TYPE::AIR);
         }
 
+        auto index {0u};
+
         for (auto x = 0; x != CHUNK_SIZE_X; ++x) for (auto y = 0; y != CHUNK_SIZE_Y; ++y) for (auto z = 0; z != CHUNK_SIZE_Z; ++z) {
             if (get_block_type(x, y, z) == tools::BLOCK_TYPE::AIR)  continue;
 
@@ -29,7 +31,7 @@ struct chunk {
             if (y < (CHUNK_SIZE_Y - 1) && get_block_type(x, y + 1, z) != tools::BLOCK_TYPE::AIR) face.U = false;
             if (z < (CHUNK_SIZE_Z - 1) && get_block_type(x, y, z + 1) != tools::BLOCK_TYPE::AIR) face.B = false;
 
-            mesh(x + X, y, z + Z, face, static_cast<int>(get_block_type(x, y, z)));
+            mesh(index, x + X, y, z + Z, face, static_cast<int>(get_block_type(x, y, z)));
         }
 
         setup();
@@ -38,6 +40,7 @@ struct chunk {
     ~chunk() {
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers     (1, &m_VBO);
+        glDeleteBuffers     (1, &m_EBO);
     }
 
     void draw(const shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) const {
@@ -51,7 +54,7 @@ struct chunk {
         shader.set_mat4("View", camera.get_view_matrix());
         shader.set_mat4("Projection", camera.get_projection_matrix());
 
-        glDrawArrays(GL_TRIANGLES, 0, m_count);
+        glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
 
         glBindVertexArray(0);
 
@@ -61,19 +64,24 @@ struct chunk {
 private:
     unsigned int m_VAO   {0u};
     unsigned int m_VBO   {0u};
-    unsigned int m_count {0u};
+    unsigned int m_EBO   {0u};
 
-    std::vector<tools::vertex_3d_t> m_vertice;
     std::vector<tools::BLOCK_TYPE>  m_block;
+    std::vector<tools::vertex_3d_t> m_vertice;
+    std::vector<unsigned int> m_indices;
 
     void setup() {
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers     (1, &m_VBO);
+        glGenBuffers     (1, &m_EBO);
 
         glBindVertexArray(m_VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
         glBufferData(GL_ARRAY_BUFFER, m_vertice.size() * 6 * sizeof(float), &m_vertice.at(0), GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned int), &m_indices.at(0), GL_STATIC_DRAW);
 
         glVertexAttribPointer    (0, 3, GL_FLOAT, false, 6 * sizeof(float), (void*)(0 * sizeof(float)));
         glEnableVertexAttribArray(0);
@@ -87,7 +95,7 @@ private:
         return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y);
     }
 
-    void mesh(const int x, const int y, const int z, const tools::face &face, const int block_type) {
+    void mesh(unsigned int &i, const int x, const int y, const int z, const tools::face &face, const int block_type) {
         const auto X {static_cast<float>(x)};
         const auto Y {static_cast<float>(y)};
         const auto Z {static_cast<float>(z)};
@@ -113,69 +121,93 @@ private:
         }
 
         if (face.F) {
-            m_vertice.push_back({X - 0.5f, Y - 0.5f, Z - 0.5f, 1.0f, 0.0f, tex.F});
-            m_vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, tex.F});
-            m_vertice.push_back({X + 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 1.0f, tex.F});
-            m_vertice.push_back({X - 0.5f, Y - 0.5f, Z - 0.5f, 1.0f, 0.0f, tex.F});
-            m_vertice.push_back({X + 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 1.0f, tex.F});
-            m_vertice.push_back({X - 0.5f, Y + 0.5f, Z - 0.5f, 1.0f, 1.0f, tex.F});
+            m_vertice.push_back({X - 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 1.0f, tex.F});
+            m_vertice.push_back({X - 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, tex.F});
+            m_vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 1.0f, 0.0f, tex.F});
+            m_vertice.push_back({X + 0.5f, Y + 0.5f, Z - 0.5f, 1.0f, 1.0f, tex.F});
 
-            m_count += 6u;
+            std::initializer_list indices {
+                i + 0, i + 1, i + 3, i + 3, i + 1, i + 2
+            };
+
+            m_indices.insert(m_indices.end(), indices);
+
+            i += 4u;
         }
 
         if (face.B) {
-            m_vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 0.0f, 0.0f, tex.B});
-            m_vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, tex.B});
-            m_vertice.push_back({X + 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 0.0f, tex.B});
             m_vertice.push_back({X - 0.5f, Y + 0.5f, Z + 0.5f, 0.0f, 1.0f, tex.B});
-            m_vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, tex.B});
             m_vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 0.0f, 0.0f, tex.B});
+            m_vertice.push_back({X + 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 0.0f, tex.B});
+            m_vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, tex.B});
 
-            m_count += 6u;
+            std::initializer_list indices {
+                i + 1, i + 0, i + 3, i + 1, i + 3, i + 2
+            };
+
+            m_indices.insert(m_indices.end(), indices);
+
+            i += 4u;
         }
 
         if (face.R) {
-            m_vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 1.0f, 0.0f, tex.R});
-            m_vertice.push_back({X + 0.5f, Y - 0.5f, Z + 0.5f, 0.0f, 0.0f, tex.R});
-            m_vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 0.0f, 1.0f, tex.R});
-            m_vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 1.0f, 0.0f, tex.R});
-            m_vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 0.0f, 1.0f, tex.R});
-            m_vertice.push_back({X + 0.5f, Y + 0.5f, Z - 0.5f, 1.0f, 1.0f, tex.R});
+            m_vertice.push_back({X + 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 1.0f, tex.R});
+            m_vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, tex.R});
+            m_vertice.push_back({X + 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 0.0f, tex.R});
+            m_vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, tex.R});
 
-            m_count += 6u;
+            std::initializer_list indices {
+                i + 0, i + 1, i + 3, i + 3, i + 1, i + 2
+            };
+
+            m_indices.insert(m_indices.end(), indices);
+
+            i += 4u;
         }
 
         if (face.L) {
-            m_vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 0.0f, tex.L});
-            m_vertice.push_back({X - 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, tex.L});
-            m_vertice.push_back({X - 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, tex.L});
             m_vertice.push_back({X - 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 1.0f, tex.L});
-            m_vertice.push_back({X - 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, tex.L});
             m_vertice.push_back({X - 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, tex.L});
+            m_vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 0.0f, tex.L});
+            m_vertice.push_back({X - 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, tex.L});
 
-            m_count += 6u;
+            std::initializer_list indices {
+                i + 1, i + 0, i + 3, i + 1, i + 3, i + 2
+            };
+
+            m_indices.insert(m_indices.end(), indices);
+
+            i += 4u;
         }
 
         if (face.U) {
-            m_vertice.push_back({X + 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 1.0f, tex.U});
-            m_vertice.push_back({X + 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 1.0f, tex.U});
-            m_vertice.push_back({X - 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 0.0f, tex.U});
-            m_vertice.push_back({X + 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 1.0f, tex.U});
-            m_vertice.push_back({X - 0.5f, Y + 0.5f, Z + 0.5f, 1.0f, 0.0f, tex.U});
-            m_vertice.push_back({X - 0.5f, Y + 0.5f, Z - 0.5f, 0.0f, 0.0f, tex.U});
+            m_vertice.push_back({X-0.5f,Y+0.5f,Z+0.5f, 0.0f, 1.0f, tex.U});
+            m_vertice.push_back({X-0.5f,Y+0.5f,Z-0.5f, 0.0f, 0.0f, tex.U});
+            m_vertice.push_back({X+0.5f,Y+0.5f,Z-0.5f, 1.0f, 0.0f, tex.U});
+            m_vertice.push_back({X+0.5f,Y+0.5f,Z+0.5f, 1.0f, 1.0f, tex.U});
 
-            m_count += 6u;
+            std::initializer_list indices {
+                i + 0, i + 1, i + 3, i + 3, i + 1, i + 2
+            };
+
+            m_indices.insert(m_indices.end(), indices);
+
+            i += 4u;
         }
 
         if (face.D) {
-            m_vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 1.0f, tex.D});
-            m_vertice.push_back({X + 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 0.0f, tex.D});
-            m_vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, tex.D});
-            m_vertice.push_back({X - 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 1.0f, tex.D});
-            m_vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 1.0f, tex.D});
-            m_vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, tex.D});
+            m_vertice.push_back({X - 0.5f, Y - 0.5f, Z + 0.5f, 0.0f, 1.0f, tex.D});
+            m_vertice.push_back({X - 0.5f, Y - 0.5f, Z - 0.5f, 0.0f, 0.0f, tex.D});
+            m_vertice.push_back({X + 0.5f, Y - 0.5f, Z - 0.5f, 1.0f, 0.0f, tex.D});
+            m_vertice.push_back({X + 0.5f, Y - 0.5f, Z + 0.5f, 1.0f, 1.0f, tex.D});
 
-            m_count += 6u;
+            std::initializer_list indices {
+                i + 1, i + 0, i + 3, i + 1, i + 3, i + 2
+            };
+
+            m_indices.insert(m_indices.end(), indices);
+
+            i += 4u;
         }
     }
 };
