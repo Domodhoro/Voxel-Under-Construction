@@ -4,6 +4,12 @@
 namespace chunk_manager {
 
 struct chunk_manager {
+    chunk_manager(const noise::noise &noise) {
+        tools::world_coords position {0, 0, 0};
+
+        m_chunks.emplace_back(position, std::make_unique<chunk::chunk>(0, 0, noise));
+    }
+
     void add_chunk(const glm::tvec3<float> &camera_position, const noise::noise &noise) {
         auto coords {chunk_coords(camera_position)};
 

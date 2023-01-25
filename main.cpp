@@ -90,12 +90,10 @@ int main(int argc, char *argv[]) {
 
     if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
 
-    glfwMakeContextCurrent(window);
-
     auto window_pos_x {100}, window_pos_y {100};
 
-    glfwSetWindowPos(window, window_pos_x, window_pos_y);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwMakeContextCurrent(window);
+    glfwSetWindowPos      (window, window_pos_x, window_pos_y);
 
     stb_image_wrapper::load_window_icon(window, "./img/icon.bmp");
 
@@ -115,33 +113,6 @@ int main(int argc, char *argv[]) {
 
     glfwSetWindowPos(window, window_pos_x, window_pos_y);
 
-    cam.set_speed      (CAMERA_SPEED);
-    cam.set_sensitivity(CAMERA_SENSITIVITY);
-    cam.set_FOV        (CAMERA_FOV);
-    cam.set_position   (glm::tvec3<float>(8.0f, 52.0f, 8.0f));
-
-    chunk_noise.set_minimum_height     (16);
-    chunk_noise.set_amplitude_variation(8.0f);
-
-    auto chunk_shader  {shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
-    auto chunk_texture {stb_image_wrapper::load_texture("./img/blocks.bmp")};
-
-    chunk_manager::chunk_manager chunk_manager {};
-
-    std::vector<std::string> sky_texture {
-        "img/skybox/right.bmp",
-        "img/skybox/left.bmp",
-        "img/skybox/down.bmp",
-        "img/skybox/up.bmp",
-        "img/skybox/front.bmp",
-        "img/skybox/back.bmp"
-    };
-
-    auto skybox_shader  {shader::shader_program("./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl")};
-    auto skybox_texture {stb_image_wrapper::load_cube_map_texture(sky_texture)};
-
-    skybox::skybox world_skybox {};
-
     auto framebuffer_shader {
         shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")
     };
@@ -149,6 +120,34 @@ int main(int argc, char *argv[]) {
     framebuffer::framebuffer window_framebuffer {
         WINDOW_WIDTH, WINDOW_HEIGHT, tools::FRAMEBUFFER_TYPE::DEFAULT
     };
+
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    cam.set_speed      (CAMERA_SPEED);
+    cam.set_sensitivity(CAMERA_SENSITIVITY);
+    cam.set_FOV        (CAMERA_FOV);
+    cam.set_position   (glm::tvec3<float>(8.0f, 52.0f, 8.0f));
+
+    chunk_noise.set_minimum_height     (32);
+    chunk_noise.set_amplitude_variation(8.0f);
+
+    std::vector<std::string> sky_texture {
+        "img/skybox/right.bmp",
+        "img/skybox/left.bmp",
+        "img/skybox/up.bmp",
+        "img/skybox/down.bmp",
+        "img/skybox/front.bmp",
+        "img/skybox/back.bmp"
+    };
+
+    shader::shader_program skybox_shader("./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl");
+    shader::shader_program chunk_shader ("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl");
+
+    auto skybox_texture {stb_image_wrapper::load_cube_map_texture(sky_texture)};
+    auto chunk_texture  {stb_image_wrapper::load_texture("./img/blocks.bmp")};
+
+    skybox::skybox world_skybox                {};
+    chunk_manager::chunk_manager chunk_manager {chunk_noise};
 
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);

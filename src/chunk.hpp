@@ -10,8 +10,9 @@ struct chunk {
                 noise.get(static_cast<float>(x + Z), static_cast<float>(z + X))
             };
 
-            if      (y == 0)           m_block.push_back(tools::BLOCK_TYPE::MAGMA);
-            else if (y <= MAX - 2)     m_block.push_back(tools::BLOCK_TYPE::STONE);
+            if      (y <= 3)           m_block.push_back(tools::BLOCK_TYPE::MAGMA);
+            else if (y <= MAX - 24)    m_block.push_back(tools::BLOCK_TYPE::FELDSPAR);
+            else if (y <= MAX - 4)     m_block.push_back(tools::BLOCK_TYPE::STONE);
             else if (y > 0 && y < MAX) m_block.push_back(tools::BLOCK_TYPE::DIRT);
             else if (y == MAX)         m_block.push_back(tools::BLOCK_TYPE::GRASS);
             else                       m_block.push_back(tools::BLOCK_TYPE::AIR);
@@ -54,16 +55,13 @@ struct chunk {
     void draw(const shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) const {
         glCullFace(GL_FRONT);
 
-        shader.use();
-
-        glBindTexture    (GL_TEXTURE_2D, texture);
-        glBindVertexArray(m_VAO);
-
+        shader.use     ();
         shader.set_mat4("View", camera.get_view_matrix());
         shader.set_mat4("Projection", camera.get_projection_matrix());
 
-        glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
-
+        glBindTexture    (GL_TEXTURE_2D, texture);
+        glBindVertexArray(m_VAO);
+        glDrawElements   (GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 
         glCullFace(GL_BACK);
@@ -97,6 +95,8 @@ private:
         glEnableVertexAttribArray(1);
 
         if (m_VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'chunk'"};
+
+        glBindVertexArray(0);
     }
 
     void mesh(unsigned int &i, const int x, const int y, const int z, const tools::face &face, const int block_type) {
@@ -121,6 +121,9 @@ private:
             break;
         case static_cast<int>(tools::BLOCK_TYPE::MAGMA):
             tex = {6.0f, 6.0f, 6.0f, 6.0f, 6.0f, 6.0f};
+            break;
+        case static_cast<int>(tools::BLOCK_TYPE::FELDSPAR):
+            tex = {7.0f, 7.0f, 7.0f, 7.0f, 7.0f, 7.0f};
             break;
         }
 

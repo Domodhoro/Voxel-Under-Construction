@@ -18,13 +18,13 @@ struct shader_program {
 
     ~shader_program() { glDeleteProgram(m_shader); }
 
-    void use      ()                                                 const { glUseProgram      (m_shader); }
-    void set_bool (const char *name, bool value)                     const { glUniform1i       (glGetUniformLocation(m_shader, name), static_cast<int>(value)); }
-    void set_int  (const char *name, int value)                      const { glUniform1i       (glGetUniformLocation(m_shader, name), value); }
-    void set_float(const char *name, float value)                    const { glUniform1f       (glGetUniformLocation(m_shader, name), value); }
-    void set_vec2 (const char *name, const glm::tvec2<float> &value) const { glUniform2fv      (glGetUniformLocation(m_shader, name), 1, glm::value_ptr(value)); }
-    void set_vec3 (const char *name, const glm::tvec3<float> &value) const { glUniform3fv      (glGetUniformLocation(m_shader, name), 1, glm::value_ptr(value)); }
-    void set_mat4 (const char *name, const glm::mat4 &matrix)        const { glUniformMatrix4fv(glGetUniformLocation(m_shader, name), 1, false, glm::value_ptr(matrix)); }
+    void use      ()                                                const { glUseProgram      (m_shader); }
+    void set_bool (const char *name, bool value)                    const { glUniform1i       (glGetUniformLocation(m_shader, name), static_cast<int>(value)); }
+    void set_int  (const char *name, int value)                     const { glUniform1i       (glGetUniformLocation(m_shader, name), value); }
+    void set_float(const char *name, float value)                   const { glUniform1f       (glGetUniformLocation(m_shader, name), value); }
+    void set_vec2 (const char *name, const glm::tvec2<float> value) const { glUniform2fv      (glGetUniformLocation(m_shader, name), 1, glm::value_ptr(value)); }
+    void set_vec3 (const char *name, const glm::tvec3<float> value) const { glUniform3fv      (glGetUniformLocation(m_shader, name), 1, glm::value_ptr(value)); }
+    void set_mat4 (const char *name, const glm::mat4 matrix)        const { glUniformMatrix4fv(glGetUniformLocation(m_shader, name), 1, false, glm::value_ptr(matrix)); }
 
 private:
     unsigned int m_shader {0u};

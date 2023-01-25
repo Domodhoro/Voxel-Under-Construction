@@ -18,21 +18,16 @@ struct skybox {
     void draw(const shader::shader_program &shader, const unsigned int &texture, camera::camera &cam) const {
         glm::mat4 model {1.0f};
 
-        model = glm::rotate(model, static_cast<float>(glm::radians(180.0f)), glm::tvec3<float>(1.0f, 0.0f, 0.0f));
-
         glDepthMask(false);
 
-        shader.use();
-
-        glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
-        glBindVertexArray(m_VAO);
-
+        shader.use     ();
         shader.set_mat4("Model", model);
         shader.set_mat4("View", static_cast<glm::mat4>(static_cast<glm::mat3>(cam.get_view_matrix())));
         shader.set_mat4("Projection", cam.get_projection_matrix());
 
-        glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
-
+        glBindTexture    (GL_TEXTURE_CUBE_MAP, texture);
+        glBindVertexArray(m_VAO);
+        glDrawElements   (GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 
         glDepthMask(true);
@@ -65,6 +60,8 @@ private:
         glEnableVertexAttribArray(1);
 
         if (m_VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'skybox'"};
+
+        glBindVertexArray(0);
     }
 
     void mesh() {

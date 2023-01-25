@@ -22,7 +22,8 @@ enum struct BLOCK_TYPE : int {
     DIRT,
     STONE,
     SAND,
-    MAGMA
+    MAGMA,
+    FELDSPAR
 };
 
 struct vertex_2d {
