@@ -3,13 +3,6 @@
 
 namespace camera {
 
-enum struct CAMERA_MOVEMENTS : int {
-    FORWARD = 0,
-    BACKWARD,
-    RIGHT,
-    LEFT
-};
-
 struct camera {
     camera(const float aspect) : m_aspect {aspect} {}
 
@@ -28,11 +21,11 @@ struct camera {
     glm::mat4          get_projection_matrix () { return glm::perspective(glm::radians(m_FOV), m_aspect, m_near, m_far); }
     glm::mat4          get_view_matrix       () { return glm::lookAt     (m_Position, m_Position + m_Front, m_Up); }
 
-    void keyboard_process(const CAMERA_MOVEMENTS input) {
-        if (input == CAMERA_MOVEMENTS::FORWARD)  m_Position += m_speed * m_Front;
-        if (input == CAMERA_MOVEMENTS::RIGHT)    m_Position -= m_speed * m_Front;
-        if (input == CAMERA_MOVEMENTS::BACKWARD) m_Position -= m_speed * glm::normalize(glm::cross(m_Front, m_Up));
-        if (input == CAMERA_MOVEMENTS::LEFT)     m_Position += m_speed * glm::normalize(glm::cross(m_Front, m_Up));
+    void keyboard_process(const tools::CAMERA_MOVEMENTS input) {
+        if (input == tools::CAMERA_MOVEMENTS::FORWARD)  m_Position += m_speed * m_Front;
+        if (input == tools::CAMERA_MOVEMENTS::RIGHT)    m_Position -= m_speed * m_Front;
+        if (input == tools::CAMERA_MOVEMENTS::BACKWARD) m_Position -= m_speed * glm::normalize(glm::cross(m_Front, m_Up));
+        if (input == tools::CAMERA_MOVEMENTS::LEFT)     m_Position += m_speed * glm::normalize(glm::cross(m_Front, m_Up));
     }
 
     void mouse_process(double &off_set_x, double &off_set_y) {

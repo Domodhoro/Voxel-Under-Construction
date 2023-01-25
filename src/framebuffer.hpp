@@ -3,14 +3,8 @@
 
 namespace framebuffer {
 
-enum struct FRAMEBUFFER_TYPE : int {
-    DEFAULT = 0,
-    INVERT_COLOR,
-    GRAY_SCALE
-};
-
 struct framebuffer {
-    framebuffer(const int width, const int height, const FRAMEBUFFER_TYPE type) : m_type {type} {
+    framebuffer(const int width, const int height, const tools::FRAMEBUFFER_TYPE type) : m_type {type} {
         mesh();
         mesh_setup();
 
@@ -68,7 +62,7 @@ struct framebuffer {
 private:
     std::vector<tools::vertex_2d> m_vertice;
 
-    FRAMEBUFFER_TYPE m_type {FRAMEBUFFER_TYPE::DEFAULT};
+    tools::FRAMEBUFFER_TYPE m_type {tools::FRAMEBUFFER_TYPE::DEFAULT};
 
     unsigned int m_FBO                  {0u};
     unsigned int m_VAO                  {0u};

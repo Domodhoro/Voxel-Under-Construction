@@ -61,7 +61,7 @@ unsigned int load_cube_map_texture(const std::vector<std::string> &faces) {
     auto height   {0};
     auto channels {0};
 
-    for (auto i = 0; i != faces.size(); ++i) {
+    for (size_t i = 0; i != faces.size(); ++i) {
         auto pixels {stbi_load(faces.at(i).c_str(), &width, &height, &channels, 0)};
 
         if (pixels == nullptr) my_exception {__FILE__, __LINE__, "falha ao abrir os arquivos de textura"};

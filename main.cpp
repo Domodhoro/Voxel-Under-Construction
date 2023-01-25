@@ -33,7 +33,7 @@ constexpr auto CHUNK_SIZE_Y {64};
 constexpr auto CHUNK_SIZE_Z {CHUNK_SIZE_X};
 
 struct my_exception {
-    my_exception(char *file, int line, const char *description) {
+    my_exception(const char *file, int line, const char *description) {
         printf("Ops! Uma falha ocorreu...\n\n");
         printf("File:        %s\n", basename(file));
         printf("Line:        %i\n", line);
@@ -60,13 +60,13 @@ auto CAMERA_SENSITIVITY {0.1f};
 #include "./src/stb_image_wrapper.hpp"
 #include "./src/framebuffer.hpp"
 #include "./src/skybox.hpp"
-#include "./src/noise.hpp"
+#include "./src/terrain_generator.hpp"
 #include "./src/chunk.hpp"
 #include "./src/chunk_manager.hpp"
 
-lua_script::lua_script lua {"./script.lua"};
-camera::camera cam         {static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)};
-noise::noise chunk_noise   {WORLD_SEED};
+lua_script::lua_script lua                     {"./script.lua"};
+camera::camera cam                             {static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)};
+terrain_generator::terrain_generator generator {WORLD_SEED};
 
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 static void keyboard_callback        (GLFWwindow *window);
@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
     };
 
     framebuffer::framebuffer window_framebuffer {
-        WINDOW_WIDTH, WINDOW_HEIGHT, framebuffer::FRAMEBUFFER_TYPE::DEFAULT
+        WINDOW_WIDTH, WINDOW_HEIGHT, tools::FRAMEBUFFER_TYPE::DEFAULT
     };
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -123,8 +123,8 @@ int main(int argc, char *argv[]) {
     cam.set_FOV        (CAMERA_FOV);
     cam.set_position   (glm::tvec3<float>(8.0f, 52.0f, 8.0f));
 
-    chunk_noise.set_minimum_height     (32);
-    chunk_noise.set_amplitude_variation(8.0f);
+    generator.set_minimum_height     (32);
+    generator.set_amplitude_variation(8.0f);
 
     std::vector<std::string> sky_texture {
         "img/skybox/right.bmp",
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
     auto chunk_shader  {shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
     auto chunk_texture {stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
-    chunk_manager::chunk_manager chunk_manager {chunk_noise};
+    chunk_manager::chunk_manager chunk_manager {generator};
 
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);
@@ -153,6 +153,8 @@ int main(int argc, char *argv[]) {
 
     while (!glfwWindowShouldClose(window)) {
         current_frame = static_cast<float>(glfwGetTime());
+
+        chunk_manager.add_chunk(cam.get_position(), generator);
 
         if ((current_frame - last_frame) > (1.0f / static_cast<float>(FPS))) {
             keyboard_callback(window);
@@ -186,10 +188,10 @@ static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 static void keyboard_callback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cam.keyboard_process(camera::CAMERA_MOVEMENTS::FORWARD);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_process(camera::CAMERA_MOVEMENTS::BACKWARD);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_process(camera::CAMERA_MOVEMENTS::RIGHT);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_process(camera::CAMERA_MOVEMENTS::LEFT);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::FORWARD);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::BACKWARD);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::RIGHT);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::LEFT);
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) cam.get_position().y += 0.5f;
 }

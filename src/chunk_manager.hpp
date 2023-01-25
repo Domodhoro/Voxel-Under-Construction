@@ -4,13 +4,13 @@
 namespace chunk_manager {
 
 struct chunk_manager {
-    chunk_manager(const noise::noise &noise) {
+    chunk_manager(terrain_generator::terrain_generator &generator) {
         tools::world_coords position {0, 0, 0};
 
-        m_chunks.emplace_back(position, std::make_unique<chunk::chunk>(0, 0, noise));
+        m_chunks.emplace_back(position, std::make_unique<chunk::chunk>(0, 0, generator));
     }
 
-    void add_chunk(const glm::tvec3<float> &camera_position, const noise::noise &noise) {
+    void add_chunk(const glm::tvec3<float> &camera_position, terrain_generator::terrain_generator &generator) {
         auto coords {chunk_coords(camera_position)};
 
         auto predicate = [&](std::pair<tools::world_coords, std::unique_ptr<chunk::chunk>> &chunk) -> bool {
@@ -21,7 +21,7 @@ struct chunk_manager {
             const auto X {coords.x * CHUNK_SIZE_X};
             const auto Z {coords.z * CHUNK_SIZE_Z};
 
-            m_chunks.emplace_back(coords, std::make_unique<chunk::chunk>(X, Z, noise));
+            m_chunks.emplace_back(coords, std::make_unique<chunk::chunk>(X, Z, generator));
         }
     }
 
