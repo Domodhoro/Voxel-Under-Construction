@@ -6,6 +6,6 @@ layout(location = 1) in vec2 Texture;
 out highp vec2 FragTexture;
 
 void main() {
-    gl_Position = vec4(Position.xy, 0.0, 1.0);
+    gl_Position = vec4(Position.xy, 0.0f, 1.0f);
     FragTexture = Texture;
 }
