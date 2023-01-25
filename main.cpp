@@ -33,7 +33,7 @@ constexpr auto CHUNK_SIZE_Y {64};
 constexpr auto CHUNK_SIZE_Z {CHUNK_SIZE_X};
 
 struct my_exception {
-    my_exception(const char *file, int line, const char *description) {
+    my_exception(char *file, int line, const char *description) {
         printf("Ops! Uma falha ocorreu...\n\n");
         printf("File:        %s\n", basename(file));
         printf("Line:        %i\n", line);
@@ -68,9 +68,9 @@ lua_script::lua_script lua {"./script.lua"};
 camera::camera cam         {static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)};
 noise::noise chunk_noise   {WORLD_SEED};
 
-static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-static void keyboard_callback        (GLFWwindow *window);
-static void mouse_callback           (GLFWwindow *window);
+void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+void keyboard_callback        (GLFWwindow *window);
+void mouse_callback           (GLFWwindow *window);
 
 int main(int argc, char *argv[]) {
     printf("%s\n", argv[0]);
@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
     };
 
     framebuffer::framebuffer window_framebuffer {
-        WINDOW_WIDTH, WINDOW_HEIGHT, tools::FRAMEBUFFER_TYPE::DEFAULT
+        WINDOW_WIDTH, WINDOW_HEIGHT, framebuffer::FRAMEBUFFER_TYPE::DEFAULT
     };
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -179,22 +179,22 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-static void keyboard_callback(GLFWwindow *window) {
+void keyboard_callback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::FORWARD);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::BACKWARD);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::RIGHT);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::LEFT);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cam.keyboard_process(camera::CAMERA_MOVEMENTS::FORWARD);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_process(camera::CAMERA_MOVEMENTS::BACKWARD);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_process(camera::CAMERA_MOVEMENTS::RIGHT);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_process(camera::CAMERA_MOVEMENTS::LEFT);
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) cam.get_position().y += 0.5f;
 }
 
-static void mouse_callback(GLFWwindow *window) {
+void mouse_callback(GLFWwindow *window) {
     auto x {0.0d};
     auto y {0.0d};
 
