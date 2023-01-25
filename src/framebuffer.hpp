@@ -27,6 +27,8 @@ struct framebuffer {
 
         if (m_VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'framebuffer'"};
 
+        glBindVertexArray(0);
+
         auto RBO {0u};
 
         glGenFramebuffers(1, &m_FBO);
