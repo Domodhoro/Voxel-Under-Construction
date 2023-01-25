@@ -6,6 +6,10 @@ namespace camera {
 struct camera {
     camera(const float aspect) : m_aspect {aspect} {}
 
+    void disable_cursor(GLFWwindow *window) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+
     void set_position   (const glm::tvec3<float> Position) { m_Position    = Position; }
     void set_speed      (const float speed)                { m_speed       = speed; }
     void set_sensitivity(const float sensitivity)          { m_sensitivity = sensitivity; }

@@ -25,6 +25,8 @@ struct chunk_manager {
         }
     }
 
+    void remove_chunk() {}
+
     void draw(const shader::shader_program &shader, const unsigned int &texture, camera::camera &cam) const {
         for (auto &it : m_chunks) {
             it.second->draw(shader, texture, cam);

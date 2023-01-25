@@ -70,7 +70,7 @@ noise::noise chunk_noise   {WORLD_SEED};
 
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 static void keyboard_callback        (GLFWwindow *window);
-static void mouse_callback           (GLFWwindow *window, double x, double y);
+static void mouse_callback           (GLFWwindow *window);
 
 int main(int argc, char *argv[]) {
     printf("%s\n", argv[0]);
@@ -90,28 +90,22 @@ int main(int argc, char *argv[]) {
 
     if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
 
-    auto window_pos_x {100}, window_pos_y {100};
-
     glfwMakeContextCurrent(window);
-    glfwSetWindowPos      (window, window_pos_x, window_pos_y);
+
+    const GLFWvidmode *mode {
+        glfwGetVideoMode(glfwGetPrimaryMonitor())
+    };
+
+    auto window_pos_x {(mode->width  - WINDOW_WIDTH)  / 2};
+    auto window_pos_y {(mode->height - WINDOW_HEIGHT) / 2};
+
+    glfwSetWindowPos(window, window_pos_x, window_pos_y);
 
     stb_image_wrapper::load_window_icon(window, "./img/icon.bmp");
 
     glewExperimental = true;
 
     if (glewInit() != GLEW_OK) my_exception {__FILE__, __LINE__, "falha ao iniciar GLEW"};
-
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    const GLFWvidmode *mode {
-        glfwGetVideoMode(glfwGetPrimaryMonitor())
-    };
-
-    window_pos_x = (mode->width  - WINDOW_WIDTH)  / 2;
-    window_pos_y = (mode->height - WINDOW_HEIGHT) / 2;
-
-    glfwSetWindowPos(window, window_pos_x, window_pos_y);
 
     auto framebuffer_shader {
         shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")
@@ -123,6 +117,7 @@ int main(int argc, char *argv[]) {
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    cam.disable_cursor (window);
     cam.set_speed      (CAMERA_SPEED);
     cam.set_sensitivity(CAMERA_SENSITIVITY);
     cam.set_FOV        (CAMERA_FOV);
@@ -140,13 +135,14 @@ int main(int argc, char *argv[]) {
         "img/skybox/back.bmp"
     };
 
-    shader::shader_program skybox_shader("./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl");
-    shader::shader_program chunk_shader ("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl");
-
+    auto skybox_shader  {shader::shader_program("./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl")};
     auto skybox_texture {stb_image_wrapper::load_cube_map_texture(sky_texture)};
-    auto chunk_texture  {stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
-    skybox::skybox world_skybox                {};
+    skybox::skybox world_skybox {};
+
+    auto chunk_shader  {shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
+    auto chunk_texture {stb_image_wrapper::load_texture("./img/blocks.bmp")};
+
     chunk_manager::chunk_manager chunk_manager {chunk_noise};
 
     glEnable   (GL_DEPTH_TEST);
@@ -158,10 +154,9 @@ int main(int argc, char *argv[]) {
     while (!glfwWindowShouldClose(window)) {
         current_frame = static_cast<float>(glfwGetTime());
 
-        chunk_manager.add_chunk(cam.get_position(), chunk_noise);
-
         if ((current_frame - last_frame) > (1.0f / static_cast<float>(FPS))) {
             keyboard_callback(window);
+            mouse_callback   (window);
 
             window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
             world_skybox.draw             (skybox_shader, skybox_texture, cam);
@@ -199,7 +194,12 @@ static void keyboard_callback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) cam.get_position().y += 0.5f;
 }
 
-static void mouse_callback(GLFWwindow *window, double x, double y) {
+static void mouse_callback(GLFWwindow *window) {
+    auto x {0.0d};
+    auto y {0.0d};
+
+    glfwGetCursorPos(window, &x, &y);
+
     static auto first_mouse {true};
     static auto last_x      {0.0f};
     static auto last_y      {0.0f};
