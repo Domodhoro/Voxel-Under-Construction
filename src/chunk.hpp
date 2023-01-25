@@ -7,7 +7,7 @@ struct chunk {
     chunk(const int X, const int Z, const noise::noise &noise) {
         for (auto x = 0; x != CHUNK_SIZE_X; ++x) for (auto y = 0; y != CHUNK_SIZE_Y; ++y) for (auto z = 0; z != CHUNK_SIZE_Z; ++z) {
             auto MAX {
-                32 + abs(floor(8.0f * noise.get(static_cast<float>(x + Z), static_cast<float>(z + X))))
+                noise.get(static_cast<float>(x + Z), static_cast<float>(z + X))
             };
 
             if      (y == 0)           m_block.push_back(tools::BLOCK_TYPE::MAGMA);

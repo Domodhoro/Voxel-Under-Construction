@@ -27,16 +27,22 @@ struct noise {
         m_noise[2].SetFrequency     (0.04f);
     }
 
-    float get(const float X, const float Z) const {
+    void set_minimum_height     (const int minimum_height)        { m_minimum_height = minimum_height; }
+    void set_amplitude_variation(const float amplitude_variation) { m_amplitude_variation = amplitude_variation; }
+
+    int get(const float X, const float Z) const {
         const auto result {
             m_noise[0].GetNoise(X, Z) + m_noise[1].GetNoise(X, Z) + m_noise[2].GetNoise(X, Z)
         };
 
-        return result;
+        return m_minimum_height + abs(floor(m_amplitude_variation * result));
     }
 
 private:
     FastNoiseLite m_noise[NOISE_MAX];
+
+    int   m_minimum_height      {4};
+    float m_amplitude_variation {2.0f};
 };
 
 }

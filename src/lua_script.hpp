@@ -12,7 +12,6 @@ struct lua_script {
         lua_getglobal(m_L, "world");
 
         WORLD_SEED = static_cast<int>(get_number("seed"));
-        WORLD_SIZE = static_cast<int>(get_number("size"));
 
         lua_getglobal(m_L, "window");
 

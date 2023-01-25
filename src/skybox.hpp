@@ -20,7 +20,6 @@ struct skybox {
 
         model = glm::rotate(model, static_cast<float>(glm::radians(180.0f)), glm::tvec3<float>(1.0f, 0.0f, 0.0f));
 
-        glCullFace(GL_BACK);
         glDepthMask(false);
 
         shader.use();
@@ -37,7 +36,6 @@ struct skybox {
         glBindVertexArray(0);
 
         glDepthMask(true);
-        glCullFace(GL_FRONT);
     }
 
 private:

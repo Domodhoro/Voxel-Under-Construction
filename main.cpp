@@ -46,7 +46,6 @@ struct my_exception {
 };
 
 auto WORLD_SEED         {1007};
-auto WORLD_SIZE         {2};
 auto WINDOW_WIDTH       {1200};
 auto WINDOW_HEIGHT      {600};
 auto WINDOW_TITLE       {"Voxel-Engine"};
@@ -121,6 +120,9 @@ int main(int argc, char *argv[]) {
     cam.set_FOV        (CAMERA_FOV);
     cam.set_position   (glm::tvec3<float>(8.0f, 52.0f, 8.0f));
 
+    chunk_noise.set_minimum_height     (16);
+    chunk_noise.set_amplitude_variation(8.0f);
+
     auto chunk_shader  {shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
     auto chunk_texture {stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
@@ -157,15 +159,7 @@ int main(int argc, char *argv[]) {
     while (!glfwWindowShouldClose(window)) {
         current_frame = static_cast<float>(glfwGetTime());
 
-        for (auto x = 1 - WORLD_SIZE; x != WORLD_SIZE; ++x) for (auto z = 1 - WORLD_SIZE; z != WORLD_SIZE; ++z) {
-            const glm::tvec3<float> aux {
-                static_cast<float>(x * CHUNK_SIZE_X),
-                0.0f,
-                static_cast<float>(z * CHUNK_SIZE_Z)
-            };
-
-            chunk_manager.add_chunk(cam.get_position() + aux, chunk_noise);
-        }
+        chunk_manager.add_chunk(cam.get_position(), chunk_noise);
 
         if ((current_frame - last_frame) > (1.0f / static_cast<float>(FPS))) {
             keyboard_callback(window);
@@ -202,6 +196,8 @@ static void keyboard_callback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::BACKWARD);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::RIGHT);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::LEFT);
+
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) cam.get_position().y += 0.5f;
 }
 
 static void mouse_callback(GLFWwindow *window, double x, double y) {

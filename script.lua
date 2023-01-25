@@ -5,8 +5,7 @@ window = {
 }
 
 world  = {
-    seed = 1007,
-    size = 2
+    seed = 1007
 }
 
 camera = {
