@@ -5,21 +5,20 @@ namespace framebuffer {
 
 struct framebuffer {
     framebuffer(const int width, const int height, const tools::FRAMEBUFFER_TYPE type) : m_type {type} {
-        std::vector<tools::vertex_2d> vertice;
-
-        vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
-        vertice.push_back({-1.0f,-1.0f, 0.0f, 0.0f});
-        vertice.push_back({ 1.0f,-1.0f, 1.0f, 0.0f});
-        vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
-        vertice.push_back({ 1.0f,-1.0f, 1.0f, 0.0f});
-        vertice.push_back({ 1.0f, 1.0f, 1.0f, 1.0f});
+        m_vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
+        m_vertice.push_back({-1.0f,-1.0f, 0.0f, 0.0f});
+        m_vertice.push_back({ 1.0f,-1.0f, 1.0f, 0.0f});
+        m_vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
+        m_vertice.push_back({ 1.0f,-1.0f, 1.0f, 0.0f});
+        m_vertice.push_back({ 1.0f, 1.0f, 1.0f, 1.0f});
 
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers     (1, &m_VBO);
+
         glBindVertexArray(m_VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertice.size() * 4 * sizeof(float), &vertice.at(0), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, m_vertice.size() * 4 * sizeof(float), &m_vertice.at(0), GL_STATIC_DRAW);
 
         glVertexAttribPointer    (0, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(0 * sizeof(float)));
         glEnableVertexAttribArray(0);
@@ -64,7 +63,7 @@ struct framebuffer {
         glClear          (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    void apply(const shader::shader_program &shader) const {
+    void draw(const shader::shader_program &shader) const {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDisable        (GL_DEPTH_TEST);
         glClearColor     (1.0f, 1.0f, 1.0f, 1.0f);
@@ -76,14 +75,17 @@ struct framebuffer {
         glBindVertexArray(m_VAO);
         glBindTexture    (GL_TEXTURE_2D, m_texture_color_buffer);
         glDrawArrays     (GL_TRIANGLES, 0, 6);
+        glBindVertexArray(0);
     }
 
 private:
+    std::vector<tools::vertex_2d> m_vertice;
+
     tools::FRAMEBUFFER_TYPE m_type {tools::FRAMEBUFFER_TYPE::DEFAULT};
 
+    unsigned int m_FBO                  {0u};
     unsigned int m_VAO                  {0u};
     unsigned int m_VBO                  {0u};
-    unsigned int m_FBO                  {0u};
     unsigned int m_texture_color_buffer {0u};
 };
 
