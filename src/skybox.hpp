@@ -5,8 +5,8 @@ namespace skybox {
 
 struct skybox {
     skybox() {
-        mesh ();
-        setup();
+        mesh      ();
+        mesh_setup();
     }
 
     ~skybox() {
@@ -41,7 +41,7 @@ private:
     std::vector<tools::vertex_3d> m_vertice;
     std::vector<unsigned int> m_indices;
 
-    void setup() {
+    void mesh_setup() {
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers     (1, &m_VBO);
         glGenBuffers     (1, &m_EBO);

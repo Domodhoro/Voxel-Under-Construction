@@ -35,7 +35,7 @@ struct chunk {
             mesh(i, x + X, y, z + Z, face, static_cast<int>(get_block_type(x, y, z)));
         }
 
-        setup();
+        mesh_setup();
     }
 
     ~chunk() {
@@ -76,7 +76,7 @@ private:
     std::vector<tools::vertex_3d_t> m_vertice;
     std::vector<unsigned int>       m_indices;
 
-    void setup() {
+    void mesh_setup() {
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers     (1, &m_VBO);
         glGenBuffers     (1, &m_EBO);

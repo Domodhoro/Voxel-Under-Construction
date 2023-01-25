@@ -5,29 +5,8 @@ namespace framebuffer {
 
 struct framebuffer {
     framebuffer(const int width, const int height, const tools::FRAMEBUFFER_TYPE type) : m_type {type} {
-        m_vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
-        m_vertice.push_back({-1.0f,-1.0f, 0.0f, 0.0f});
-        m_vertice.push_back({ 1.0f,-1.0f, 1.0f, 0.0f});
-        m_vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
-        m_vertice.push_back({ 1.0f,-1.0f, 1.0f, 0.0f});
-        m_vertice.push_back({ 1.0f, 1.0f, 1.0f, 1.0f});
-
-        glGenVertexArrays(1, &m_VAO);
-        glGenBuffers     (1, &m_VBO);
-
-        glBindVertexArray(m_VAO);
-
-        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferData(GL_ARRAY_BUFFER, m_vertice.size() * 4 * sizeof(float), &m_vertice.at(0), GL_STATIC_DRAW);
-
-        glVertexAttribPointer    (0, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(0 * sizeof(float)));
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer    (1, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-
-        if (m_VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'framebuffer'"};
-
-        glBindVertexArray(0);
+        mesh();
+        mesh_setup();
 
         auto RBO {0u};
 
@@ -89,6 +68,34 @@ private:
     unsigned int m_VAO                  {0u};
     unsigned int m_VBO                  {0u};
     unsigned int m_texture_color_buffer {0u};
+
+    void mesh_setup() {
+        glGenVertexArrays(1, &m_VAO);
+        glGenBuffers     (1, &m_VBO);
+
+        glBindVertexArray(m_VAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+        glBufferData(GL_ARRAY_BUFFER, m_vertice.size() * 4 * sizeof(float), &m_vertice.at(0), GL_STATIC_DRAW);
+
+        glVertexAttribPointer    (0, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(0 * sizeof(float)));
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer    (1, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+
+        if (m_VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'framebuffer'"};
+
+        glBindVertexArray(0);
+    }
+
+    void mesh() {
+        m_vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
+        m_vertice.push_back({-1.0f,-1.0f, 0.0f, 0.0f});
+        m_vertice.push_back({ 1.0f,-1.0f, 1.0f, 0.0f});
+        m_vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
+        m_vertice.push_back({ 1.0f,-1.0f, 1.0f, 0.0f});
+        m_vertice.push_back({ 1.0f, 1.0f, 1.0f, 1.0f});
+    }
 };
 
 }

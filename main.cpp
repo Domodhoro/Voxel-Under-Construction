@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
             window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
             world_skybox.draw             (skybox_shader, skybox_texture, cam);
             chunk_manager.draw            (chunk_shader, chunk_texture, cam);
-            window_framebuffer.apply      (framebuffer_shader);
+            window_framebuffer.draw       (framebuffer_shader);
 
             glfwSwapBuffers(window);
             glfwPollEvents ();
