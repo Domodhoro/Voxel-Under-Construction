@@ -19,18 +19,17 @@
 
 #include "./lib/FastNoiseLite.h"
 
-extern "C" {
-#include "./lualib/lua.h"
-#include "./lualib/lualib.h"
-#include "./lualib/lauxlib.h"
-#include "./lualib/luaconf.h"
-}
-
-constexpr auto FPS          {60};
-constexpr auto NOISE_MAX    {3};
-constexpr auto CHUNK_SIZE_X {16};
-constexpr auto CHUNK_SIZE_Y {64};
-constexpr auto CHUNK_SIZE_Z {CHUNK_SIZE_X};
+constexpr auto FPS                {60};
+constexpr auto WINDOW_WIDTH       {800};
+constexpr auto WINDOW_HEIGHT      {400};
+constexpr auto WINDOW_TITLE       {"Voxel-Engine"};
+constexpr auto CAMERA_SPEED       {0.1f};
+constexpr auto CAMERA_FOV         {60.0f};
+constexpr auto CAMERA_SENSITIVITY {0.1f};
+constexpr auto WORLD_SEED         {1007};
+constexpr auto CHUNK_SIZE_X       {16};
+constexpr auto CHUNK_SIZE_Y       {128};
+constexpr auto CHUNK_SIZE_Z       {CHUNK_SIZE_X};
 
 struct my_exception {
     my_exception(const char *file, int line, const char *description) {
@@ -45,15 +44,6 @@ struct my_exception {
     }
 };
 
-auto WORLD_SEED         {1007};
-auto WINDOW_WIDTH       {1200};
-auto WINDOW_HEIGHT      {600};
-auto WINDOW_TITLE       {"Voxel-Engine"};
-auto CAMERA_SPEED       {0.5f};
-auto CAMERA_FOV         {60.0f};
-auto CAMERA_SENSITIVITY {0.1f};
-
-#include "./src/lua_script.hpp"
 #include "./src/tools.hpp"
 #include "./src/camera.hpp"
 #include "./src/shader.hpp"
@@ -62,9 +52,7 @@ auto CAMERA_SENSITIVITY {0.1f};
 #include "./src/skybox.hpp"
 #include "./src/terrain_generator.hpp"
 #include "./src/chunk.hpp"
-#include "./src/chunk_manager.hpp"
 
-lua_script::lua_script lua                     {"./script.lua"};
 camera::camera cam                             {static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)};
 terrain_generator::terrain_generator generator {WORLD_SEED};
 
@@ -121,9 +109,9 @@ int main(int argc, char *argv[]) {
     cam.set_speed      (CAMERA_SPEED);
     cam.set_sensitivity(CAMERA_SENSITIVITY);
     cam.set_FOV        (CAMERA_FOV);
-    cam.set_position   (glm::tvec3<float>(8.0f, 52.0f, 8.0f));
+    cam.set_position   (glm::tvec3<float>(8.0f, 82.0f, 8.0f));
 
-    generator.set_minimum_height     (32);
+    generator.set_minimum_height     (CHUNK_SIZE_Y / 2);
     generator.set_amplitude_variation(8.0f);
 
     std::vector<std::string> sky_texture {
@@ -143,7 +131,7 @@ int main(int argc, char *argv[]) {
     auto chunk_shader  {shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
     auto chunk_texture {stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
-    chunk_manager::chunk_manager chunk_manager {generator};
+    chunk::chunk spawn_chunk {0, 0, 0, generator};
 
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);
@@ -154,15 +142,23 @@ int main(int argc, char *argv[]) {
     while (!glfwWindowShouldClose(window)) {
         current_frame = static_cast<float>(glfwGetTime());
 
-        chunk_manager.add_chunk(cam.get_position(), generator);
-
         if ((current_frame - last_frame) > (1.0f / static_cast<float>(FPS))) {
             keyboard_callback(window);
             mouse_callback   (window);
 
+            // teste ............................................................
+
+            auto x {static_cast<int>(floor(cam.get_position().x))};
+            auto y {static_cast<int>(floor(cam.get_position().y))};
+            auto z {static_cast<int>(floor(cam.get_position().z))};
+
+            printf("x = %i y = %i z = %i\n", x, y, z);
+
+            // teste ............................................................
+
             window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
             world_skybox.draw             (skybox_shader, skybox_texture, cam);
-            chunk_manager.draw            (chunk_shader, chunk_texture, cam);
+            spawn_chunk.draw              (chunk_shader, chunk_texture, cam);
             window_framebuffer.draw       (framebuffer_shader);
 
             glfwSwapBuffers(window);
@@ -192,8 +188,6 @@ static void keyboard_callback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::BACKWARD);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::RIGHT);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::LEFT);
-
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) cam.get_position().y += 0.5f;
 }
 
 static void mouse_callback(GLFWwindow *window) {
