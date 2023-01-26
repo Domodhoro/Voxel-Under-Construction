@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
         glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr)
     };
 
-    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
+    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualizaÃ§Ã£o"};
 
     glfwMakeContextCurrent(window);
 
@@ -145,16 +145,6 @@ int main(int argc, char *argv[]) {
         if ((current_frame - last_frame) > (1.0f / static_cast<float>(FPS))) {
             keyboard_callback(window);
             mouse_callback   (window);
-
-            // teste ............................................................
-
-            auto x {static_cast<int>(floor(cam.get_position().x))};
-            auto y {static_cast<int>(floor(cam.get_position().y))};
-            auto z {static_cast<int>(floor(cam.get_position().z))};
-
-            printf("x = %i y = %i z = %i\n", x, y, z);
-
-            // teste ............................................................
 
             window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
             world_skybox.draw             (skybox_shader, skybox_texture, cam);
