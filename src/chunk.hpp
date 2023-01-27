@@ -4,7 +4,7 @@
 namespace chunk {
 
 struct chunk {
-    chunk(const int X, const int Y, const int Z, terrain_generator::terrain_generator &generator) {
+    chunk(const int X, const int Y, const int Z, terrain_generator::terrain_generator &generator) : m_position {glm::tvec3<int>(X, Y, Z)} {
         generator.use(m_block, X, Y, Z);
 
         auto i {0u};
@@ -33,9 +33,15 @@ struct chunk {
         glDeleteBuffers     (1, &m_EBO);
     }
 
+    void set_block_type(int x, int y, int z, tools::BLOCK_TYPE type) {
+        m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) = type;
+    }
+
     tools::BLOCK_TYPE get_block_type(int x, int y, int z) const {
         return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y);
     }
+
+    glm::tvec3<int> get_position() { return m_position; }
 
     void draw(const shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) const {
         glCullFace(GL_FRONT);
@@ -53,13 +59,15 @@ struct chunk {
     }
 
 private:
+    glm::tvec3<int> m_position {0};
+
     unsigned int m_VAO {0u};
     unsigned int m_VBO {0u};
     unsigned int m_EBO {0u};
 
     std::vector<tools::BLOCK_TYPE>  m_block;
     std::vector<tools::vertex_3d_t> m_vertice;
-    std::vector<unsigned int>     m_indices;
+    std::vector<unsigned int>       m_indices;
 
     void mesh_setup() {
         glGenVertexArrays(1, &m_VAO);

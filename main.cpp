@@ -52,6 +52,7 @@ struct my_exception {
 #include "./src/skybox.hpp"
 #include "./src/terrain_generator.hpp"
 #include "./src/chunk.hpp"
+#include "./src/AABB.hpp"
 
 camera::camera cam                             {static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)};
 terrain_generator::terrain_generator generator {WORLD_SEED};
@@ -59,6 +60,8 @@ terrain_generator::terrain_generator generator {WORLD_SEED};
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 static void keyboard_callback        (GLFWwindow *window);
 static void mouse_callback           (GLFWwindow *window);
+
+bool collision(chunk::chunk &chunk, camera::camera &cam);
 
 int main(int argc, char *argv[]) {
     printf("%s\n", argv[0]);
@@ -76,7 +79,7 @@ int main(int argc, char *argv[]) {
         glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr)
     };
 
-    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualizaÃ§Ã£o"};
+    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
 
     glfwMakeContextCurrent(window);
 
@@ -112,7 +115,7 @@ int main(int argc, char *argv[]) {
     cam.set_position   (glm::tvec3<float>(8.0f, 82.0f, 8.0f));
 
     generator.set_minimum_height     (CHUNK_SIZE_Y / 2);
-    generator.set_amplitude_variation(8.0f);
+    generator.set_amplitude_variation(16.0f);
 
     std::vector<std::string> sky_texture {
         "img/skybox/right.bmp",
@@ -146,7 +149,7 @@ int main(int argc, char *argv[]) {
             keyboard_callback(window);
             mouse_callback   (window);
 
-            window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
+            window_framebuffer.clear_color(0.0f, 1.0f, 0.0f);
             world_skybox.draw             (skybox_shader, skybox_texture, cam);
             spawn_chunk.draw              (chunk_shader, chunk_texture, cam);
             window_framebuffer.draw       (framebuffer_shader);
