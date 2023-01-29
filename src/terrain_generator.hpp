@@ -30,7 +30,8 @@ struct terrain_generator {
     }
 
 private:
-    FastNoiseLite m_noise       {1007};
+    FastNoiseLite m_noise;
+
     int   m_minimum_height      {4};
     float m_amplitude_variation {2.0f};
 

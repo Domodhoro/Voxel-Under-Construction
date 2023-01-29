@@ -20,8 +20,8 @@
 #include "./lib/FastNoiseLite.h"
 
 constexpr auto FPS                {60};
-constexpr auto WINDOW_WIDTH       {800};
-constexpr auto WINDOW_HEIGHT      {400};
+constexpr auto WINDOW_WIDTH       {1200};
+constexpr auto WINDOW_HEIGHT      {600};
 constexpr auto WINDOW_TITLE       {"Voxel-Engine"};
 constexpr auto CAMERA_SPEED       {0.1f};
 constexpr auto CAMERA_FOV         {60.0f};
@@ -34,14 +34,12 @@ constexpr auto CHUNK_SIZE_Z       {CHUNK_SIZE_X};
 struct my_exception {
     my_exception(const char *file, int line, const char *description) {
         printf("Ops! Uma falha ocorreu...\n\n");
-        printf("File:        %s\n", basename(file));
+        printf("File:        %s\n", file);
         printf("Line:        %i\n", line);
         printf("Description: %s\n", description);
     }
 
-    ~my_exception() {
-        exit(EXIT_FAILURE);
-    }
+    ~my_exception() { exit(EXIT_FAILURE); }
 };
 
 #include "./src/tools.hpp"
@@ -52,16 +50,14 @@ struct my_exception {
 #include "./src/skybox.hpp"
 #include "./src/terrain_generator.hpp"
 #include "./src/chunk.hpp"
-#include "./src/AABB.hpp"
 
-camera::camera cam                             {static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)};
-terrain_generator::terrain_generator generator {WORLD_SEED};
+camera::camera cam                           {static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)};
+terrain_generator::terrain_generator terrain {WORLD_SEED};
 
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 static void keyboard_callback        (GLFWwindow *window);
 static void mouse_callback           (GLFWwindow *window);
-
-bool collision(chunk::chunk &chunk, camera::camera &cam);
+static void collision_detection      (chunk::chunk &chunk);
 
 int main(int argc, char *argv[]) {
     printf("%s\n", argv[0]);
@@ -75,17 +71,13 @@ int main(int argc, char *argv[]) {
     glfwWindowHint(GLFW_DECORATED, false);
     glfwWindowHint(GLFW_RESIZABLE, false);
 
-    GLFWwindow *window {
-        glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr)
-    };
+    GLFWwindow *window {glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr)};
 
-    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
+    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualizaÃ§Ã£o"};
 
     glfwMakeContextCurrent(window);
 
-    const GLFWvidmode *mode {
-        glfwGetVideoMode(glfwGetPrimaryMonitor())
-    };
+    const GLFWvidmode *mode {glfwGetVideoMode(glfwGetPrimaryMonitor())};
 
     auto window_pos_x {(mode->width  - WINDOW_WIDTH)  / 2};
     auto window_pos_y {(mode->height - WINDOW_HEIGHT) / 2};
@@ -98,13 +90,9 @@ int main(int argc, char *argv[]) {
 
     if (glewInit() != GLEW_OK) my_exception {__FILE__, __LINE__, "falha ao iniciar GLEW"};
 
-    auto framebuffer_shader {
-        shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")
-    };
+    auto framebuffer_shader {shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")};
 
-    framebuffer::framebuffer window_framebuffer {
-        WINDOW_WIDTH, WINDOW_HEIGHT, tools::FRAMEBUFFER_TYPE::DEFAULT
-    };
+    framebuffer::framebuffer window_framebuffer {WINDOW_WIDTH, WINDOW_HEIGHT, tools::FRAMEBUFFER_TYPE::DEFAULT};
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -114,8 +102,8 @@ int main(int argc, char *argv[]) {
     cam.set_FOV        (CAMERA_FOV);
     cam.set_position   (glm::tvec3<float>(8.0f, 82.0f, 8.0f));
 
-    generator.set_minimum_height     (CHUNK_SIZE_Y / 2);
-    generator.set_amplitude_variation(16.0f);
+    terrain.set_minimum_height     (CHUNK_SIZE_Y / 2);
+    terrain.set_amplitude_variation(16.0f);
 
     std::vector<std::string> sky_texture {
         "img/skybox/right.bmp",
@@ -134,13 +122,14 @@ int main(int argc, char *argv[]) {
     auto chunk_shader  {shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
     auto chunk_texture {stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
-    chunk::chunk spawn_chunk {0, 0, 0, generator};
+    chunk::chunk spawn_chunk {0, 0, 16, terrain};
 
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);
     glFrontFace(GL_CCW);
 
-    auto last_frame {0.0f}, current_frame {0.0f};
+    auto last_frame    {0.0f};
+    auto current_frame {0.0f};
 
     while (!glfwWindowShouldClose(window)) {
         current_frame = static_cast<float>(glfwGetTime());
@@ -154,6 +143,8 @@ int main(int argc, char *argv[]) {
             spawn_chunk.draw              (chunk_shader, chunk_texture, cam);
             window_framebuffer.draw       (framebuffer_shader);
 
+            collision_detection(spawn_chunk);
+
             glfwSwapBuffers(window);
             glfwPollEvents ();
 
@@ -161,18 +152,15 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    glDeleteTextures(1, &chunk_texture);
-    glDeleteTextures(1, &skybox_texture);
-
+    glDeleteTextures (1, &chunk_texture);
+    glDeleteTextures (1, &skybox_texture);
     glfwDestroyWindow(window);
     glfwTerminate    ();
 
     return 0;
 }
 
-static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
+static void framebuffer_size_callback(GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); }
 
 static void keyboard_callback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
@@ -206,4 +194,23 @@ static void mouse_callback(GLFWwindow *window) {
     last_y = y;
 
     cam.mouse_process(off_set_x, off_set_y);
+}
+
+static void collision_detection(chunk::chunk &chunk) {
+    auto X {chunk.get_position().x};
+    auto Y {chunk.get_position().y};
+    auto Z {chunk.get_position().z};
+    auto x {static_cast<int>(floor(cam.get_position().x))};
+    auto y {static_cast<int>(floor(cam.get_position().y))};
+    auto z {static_cast<int>(floor(cam.get_position().z))};
+
+    if (x >= X && x < X + CHUNK_SIZE_X && y >= Y && y < Y + CHUNK_SIZE_Y && z >= Z && z < Z + CHUNK_SIZE_Z) {
+        x %= CHUNK_SIZE_X;
+        y %= CHUNK_SIZE_Y;
+        z %= CHUNK_SIZE_Z;
+
+        if (chunk.get_block_type(abs(x), abs(y), abs(z)) != tools::BLOCK_TYPE::AIR) {
+
+        }
+    }
 }

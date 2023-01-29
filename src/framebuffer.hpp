@@ -14,6 +14,7 @@ struct framebuffer {
         glDeleteFramebuffers(1, &m_FBO);
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers     (1, &m_VBO);
+        glDeleteBuffers     (1, &m_EBO);
         glDeleteTextures    (1, &m_texture_color_buffer);
     }
 
@@ -35,19 +36,22 @@ struct framebuffer {
 
         glBindVertexArray(m_VAO);
         glBindTexture    (GL_TEXTURE_2D, m_texture_color_buffer);
-        glDrawArrays     (GL_TRIANGLES, 0, 6);
+        glDrawElements   (GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, (void*)(0));
         glBindVertexArray(0);
     }
 
 private:
-    int m_width                         {800};
-    int m_height                        {600};
+    int m_width  {800};
+    int m_height {600};
+
     unsigned int m_FBO                  {0u};
     unsigned int m_VAO                  {0u};
     unsigned int m_VBO                  {0u};
+    unsigned int m_EBO                  {0u};
     unsigned int m_texture_color_buffer {0u};
 
     std::vector<tools::vertex_2d> m_vertice;
+    std::vector<unsigned int> m_indices;
 
     tools::FRAMEBUFFER_TYPE m_type {tools::FRAMEBUFFER_TYPE::DEFAULT};
 
@@ -77,11 +81,15 @@ private:
     void mesh_setup() {
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers     (1, &m_VBO);
+        glGenBuffers     (1, &m_EBO);
 
         glBindVertexArray(m_VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
         glBufferData(GL_ARRAY_BUFFER, m_vertice.size() * 4 * sizeof(float), &m_vertice.at(0), GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned int), &m_indices.at(0), GL_STATIC_DRAW);
 
         glVertexAttribPointer    (0, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(0 * sizeof(float)));
         glEnableVertexAttribArray(0);
@@ -94,12 +102,14 @@ private:
     }
 
     void mesh() {
-        m_vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
         m_vertice.push_back({-1.0f,-1.0f, 0.0f, 0.0f});
         m_vertice.push_back({ 1.0f,-1.0f, 1.0f, 0.0f});
-        m_vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
-        m_vertice.push_back({ 1.0f,-1.0f, 1.0f, 0.0f});
         m_vertice.push_back({ 1.0f, 1.0f, 1.0f, 1.0f});
+        m_vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
+
+        const std::initializer_list<unsigned int> indices {0u,  1u,  3u,  3u,  1u,  2u};
+
+        m_indices.insert(m_indices.end(), indices);
     }
 };
 

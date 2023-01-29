@@ -4,8 +4,8 @@
 namespace chunk {
 
 struct chunk {
-    chunk(const int X, const int Y, const int Z, terrain_generator::terrain_generator &generator) : m_position {glm::tvec3<int>(X, Y, Z)} {
-        generator.use(m_block, X, Y, Z);
+    chunk(const int X, const int Y, const int Z, terrain_generator::terrain_generator &terrain) : m_position {glm::tvec3<int>(X, Y, Z)} {
+        terrain.use(m_block, X, Y, Z);
 
         auto i {0u};
 
@@ -33,13 +33,8 @@ struct chunk {
         glDeleteBuffers     (1, &m_EBO);
     }
 
-    void set_block_type(int x, int y, int z, tools::BLOCK_TYPE type) {
-        m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) = type;
-    }
-
-    tools::BLOCK_TYPE get_block_type(int x, int y, int z) const {
-        return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y);
-    }
+    void set_block_type             (int x, int y, int z, tools::BLOCK_TYPE type) { m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) = type; }
+    tools::BLOCK_TYPE get_block_type(int x, int y, int z)                   const { return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y); }
 
     glm::tvec3<int> get_position() { return m_position; }
 
@@ -126,9 +121,7 @@ private:
             m_vertice.push_back({X + 1.0f, Y - 0.0f, Z - 0.0f, 1.0f, 0.0f, tex.F});
             m_vertice.push_back({X + 1.0f, Y + 1.0f, Z - 0.0f, 1.0f, 1.0f, tex.F});
 
-            const std::initializer_list<unsigned int> indices {
-                i + 0, i + 1, i + 3, i + 3, i + 1, i + 2
-            };
+            const std::initializer_list<unsigned int> indices {i + 0, i + 1, i + 3, i + 3, i + 1, i + 2};
 
             m_indices.insert(m_indices.end(), indices);
 
@@ -141,9 +134,7 @@ private:
             m_vertice.push_back({X + 1.0f, Y - 0.0f, Z + 1.0f, 1.0f, 0.0f, tex.B});
             m_vertice.push_back({X + 1.0f, Y + 1.0f, Z + 1.0f, 1.0f, 1.0f, tex.B});
 
-            const std::initializer_list<unsigned int> indices {
-                i + 1, i + 0, i + 3, i + 1, i + 3, i + 2
-            };
+            const std::initializer_list<unsigned int> indices {i + 1, i + 0, i + 3, i + 1, i + 3, i + 2};
 
             m_indices.insert(m_indices.end(), indices);
 
@@ -156,9 +147,7 @@ private:
             m_vertice.push_back({X + 1.0f, Y - 0.0f, Z + 1.0f, 1.0f, 0.0f, tex.R});
             m_vertice.push_back({X + 1.0f, Y + 1.0f, Z + 1.0f, 1.0f, 1.0f, tex.R});
 
-            const std::initializer_list<unsigned int> indices {
-                i + 0, i + 1, i + 3, i + 3, i + 1, i + 2
-            };
+            const std::initializer_list<unsigned int> indices {i + 0, i + 1, i + 3, i + 3, i + 1, i + 2};
 
             m_indices.insert(m_indices.end(), indices);
 
@@ -171,9 +160,7 @@ private:
             m_vertice.push_back({X - 0.0f, Y - 0.0f, Z + 1.0f, 1.0f, 0.0f, tex.L});
             m_vertice.push_back({X - 0.0f, Y + 1.0f, Z + 1.0f, 1.0f, 1.0f, tex.L});
 
-            const std::initializer_list<unsigned int> indices {
-                i + 1, i + 0, i + 3, i + 1, i + 3, i + 2
-            };
+            const std::initializer_list<unsigned int> indices {i + 1, i + 0, i + 3, i + 1, i + 3, i + 2};
 
             m_indices.insert(m_indices.end(), indices);
 
@@ -186,9 +173,7 @@ private:
             m_vertice.push_back({X + 1.0f, Y + 1.0f, Z - 0.0f, 1.0f, 0.0f, tex.U});
             m_vertice.push_back({X + 1.0f, Y + 1.0f, Z + 1.0f, 1.0f, 1.0f, tex.U});
 
-            const std::initializer_list<unsigned int> indices {
-                i + 0, i + 1, i + 3, i + 3, i + 1, i + 2
-            };
+            const std::initializer_list<unsigned int> indices {i + 0, i + 1, i + 3, i + 3, i + 1, i + 2};
 
             m_indices.insert(m_indices.end(), indices);
 
@@ -201,9 +186,7 @@ private:
             m_vertice.push_back({X + 1.0f, Y - 0.0f, Z - 0.0f, 1.0f, 0.0f, tex.D});
             m_vertice.push_back({X + 1.0f, Y - 0.0f, Z + 1.0f, 1.0f, 1.0f, tex.D});
 
-            const std::initializer_list<unsigned int> indices {
-                i + 1, i + 0, i + 3, i + 1, i + 3, i + 2
-            };
+            const std::initializer_list<unsigned int> indices {i + 1, i + 0, i + 3, i + 1, i + 3, i + 2};
 
             m_indices.insert(m_indices.end(), indices);
 
