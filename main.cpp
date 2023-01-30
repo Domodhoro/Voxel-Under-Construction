@@ -61,7 +61,6 @@ static void keyboard_callback    (GLFWwindow *window);
 static void mouse_callback       (GLFWwindow *window);
 
 int main(int argc, char *argv[]) {
-
     auto window {initialization(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)};
 
     cam.disable_cursor (window);
