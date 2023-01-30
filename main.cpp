@@ -61,6 +61,7 @@ static void keyboard_callback    (GLFWwindow *window);
 static void mouse_callback       (GLFWwindow *window);
 
 int main(int argc, char *argv[]) {
+
     auto window {initialization(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)};
 
     cam.disable_cursor (window);
@@ -112,19 +113,17 @@ int main(int argc, char *argv[]) {
 
             // test .......................................................................
 
-            printf("x = %.2f y = %.2f z = %.2f\n", cam.get_position().x, cam.get_position().y, cam.get_position().z);
-
             volume_2 = {cam.get_position().x - 0.5f, cam.get_position().y - 0.5f, cam.get_position().z - 0.5f, 1.0f, 1.0f, 1.0f};
 
-            if (AABB::collide(volume_1, volume_2)) {
-                printf("collision\n");
-
-                // ...
+            if (AABB::collision_detection(volume_1, volume_2)) {
+                printf("1\n");
+            } else {
+                printf("2\n");
             }
 
             // test .......................................................................
 
-            window_framebuffer.clear_color(0.0f, 1.0f, 0.0f);
+            window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
             world_skybox.draw             (skybox_shader, skybox_texture, cam);
             spawn_chunk.draw              (chunk_shader, chunk_texture, cam);
             window_framebuffer.draw       (framebuffer_shader);
