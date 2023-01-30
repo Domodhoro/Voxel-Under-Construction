@@ -13,9 +13,6 @@ struct terrain_generator {
         m_noise.SetFrequency     (0.01f);
     }
 
-    void set_minimum_height     (const int minimum_height)        { m_minimum_height      = minimum_height; }
-    void set_amplitude_variation(const float amplitude_variation) { m_amplitude_variation = amplitude_variation; }
-
     void use(std::vector<tools::BLOCK_TYPE> &block, int X, int Y, int Z) const {
         for (auto z = 0; z != CHUNK_SIZE_Z; ++z) for (auto y = 0; y != CHUNK_SIZE_Y; ++y) for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
             const auto height {get_height(x + X, y + Y, z + Z)};
@@ -32,13 +29,10 @@ struct terrain_generator {
 private:
     FastNoiseLite m_noise;
 
-    int   m_minimum_height      {4};
-    float m_amplitude_variation {2.0f};
+    int get_height(float x, float y, float z) const {
+        auto height {m_noise.GetNoise(x, z)};
 
-    int get_height(int x, int y, int z) const {
-        auto height {m_noise.GetNoise(static_cast<float>(x), static_cast<float>(z))};
-
-        return m_minimum_height + abs(floor(m_amplitude_variation * height));
+        return 64 + abs(floor(16.0f * height));
     }
 };
 

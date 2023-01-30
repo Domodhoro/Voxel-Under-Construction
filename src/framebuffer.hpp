@@ -107,9 +107,7 @@ private:
         m_vertice.push_back({ 1.0f, 1.0f, 1.0f, 1.0f});
         m_vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
 
-        const std::initializer_list<unsigned int> indices {0u,  1u,  3u,  3u,  1u,  2u};
-
-        m_indices.insert(m_indices.end(), indices);
+        m_indices.insert(m_indices.end(), {0u,  1u,  3u,  3u,  1u,  2u});
     }
 };
 

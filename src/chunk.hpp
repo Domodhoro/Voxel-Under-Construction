@@ -33,10 +33,7 @@ struct chunk {
         glDeleteBuffers     (1, &m_EBO);
     }
 
-    void set_block_type             (int x, int y, int z, tools::BLOCK_TYPE type) { m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y) = type; }
-    tools::BLOCK_TYPE get_block_type(int x, int y, int z)                   const { return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y); }
-
-    glm::tvec3<int> get_position() { return m_position; }
+    tools::BLOCK_TYPE get_block_type(int x, int y, int z) const { return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y); }
 
     void draw(const shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) const {
         glCullFace(GL_FRONT);
@@ -79,6 +76,7 @@ private:
 
         glVertexAttribPointer    (0, 3, GL_FLOAT, false, 6 * sizeof(float), (void*)(0 * sizeof(float)));
         glEnableVertexAttribArray(0);
+
         glVertexAttribPointer    (1, 3, GL_FLOAT, false, 6 * sizeof(float), (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
@@ -88,10 +86,6 @@ private:
     }
 
     void mesh(unsigned int &i, const int x, const int y, const int z, const tools::face &face, const int block_type) {
-        const auto X {static_cast<float>(x)};
-        const auto Y {static_cast<float>(y)};
-        const auto Z {static_cast<float>(z)};
-
         tools::face_texture tex;
 
         switch (block_type) {
@@ -104,7 +98,7 @@ private:
         case static_cast<int>(tools::BLOCK_TYPE::STONE):
             tex = {4.0f, 4.0f, 4.0f, 4.0f, 4.0f, 4.0f};
             break;
-        case static_cast<int>(tools::BLOCK_TYPE::SAND):
+        case static_cast<int>(tools::BLOCK_TYPE::PALPATINE):
             tex = {5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f};
             break;
         case static_cast<int>(tools::BLOCK_TYPE::MAGMA):
@@ -116,79 +110,67 @@ private:
         }
 
         if (face.F) {
-            m_vertice.push_back({X - 0.0f, Y + 1.0f, Z - 0.0f, 0.0f, 1.0f, tex.F});
-            m_vertice.push_back({X - 0.0f, Y - 0.0f, Z - 0.0f, 0.0f, 0.0f, tex.F});
-            m_vertice.push_back({X + 1.0f, Y - 0.0f, Z - 0.0f, 1.0f, 0.0f, tex.F});
-            m_vertice.push_back({X + 1.0f, Y + 1.0f, Z - 0.0f, 1.0f, 1.0f, tex.F});
+            m_vertice.push_back({x - 0.0f, y + 1.0f, z - 0.0f, 0.0f, 1.0f, tex.F});
+            m_vertice.push_back({x - 0.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, tex.F});
+            m_vertice.push_back({x + 1.0f, y - 0.0f, z - 0.0f, 1.0f, 0.0f, tex.F});
+            m_vertice.push_back({x + 1.0f, y + 1.0f, z - 0.0f, 1.0f, 1.0f, tex.F});
 
-            const std::initializer_list<unsigned int> indices {i + 0, i + 1, i + 3, i + 3, i + 1, i + 2};
-
-            m_indices.insert(m_indices.end(), indices);
+            m_indices.insert(m_indices.end(), {i + 0, i + 1, i + 3, i + 3, i + 1, i + 2});
 
             i += 4;
         }
 
         if (face.B) {
-            m_vertice.push_back({X - 0.0f, Y + 1.0f, Z + 1.0f, 0.0f, 1.0f, tex.B});
-            m_vertice.push_back({X - 0.0f, Y - 0.0f, Z + 1.0f, 0.0f, 0.0f, tex.B});
-            m_vertice.push_back({X + 1.0f, Y - 0.0f, Z + 1.0f, 1.0f, 0.0f, tex.B});
-            m_vertice.push_back({X + 1.0f, Y + 1.0f, Z + 1.0f, 1.0f, 1.0f, tex.B});
+            m_vertice.push_back({x - 0.0f, y + 1.0f, z + 1.0f, 0.0f, 1.0f, tex.B});
+            m_vertice.push_back({x - 0.0f, y - 0.0f, z + 1.0f, 0.0f, 0.0f, tex.B});
+            m_vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, tex.B});
+            m_vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, tex.B});
 
-            const std::initializer_list<unsigned int> indices {i + 1, i + 0, i + 3, i + 1, i + 3, i + 2};
-
-            m_indices.insert(m_indices.end(), indices);
+            m_indices.insert(m_indices.end(), {i + 1, i + 0, i + 3, i + 1, i + 3, i + 2});
 
             i += 4;
         }
 
         if (face.R) {
-            m_vertice.push_back({X + 1.0f, Y + 1.0f, Z - 0.0f, 0.0f, 1.0f, tex.R});
-            m_vertice.push_back({X + 1.0f, Y - 0.0f, Z - 0.0f, 0.0f, 0.0f, tex.R});
-            m_vertice.push_back({X + 1.0f, Y - 0.0f, Z + 1.0f, 1.0f, 0.0f, tex.R});
-            m_vertice.push_back({X + 1.0f, Y + 1.0f, Z + 1.0f, 1.0f, 1.0f, tex.R});
+            m_vertice.push_back({x + 1.0f, y + 1.0f, z - 0.0f, 0.0f, 1.0f, tex.R});
+            m_vertice.push_back({x + 1.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, tex.R});
+            m_vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, tex.R});
+            m_vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, tex.R});
 
-            const std::initializer_list<unsigned int> indices {i + 0, i + 1, i + 3, i + 3, i + 1, i + 2};
-
-            m_indices.insert(m_indices.end(), indices);
+            m_indices.insert(m_indices.end(), {i + 0, i + 1, i + 3, i + 3, i + 1, i + 2});
 
             i += 4;
         }
 
         if (face.L) {
-            m_vertice.push_back({X - 0.0f, Y + 1.0f, Z - 0.0f, 0.0f, 1.0f, tex.L});
-            m_vertice.push_back({X - 0.0f, Y - 0.0f, Z - 0.0f, 0.0f, 0.0f, tex.L});
-            m_vertice.push_back({X - 0.0f, Y - 0.0f, Z + 1.0f, 1.0f, 0.0f, tex.L});
-            m_vertice.push_back({X - 0.0f, Y + 1.0f, Z + 1.0f, 1.0f, 1.0f, tex.L});
+            m_vertice.push_back({x - 0.0f, y + 1.0f, z - 0.0f, 0.0f, 1.0f, tex.L});
+            m_vertice.push_back({x - 0.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, tex.L});
+            m_vertice.push_back({x - 0.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, tex.L});
+            m_vertice.push_back({x - 0.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, tex.L});
 
-            const std::initializer_list<unsigned int> indices {i + 1, i + 0, i + 3, i + 1, i + 3, i + 2};
-
-            m_indices.insert(m_indices.end(), indices);
+            m_indices.insert(m_indices.end(), {i + 1, i + 0, i + 3, i + 1, i + 3, i + 2});
 
             i += 4;
         }
 
         if (face.U) {
-            m_vertice.push_back({X - 0.0f, Y + 1.0f, Z + 1.0f, 0.0f, 1.0f, tex.U});
-            m_vertice.push_back({X - 0.0f, Y + 1.0f, Z - 0.0f, 0.0f, 0.0f, tex.U});
-            m_vertice.push_back({X + 1.0f, Y + 1.0f, Z - 0.0f, 1.0f, 0.0f, tex.U});
-            m_vertice.push_back({X + 1.0f, Y + 1.0f, Z + 1.0f, 1.0f, 1.0f, tex.U});
+            m_vertice.push_back({x - 0.0f, y + 1.0f, z + 1.0f, 0.0f, 1.0f, tex.U});
+            m_vertice.push_back({x - 0.0f, y + 1.0f, z - 0.0f, 0.0f, 0.0f, tex.U});
+            m_vertice.push_back({x + 1.0f, y + 1.0f, z - 0.0f, 1.0f, 0.0f, tex.U});
+            m_vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, tex.U});
 
-            const std::initializer_list<unsigned int> indices {i + 0, i + 1, i + 3, i + 3, i + 1, i + 2};
-
-            m_indices.insert(m_indices.end(), indices);
+            m_indices.insert(m_indices.end(), {i + 0, i + 1, i + 3, i + 3, i + 1, i + 2});
 
             i += 4;
         }
 
         if (face.D) {
-            m_vertice.push_back({X - 0.0f, Y - 0.0f, Z + 1.0f, 0.0f, 1.0f, tex.D});
-            m_vertice.push_back({X - 0.0f, Y - 0.0f, Z - 0.0f, 0.0f, 0.0f, tex.D});
-            m_vertice.push_back({X + 1.0f, Y - 0.0f, Z - 0.0f, 1.0f, 0.0f, tex.D});
-            m_vertice.push_back({X + 1.0f, Y - 0.0f, Z + 1.0f, 1.0f, 1.0f, tex.D});
+            m_vertice.push_back({x - 0.0f, y - 0.0f, z + 1.0f, 0.0f, 1.0f, tex.D});
+            m_vertice.push_back({x - 0.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, tex.D});
+            m_vertice.push_back({x + 1.0f, y - 0.0f, z - 0.0f, 1.0f, 0.0f, tex.D});
+            m_vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 1.0f, tex.D});
 
-            const std::initializer_list<unsigned int> indices {i + 1, i + 0, i + 3, i + 1, i + 3, i + 2};
-
-            m_indices.insert(m_indices.end(), indices);
+            m_indices.insert(m_indices.end(), {i + 1, i + 0, i + 3, i + 1, i + 3, i + 2});
 
             i += 4;
         }

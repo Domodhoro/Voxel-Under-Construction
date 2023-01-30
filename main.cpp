@@ -23,8 +23,9 @@ constexpr auto FPS                {60};
 constexpr auto WINDOW_WIDTH       {1200};
 constexpr auto WINDOW_HEIGHT      {600};
 constexpr auto WINDOW_TITLE       {"Voxel-Engine"};
+constexpr auto ASPECT             {static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)};
 constexpr auto CAMERA_SPEED       {0.1f};
-constexpr auto CAMERA_FOV         {60.0f};
+constexpr auto CAMERA_FOV         {72.0f};
 constexpr auto CAMERA_SENSITIVITY {0.1f};
 constexpr auto WORLD_SEED         {1007};
 constexpr auto CHUNK_SIZE_X       {16};
@@ -33,7 +34,7 @@ constexpr auto CHUNK_SIZE_Z       {CHUNK_SIZE_X};
 
 struct my_exception {
     my_exception(const char *file, int line, const char *description) {
-        printf("Ops! Uma falha ocorreu...\n\n");
+        printf("ops! uma falha ocorreu...\n\n");
         printf("File:        %s\n", file);
         printf("Line:        %i\n", line);
         printf("Description: %s\n", description);
@@ -51,59 +52,25 @@ struct my_exception {
 #include "./src/terrain_generator.hpp"
 #include "./src/chunk.hpp"
 
-camera::camera cam                           {static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)};
+camera::camera cam                           {ASPECT};
 terrain_generator::terrain_generator terrain {WORLD_SEED};
 
-static void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-static void keyboard_callback        (GLFWwindow *window);
-static void mouse_callback           (GLFWwindow *window);
-static void collision_detection      (chunk::chunk &chunk);
+static GLFWwindow *initialization(int window_width, int window_height, const char *window_title);
+static void keyboard_callback    (GLFWwindow *window);
+static void mouse_callback       (GLFWwindow *window);
 
 int main(int argc, char *argv[]) {
-    printf("%s\n", argv[0]);
-
-    if (glfwInit() == GLFW_NOT_INITIALIZED) my_exception {__FILE__, __LINE__, "falha ao iniciar o GLFW"};
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    glfwWindowHint(GLFW_DECORATED, false);
-    glfwWindowHint(GLFW_RESIZABLE, false);
-
-    GLFWwindow *window {glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr)};
-
-    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
-
-    glfwMakeContextCurrent(window);
-
-    const GLFWvidmode *mode {glfwGetVideoMode(glfwGetPrimaryMonitor())};
-
-    auto window_pos_x {(mode->width  - WINDOW_WIDTH)  / 2};
-    auto window_pos_y {(mode->height - WINDOW_HEIGHT) / 2};
-
-    glfwSetWindowPos(window, window_pos_x, window_pos_y);
-
-    stb_image_wrapper::load_window_icon(window, "./img/icon.bmp");
-
-    glewExperimental = true;
-
-    if (glewInit() != GLEW_OK) my_exception {__FILE__, __LINE__, "falha ao iniciar GLEW"};
-
-    auto framebuffer_shader {shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")};
-
-    framebuffer::framebuffer window_framebuffer {WINDOW_WIDTH, WINDOW_HEIGHT, tools::FRAMEBUFFER_TYPE::DEFAULT};
-
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    auto window {initialization(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)};
 
     cam.disable_cursor (window);
     cam.set_speed      (CAMERA_SPEED);
     cam.set_sensitivity(CAMERA_SENSITIVITY);
     cam.set_FOV        (CAMERA_FOV);
-    cam.set_position   (glm::tvec3<float>(8.0f, 82.0f, 8.0f));
+    cam.set_position   ({8.0f, 92.0f, 8.0f});
 
-    terrain.set_minimum_height     (CHUNK_SIZE_Y / 2);
-    terrain.set_amplitude_variation(16.0f);
+    auto framebuffer_shader {shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")};
+    auto skybox_shader      {shader::shader_program("./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl")};
+    auto chunk_shader       {shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
 
     std::vector<std::string> sky_texture {
         "img/skybox/right.bmp",
@@ -114,15 +81,12 @@ int main(int argc, char *argv[]) {
         "img/skybox/back.bmp"
     };
 
-    auto skybox_shader  {shader::shader_program("./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl")};
     auto skybox_texture {stb_image_wrapper::load_cube_map_texture(sky_texture)};
+    auto chunk_texture  {stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
-    skybox::skybox world_skybox {};
-
-    auto chunk_shader  {shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
-    auto chunk_texture {stb_image_wrapper::load_texture("./img/blocks.bmp")};
-
-    chunk::chunk spawn_chunk {0, 0, 16, terrain};
+    framebuffer::framebuffer window_framebuffer {WINDOW_WIDTH, WINDOW_HEIGHT, tools::FRAMEBUFFER_TYPE::DEFAULT};
+    skybox::skybox world_skybox                 {};
+    chunk::chunk spawn_chunk                    {0, 0, 0, terrain};
 
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);
@@ -132,9 +96,9 @@ int main(int argc, char *argv[]) {
     auto current_frame {0.0f};
 
     while (!glfwWindowShouldClose(window)) {
-        current_frame = static_cast<float>(glfwGetTime());
+        current_frame = glfwGetTime();
 
-        if ((current_frame - last_frame) > (1.0f / static_cast<float>(FPS))) {
+        if ((current_frame - last_frame) > (1.0f / FPS)) {
             keyboard_callback(window);
             mouse_callback   (window);
 
@@ -142,8 +106,6 @@ int main(int argc, char *argv[]) {
             world_skybox.draw             (skybox_shader, skybox_texture, cam);
             spawn_chunk.draw              (chunk_shader, chunk_texture, cam);
             window_framebuffer.draw       (framebuffer_shader);
-
-            collision_detection(spawn_chunk);
 
             glfwSwapBuffers(window);
             glfwPollEvents ();
@@ -160,7 +122,36 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-static void framebuffer_size_callback(GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); }
+static GLFWwindow *initialization(const int window_width, const int window_height, const char *window_title) {
+    if (glfwInit() == GLFW_NOT_INITIALIZED) my_exception {__FILE__, __LINE__, "falha ao iniciar o GLFW"};
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_DECORATED, false);
+    glfwWindowHint(GLFW_RESIZABLE, false);
+
+    auto window {glfwCreateWindow(window_width, window_height, window_title, nullptr, nullptr)};
+
+    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
+
+    glfwMakeContextCurrent(window);
+
+    auto mode {glfwGetVideoMode(glfwGetPrimaryMonitor())};
+
+    auto window_pos_x {(mode->width  - window_width)  / 2};
+    auto window_pos_y {(mode->height - window_height) / 2};
+
+    glfwSetWindowPos(window, window_pos_x, window_pos_y);
+
+    stb_image_wrapper::load_window_icon(window, "./img/icon.bmp");
+
+    glewExperimental = true;
+
+    if (glewInit() != GLEW_OK) my_exception {__FILE__, __LINE__, "falha ao iniciar GLEW"};
+
+    return window;
+}
 
 static void keyboard_callback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
@@ -182,8 +173,8 @@ static void mouse_callback(GLFWwindow *window) {
     static auto last_y      {0.0f};
 
     if (first_mouse) {
-        last_x      = static_cast<float>(x);
-        last_y      = static_cast<float>(y);
+        last_x      = x;
+        last_y      = y;
         first_mouse = false;
     }
 
@@ -194,23 +185,4 @@ static void mouse_callback(GLFWwindow *window) {
     last_y = y;
 
     cam.mouse_process(off_set_x, off_set_y);
-}
-
-static void collision_detection(chunk::chunk &chunk) {
-    auto X {chunk.get_position().x};
-    auto Y {chunk.get_position().y};
-    auto Z {chunk.get_position().z};
-    auto x {static_cast<int>(floor(cam.get_position().x))};
-    auto y {static_cast<int>(floor(cam.get_position().y))};
-    auto z {static_cast<int>(floor(cam.get_position().z))};
-
-    if (x >= X && x < X + CHUNK_SIZE_X && y >= Y && y < Y + CHUNK_SIZE_Y && z >= Z && z < Z + CHUNK_SIZE_Z) {
-        x %= CHUNK_SIZE_X;
-        y %= CHUNK_SIZE_Y;
-        z %= CHUNK_SIZE_Z;
-
-        if (chunk.get_block_type(abs(x), abs(y), abs(z)) != tools::BLOCK_TYPE::AIR) {
-
-        }
-    }
 }
