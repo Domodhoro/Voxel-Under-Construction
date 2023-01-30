@@ -8,7 +8,7 @@ enum struct BLOCK_TYPE : int {
     GRASS,
     DIRT,
     STONE,
-    PALPATINE,
+    SAND,
     MAGMA,
     FELDSPAR
 };

@@ -44,6 +44,7 @@ struct my_exception {
 };
 
 #include "./src/tools.hpp"
+#include "./src/AABB.hpp"
 #include "./src/camera.hpp"
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.hpp"
@@ -95,12 +96,33 @@ int main(int argc, char *argv[]) {
     auto last_frame    {0.0f};
     auto current_frame {0.0f};
 
+    // test .......................................................................
+
+    AABB::volume volume_1 {0.0f, 90.0f, 0.0f, 1.0f, 1.0f, 1.0f};
+    AABB::volume volume_2;
+
+    // test .......................................................................
+
     while (!glfwWindowShouldClose(window)) {
         current_frame = glfwGetTime();
 
         if ((current_frame - last_frame) > (1.0f / FPS)) {
             keyboard_callback(window);
             mouse_callback   (window);
+
+            // test .......................................................................
+
+            printf("x = %.2f y = %.2f z = %.2f\n", cam.get_position().x, cam.get_position().y, cam.get_position().z);
+
+            volume_2 = {cam.get_position().x - 0.5f, cam.get_position().y - 0.5f, cam.get_position().z - 0.5f, 1.0f, 1.0f, 1.0f};
+
+            if (AABB::collide(volume_1, volume_2)) {
+                printf("collision\n");
+
+                // ...
+            }
+
+            // test .......................................................................
 
             window_framebuffer.clear_color(0.0f, 1.0f, 0.0f);
             world_skybox.draw             (skybox_shader, skybox_texture, cam);

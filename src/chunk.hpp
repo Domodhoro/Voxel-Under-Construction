@@ -7,6 +7,12 @@ struct chunk {
     chunk(const int X, const int Y, const int Z, terrain_generator::terrain_generator &terrain) : m_position {glm::tvec3<int>(X, Y, Z)} {
         terrain.use(m_block, X, Y, Z);
 
+        // test .......................................................................
+
+        get_block_type(0, 90, 0) = tools::BLOCK_TYPE::SAND;
+
+        // test .......................................................................
+
         auto i {0u};
 
         for (auto z = 0; z != CHUNK_SIZE_Z; ++z) for (auto y = 0; y != CHUNK_SIZE_Y; ++y) for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
@@ -33,7 +39,7 @@ struct chunk {
         glDeleteBuffers     (1, &m_EBO);
     }
 
-    tools::BLOCK_TYPE get_block_type(int x, int y, int z) const { return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y); }
+    tools::BLOCK_TYPE &get_block_type(int x, int y, int z) { return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y); }
 
     void draw(const shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) const {
         glCullFace(GL_FRONT);
@@ -98,7 +104,7 @@ private:
         case static_cast<int>(tools::BLOCK_TYPE::STONE):
             tex = {4.0f, 4.0f, 4.0f, 4.0f, 4.0f, 4.0f};
             break;
-        case static_cast<int>(tools::BLOCK_TYPE::PALPATINE):
+        case static_cast<int>(tools::BLOCK_TYPE::SAND):
             tex = {5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f};
             break;
         case static_cast<int>(tools::BLOCK_TYPE::MAGMA):
