@@ -16,12 +16,9 @@ struct skybox {
     }
 
     void draw(const shader::shader_program &shader, const unsigned int &texture, camera::camera &cam) const {
-        glm::mat4 model {1.0f};
-
         glDepthMask(false);
 
         shader.use     ();
-        shader.set_mat4("Model", model);
         shader.set_mat4("View", static_cast<glm::mat4>(static_cast<glm::mat3>(cam.get_view_matrix())));
         shader.set_mat4("Projection", cam.get_projection_matrix());
 
