@@ -44,8 +44,8 @@ struct my_exception {
 };
 
 #include "./src/tools.hpp"
-#include "./src/AABB.hpp"
 #include "./src/camera.hpp"
+#include "./src/AABB.hpp"
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.hpp"
 #include "./src/framebuffer.hpp"
@@ -61,6 +61,7 @@ static void keyboard_callback    (GLFWwindow *window);
 static void mouse_callback       (GLFWwindow *window);
 
 int main(int argc, char *argv[]) {
+
     auto window {initialization(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)};
 
     cam.disable_cursor (window);
@@ -89,19 +90,21 @@ int main(int argc, char *argv[]) {
     skybox::skybox world_skybox                 {};
     chunk::chunk spawn_chunk                    {0, 0, 0, terrain};
 
+    // test .....................................................................................
+
+    const auto radius {0.5f};
+
+    tools::sphere a {0.5f, 90.5f, 0.5f, radius};
+    tools::sphere b {0.5f,  0.0f, 0.5f, radius};
+
+    // test .....................................................................................
+
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);
     glFrontFace(GL_CCW);
 
     auto last_frame    {0.0f};
     auto current_frame {0.0f};
-
-    // test .......................................................................
-
-    AABB::volume volume_1 {0.0f, 90.0f, 0.0f, 1.0f, 1.0f, 1.0f};
-    AABB::volume volume_2;
-
-    // test .......................................................................
 
     while (!glfwWindowShouldClose(window)) {
         current_frame = glfwGetTime();
@@ -110,17 +113,13 @@ int main(int argc, char *argv[]) {
             keyboard_callback(window);
             mouse_callback   (window);
 
-            // test .......................................................................
+            // test .....................................................................................
 
-            volume_2 = {cam.get_position().x - 0.5f, cam.get_position().y - 0.5f, cam.get_position().z - 0.5f, 1.0f, 1.0f, 1.0f};
+            b = {cam.get_position().x, cam.get_position().y, cam.get_position().z, 0.5f};
 
-            if (AABB::collision_detection(volume_1, volume_2)) {
-                printf("1\n");
-            } else {
-                printf("2\n");
-            }
+            if (AABB::collision_detection(a, b)) AABB::collision_resolution(a, b, cam);
 
-            // test .......................................................................
+            // test .....................................................................................
 
             window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
             world_skybox.draw             (skybox_shader, skybox_texture, cam);

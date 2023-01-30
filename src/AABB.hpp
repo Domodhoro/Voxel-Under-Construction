@@ -3,23 +3,24 @@
 
 namespace AABB {
 
-struct volume {
-    float x      {0.0f};
-    float y      {0.0f};
-    float z      {0.0f};
-    float length {0.0f};
-    float height {0.0f};
-    float width  {0.0f};
-};
+float distance(const tools::sphere &a, const tools::sphere &b) {
+    const auto x_sum {pow((a.x - b.x), 2)};
+    const auto y_sum {pow((a.y - b.y), 2)};
+    const auto z_sum {pow((a.z - b.z), 2)};
 
-bool collision_detection(volume &vol_1, volume &vol_2) {
-    const auto x_axis_collision {vol_1.x < vol_2.x + vol_2.length && vol_1.x + vol_1.length > vol_2.x};
-    const auto y_axis_collision {vol_1.y < vol_2.y + vol_2.height && vol_1.y + vol_1.height > vol_2.y};
-    const auto z_axis_collision {vol_1.z < vol_2.z + vol_2.width  && vol_1.z + vol_1.width  > vol_2.z};
+    return sqrt(x_sum + y_sum + z_sum);
+}
 
-    if (x_axis_collision && y_axis_collision && z_axis_collision) return true;
+bool collision_detection(const tools::sphere &a, const tools::sphere &b) {
+    if (distance(a, b) < a.r + b.r) return true;
 
     return false;
+}
+
+void collision_resolution(const tools::sphere &a, const tools::sphere &b, camera::camera &cam) {
+    const auto penetration {a.r + b.r - distance(a, b)};
+
+    cam.set_position(cam.get_position() - (penetration * cam.get_front()));
 }
 
 }

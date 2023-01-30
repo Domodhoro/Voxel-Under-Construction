@@ -7,11 +7,11 @@ struct chunk {
     chunk(const int X, const int Y, const int Z, terrain_generator::terrain_generator &terrain) : m_position {glm::tvec3<int>(X, Y, Z)} {
         terrain.use(m_block, X, Y, Z);
 
-        // test .......................................................................
+        // test .....................................................................................
 
         get_block_type(0, 90, 0) = tools::BLOCK_TYPE::GRASS;
 
-        // test .......................................................................
+        // test .....................................................................................
 
         auto i {0u};
 
