@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
 
             // test .....................................................................................
 
-            b = {cam.get_position().x, cam.get_position().y, cam.get_position().z, 0.5f};
+            b = {cam.get_position().x, cam.get_position().y, cam.get_position().z, radius};
 
             if (AABB::collision_detection(a, b)) AABB::collision_resolution(a, b, cam);
 
@@ -152,7 +152,7 @@ static GLFWwindow *initialization(const int window_width, const int window_heigh
 
     auto window {glfwCreateWindow(window_width, window_height, window_title, nullptr, nullptr)};
 
-    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualizaÃ§Ã£o"};
+    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
 
     glfwMakeContextCurrent(window);
 

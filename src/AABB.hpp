@@ -20,7 +20,9 @@ bool collision_detection(const tools::sphere &a, const tools::sphere &b) {
 void collision_resolution(const tools::sphere &a, const tools::sphere &b, camera::camera &cam) {
     const auto penetration {a.r + b.r - distance(a, b)};
 
-    cam.set_position(cam.get_position() - (penetration * cam.get_front()));
+    auto direction {glm::tvec3<float>(a.x, a.y, a.z) - glm::tvec3<float>(b.x, b.y, b.z)};
+
+    cam.set_position(cam.get_position() - penetration * direction);
 }
 
 }

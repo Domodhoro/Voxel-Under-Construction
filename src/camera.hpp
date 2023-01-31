@@ -16,7 +16,6 @@ struct camera {
     void set_far_plane  (const float far)                  { m_far         = far; }
 
     glm::tvec3<float> get_position () { return m_Position; }
-    glm::tvec3<float> get_front    () { return m_Front; }
     glm::mat4 get_projection_matrix() { return glm::perspective<float>(glm::radians(m_FOV), m_aspect, m_near, m_far); }
     glm::mat4 get_view_matrix      () { return glm::lookAt<float>     (m_Position, m_Position + m_Front, m_Up); }
 
@@ -62,4 +61,3 @@ private:
 }
 
 #endif
-
