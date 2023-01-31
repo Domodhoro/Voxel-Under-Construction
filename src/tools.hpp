@@ -71,13 +71,6 @@ struct face_texture {
     float D {0.0f};
 };
 
-struct sphere {
-    float x {0.0f};
-    float y {0.0f};
-    float z {0.0f};
-    float r {0.0f};
-};
-
 }
 
 #endif

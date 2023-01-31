@@ -20,8 +20,8 @@
 #include "./lib/FastNoiseLite.h"
 
 constexpr auto FPS                {60};
-constexpr auto WINDOW_WIDTH       {1200};
-constexpr auto WINDOW_HEIGHT      {600};
+constexpr auto WINDOW_WIDTH       {800};
+constexpr auto WINDOW_HEIGHT      {500};
 constexpr auto WINDOW_TITLE       {"Voxel-Engine"};
 constexpr auto ASPECT             {static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)};
 constexpr auto CAMERA_SPEED       {0.1f};
@@ -61,6 +61,7 @@ static void keyboard_callback    (GLFWwindow *window);
 static void mouse_callback       (GLFWwindow *window);
 
 int main(int argc, char *argv[]) {
+    printf("%s\n", argv[0]);
 
     auto window {initialization(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)};
 
@@ -92,10 +93,15 @@ int main(int argc, char *argv[]) {
 
     // test .....................................................................................
 
+    /*
     const auto radius {0.5f};
 
-    tools::sphere a {0.5f, 90.5f, 0.5f, radius};
-    tools::sphere b {0.5f,  0.0f, 0.5f, radius};
+    AABB::sphere a {0.5f, 90.5f, 0.5f, radius};
+    AABB::sphere b {0.5f,  0.0f, 0.5f, radius};
+    */
+
+    AABB::box a {0.0f, 90.0f, 0.0f, 1.0f, 1.0f, 1.0f};
+    AABB::box b {0.0f,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f};;
 
     // test .....................................................................................
 
@@ -115,7 +121,13 @@ int main(int argc, char *argv[]) {
 
             // test .....................................................................................
 
+            /*
             b = {cam.get_position().x, cam.get_position().y, cam.get_position().z, radius};
+
+            if (AABB::collision_detection(a, b)) AABB::collision_resolution(a, b, cam);
+            */
+
+            b = {cam.get_position().x - 0.5f, cam.get_position().y - 0.5f, cam.get_position().z - 0.5f, 1.0f, 1.0f, 1.0f};
 
             if (AABB::collision_detection(a, b)) AABB::collision_resolution(a, b, cam);
 
