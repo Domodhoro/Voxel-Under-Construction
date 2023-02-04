@@ -23,9 +23,11 @@
 */
 
 #if __cplusplus
+
 extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <math.h>
 
 #include <GL/glew.h>
@@ -34,6 +36,7 @@ extern "C" {
 #define STB_IMAGE_IMPLEMENTATION
 #include "./lib/stb_image.h"
 }
+
 #endif
 
 #include <memory>
@@ -50,15 +53,83 @@ extern "C" {
 
 constexpr auto FPS                {60};
 constexpr auto WINDOW_WIDTH       {800};
-constexpr auto WINDOW_HEIGHT      {600};
+constexpr auto WINDOW_HEIGHT      {500};
 constexpr auto WINDOW_TITLE       {"Voxel-Engine"};
 constexpr auto CAMERA_SPEED       {0.1f};
 constexpr auto CAMERA_FOV         {72.0f};
 constexpr auto CAMERA_SENSITIVITY {0.1f};
-constexpr auto WORLD_SEED         {1007};
 constexpr auto CHUNK_SIZE_X       {16};
 constexpr auto CHUNK_SIZE_Y       {128};
 constexpr auto CHUNK_SIZE_Z       {CHUNK_SIZE_X};
+
+enum struct BLOCK_TYPE : int {
+    AIR = 0,
+    GRASS,
+    DIRT,
+    STONE,
+    SAND,
+    MAGMA,
+    FELDSPAR
+};
+
+template<typename T>
+struct vec2 {
+    T X;
+    T Y;
+};
+
+template<typename T>
+struct vec3 {
+    vec2<T> v;
+    T Z;
+};
+
+struct tex_coords {
+    float U {0.0f};
+    float V {0.0f};
+};
+
+template<typename T>
+struct vertex_2d {
+    vec2<T> v;
+    tex_coords t;
+};
+
+template<typename T>
+struct vertex_3d {
+    vec3<T> v;
+    tex_coords t;
+};
+
+template<typename T>
+struct vertex_2d_t {
+    vertex_2d<T> vertice;
+    T type;
+};
+
+template<typename T>
+struct vertex_3d_t {
+    vertex_3d<T> vertice;
+    T type;
+};
+
+struct face {
+    bool F {true};
+    bool B {true};
+    bool R {true};
+    bool L {true};
+    bool U {true};
+    bool D {true};
+};
+
+struct face_texture {
+    float F {0.0f};
+    float B {0.0f};
+    float R {0.0f};
+    float L {0.0f};
+    float U {0.0f};
+    float D {0.0f};
+};
 
 struct my_exception {
     my_exception(const char *file, int line, const char *description) {
@@ -71,9 +142,7 @@ struct my_exception {
     ~my_exception() { exit(EXIT_FAILURE); }
 };
 
-#include "./src/tools.hpp"
 #include "./src/camera.hpp"
-#include "./src/AABB.hpp"
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.hpp"
 #include "./src/framebuffer.hpp"
@@ -81,130 +150,17 @@ struct my_exception {
 #include "./src/terrain_generator.hpp"
 #include "./src/chunk.hpp"
 
-camera::camera cam {static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)};
-
-static void keyboard_callback    (GLFWwindow *window);
-static void mouse_callback       (GLFWwindow *window);
-
-int main(int argc, char *argv[]) {
-    printf("%s\n", argv[0]);
-
-    if (glfwInit() == GLFW_NOT_INITIALIZED) my_exception {__FILE__, __LINE__, "falha ao iniciar o GLFW"};
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_DECORATED, false);
-    glfwWindowHint(GLFW_RESIZABLE, false);
-
-    auto window {glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr)};
-
-    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualizaÃ§Ã£o"};
-
-    glfwMakeContextCurrent(window);
-
-    auto mode {glfwGetVideoMode(glfwGetPrimaryMonitor())};
-
-    auto window_pos_x {(mode->width  - WINDOW_WIDTH)  / 2};
-    auto window_pos_y {(mode->height - WINDOW_HEIGHT) / 2};
-
-    glfwSetWindowPos(window, window_pos_x, window_pos_y);
-
-    stb_image_wrapper::load_window_icon(window, "./img/icon.bmp");
-
-    glewExperimental = true;
-
-    if (glewInit() != GLEW_OK) my_exception {__FILE__, __LINE__, "falha ao iniciar GLEW"};
-
-    cam.disable_cursor (window);
-    cam.set_speed      (CAMERA_SPEED);
-    cam.set_sensitivity(CAMERA_SENSITIVITY);
-    cam.set_FOV        (CAMERA_FOV);
-    cam.set_position   ({8.0f, 92.0f, 8.0f});
-
-    auto framebuffer_shader {shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")};
-    auto skybox_shader      {shader::shader_program("./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl")};
-    auto chunk_shader       {shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
-
-    std::vector<std::string> sky_texture {
-        "img/skybox/right.bmp",
-        "img/skybox/left.bmp",
-        "img/skybox/up.bmp",
-        "img/skybox/down.bmp",
-        "img/skybox/front.bmp",
-        "img/skybox/back.bmp"
-    };
-
-    auto skybox_texture {stb_image_wrapper::load_cube_map_texture(sky_texture)};
-    auto chunk_texture  {stb_image_wrapper::load_texture("./img/blocks.bmp")};
-
-    terrain_generator::terrain_generator terrain {WORLD_SEED};
-    framebuffer::framebuffer window_framebuffer  {WINDOW_WIDTH, WINDOW_HEIGHT, tools::FRAMEBUFFER_TYPE::DEFAULT};
-    skybox::skybox world_skybox                  {};
-    chunk::chunk spawn_chunk                     {0, 0, 0, terrain};
-
-    // test .....................................................................................
-
-    tools::box a {0.0f, 90.0f, 0.0f, 1.0f, 1.0f, 1.0f};
-    tools::box b {0.0f,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f};
-
-    // test .....................................................................................
-
-    glEnable   (GL_DEPTH_TEST);
-    glEnable   (GL_CULL_FACE);
-    glFrontFace(GL_CCW);
-
-    auto last_frame    {0.0f};
-    auto current_frame {0.0f};
-
-    while (!glfwWindowShouldClose(window)) {
-        current_frame = glfwGetTime();
-
-        if ((current_frame - last_frame) > (1.0f / FPS)) {
-            keyboard_callback(window);
-            mouse_callback   (window);
-
-            // test .....................................................................................
-
-            b = {cam.get_position().x - 0.5f, cam.get_position().y - 0.5f, cam.get_position().z - 0.5f, 1.0f, 1.0f, 1.0f};
-
-            if (AABB::collision_detection(a, b)) {
-                printf("collision...\n");
-
-                AABB::collision_resolution(a, b, cam);
-            } else {
-                printf("no collision...\n");
-            }
-
-            // test .....................................................................................
-
-            window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
-            world_skybox.draw             (skybox_shader, skybox_texture, cam);
-            spawn_chunk.draw              (chunk_shader, chunk_texture, cam);
-            window_framebuffer.draw       (framebuffer_shader);
-
-            glfwSwapBuffers(window);
-            glfwPollEvents ();
-
-            last_frame = current_frame;
-        }
-    }
-
-    glDeleteTextures (1, &chunk_texture);
-    glDeleteTextures (1, &skybox_texture);
-    glfwDestroyWindow(window);
-    glfwTerminate    ();
-
-    return 0;
-}
+camera::camera cam {
+    static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)
+};
 
 static void keyboard_callback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::FORWARD);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::BACKWARD);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::RIGHT);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_process(tools::CAMERA_MOVEMENTS::LEFT);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cam.keyboard_update(camera::CAMERA_MOVEMENTS::FORWARD);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_update(camera::CAMERA_MOVEMENTS::BACKWARD);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_update(camera::CAMERA_MOVEMENTS::RIGHT);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_update(camera::CAMERA_MOVEMENTS::LEFT);
 }
 
 static void mouse_callback(GLFWwindow *window) {
@@ -229,5 +185,108 @@ static void mouse_callback(GLFWwindow *window) {
     last_x = x;
     last_y = y;
 
-    cam.mouse_process(off_set_x, off_set_y);
+    cam.mouse_update(off_set_x, off_set_y);
+}
+
+static int generate_seed() {
+    time_t *t {nullptr};
+
+    srand(static_cast<unsigned>(time(t)));
+
+    return 1 + rand() % 9'999'999;
+}
+
+int main(int argc, char *argv[]) {
+    printf("%s\n", argv[0]);
+
+    if (glfwInit() == GLFW_NOT_INITIALIZED) my_exception {__FILE__, __LINE__, "falha ao iniciar o GLFW"};
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_DECORATED, true);
+    glfwWindowHint(GLFW_RESIZABLE, false);
+
+    auto window {
+        glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr)
+    };
+
+    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
+
+    glfwMakeContextCurrent(window);
+
+    auto mode {glfwGetVideoMode(glfwGetPrimaryMonitor())};
+
+    auto window_pos_x {(mode->width  - WINDOW_WIDTH)  / 2};
+    auto window_pos_y {(mode->height - WINDOW_HEIGHT) / 2};
+
+    glfwSetWindowPos(window, window_pos_x, window_pos_y);
+
+    glfwSetCursorPos(window, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
+
+    stb_image_wrapper::load_window_icon(window, "./img/icon.bmp");
+
+    glewExperimental = true;
+
+    if (glewInit() != GLEW_OK) my_exception {__FILE__, __LINE__, "falha ao iniciar GLEW"};
+
+    cam.disable_cursor     (window);
+    cam.set_speed          (CAMERA_SPEED);
+    cam.set_sensitivity    (CAMERA_SENSITIVITY);
+    cam.set_FOV            (CAMERA_FOV);
+    cam.set_position       ({8.0f, 92.0f, 8.0f});
+
+    auto framebuffer_shader {shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")};
+    auto skybox_shader      {shader::shader_program("./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl")};
+    auto chunk_shader       {shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
+
+    std::vector<std::string> sky_texture {
+        "img/skybox/right.bmp",
+        "img/skybox/left.bmp",
+        "img/skybox/up.bmp",
+        "img/skybox/down.bmp",
+        "img/skybox/front.bmp",
+        "img/skybox/back.bmp"
+    };
+
+    auto skybox_texture {stb_image_wrapper::load_cube_map_texture(sky_texture)};
+    auto chunk_texture  {stb_image_wrapper::load_texture("./img/blocks.bmp")};
+
+    terrain_generator::terrain_generator terrain {generate_seed()};
+    framebuffer::framebuffer window_framebuffer  {WINDOW_WIDTH, WINDOW_HEIGHT, framebuffer::FRAMEBUFFER_TYPE::DEFAULT};
+    skybox::skybox world_skybox                  {};
+    chunk::chunk spawn_chunk                     {0, 0, 0, terrain};
+
+    glEnable   (GL_DEPTH_TEST);
+    glEnable   (GL_CULL_FACE);
+    glFrontFace(GL_CCW);
+
+    auto last_frame    {0.0f};
+    auto current_frame {0.0f};
+
+    while (!glfwWindowShouldClose(window)) {
+        current_frame = glfwGetTime();
+
+        if ((current_frame - last_frame) > (1.0f / FPS)) {
+            keyboard_callback(window);
+            mouse_callback   (window);
+
+            window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
+            world_skybox.draw             (skybox_shader, skybox_texture, cam);
+            spawn_chunk.draw              (chunk_shader, chunk_texture, cam);
+            window_framebuffer.draw       (framebuffer_shader);
+
+            glfwSwapBuffers(window);
+            glfwPollEvents ();
+
+            last_frame = current_frame;
+        }
+    }
+
+    glDeleteTextures (1, &chunk_texture);
+    glDeleteTextures (1, &skybox_texture);
+    glfwDestroyWindow(window);
+    glfwTerminate    ();
+
+    return 0;
 }

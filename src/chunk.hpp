@@ -7,25 +7,19 @@ struct chunk {
     chunk(const int X, const int Y, const int Z, terrain_generator::terrain_generator &terrain) : m_position {glm::tvec3<int>(X, Y, Z)} {
         terrain.use(m_block, X, Y, Z);
 
-        // test .....................................................................................
-
-        get_block_type(0, 90, 0) = tools::BLOCK_TYPE::GRASS;
-
-        // test .....................................................................................
-
         auto i {0u};
 
         for (auto z = 0; z != CHUNK_SIZE_Z; ++z) for (auto y = 0; y != CHUNK_SIZE_Y; ++y) for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
-            if (get_block_type(x, y, z) == tools::BLOCK_TYPE::AIR) continue;
+            if (get_block_type(x, y, z) == BLOCK_TYPE::AIR) continue;
 
-            tools::face face;
+            face face;
 
-            if (x > 0                  && get_block_type(x - 1, y, z) != tools::BLOCK_TYPE::AIR) face.L = false;
-            if (y > 0                  && get_block_type(x, y - 1, z) != tools::BLOCK_TYPE::AIR) face.D = false;
-            if (z > 0                  && get_block_type(x, y, z - 1) != tools::BLOCK_TYPE::AIR) face.F = false;
-            if (x < (CHUNK_SIZE_X - 1) && get_block_type(x + 1, y, z) != tools::BLOCK_TYPE::AIR) face.R = false;
-            if (y < (CHUNK_SIZE_Y - 1) && get_block_type(x, y + 1, z) != tools::BLOCK_TYPE::AIR) face.U = false;
-            if (z < (CHUNK_SIZE_Z - 1) && get_block_type(x, y, z + 1) != tools::BLOCK_TYPE::AIR) face.B = false;
+            if (x > 0                  && get_block_type(x - 1, y, z) != BLOCK_TYPE::AIR) face.L = false;
+            if (y > 0                  && get_block_type(x, y - 1, z) != BLOCK_TYPE::AIR) face.D = false;
+            if (z > 0                  && get_block_type(x, y, z - 1) != BLOCK_TYPE::AIR) face.F = false;
+            if (x < (CHUNK_SIZE_X - 1) && get_block_type(x + 1, y, z) != BLOCK_TYPE::AIR) face.R = false;
+            if (y < (CHUNK_SIZE_Y - 1) && get_block_type(x, y + 1, z) != BLOCK_TYPE::AIR) face.U = false;
+            if (z < (CHUNK_SIZE_Z - 1) && get_block_type(x, y, z + 1) != BLOCK_TYPE::AIR) face.B = false;
 
             mesh(i, x + X, y + Y, z + Z, face, static_cast<int>(get_block_type(x, y, z)));
         }
@@ -39,9 +33,9 @@ struct chunk {
         glDeleteBuffers     (1, &m_EBO);
     }
 
-    tools::BLOCK_TYPE &get_block_type(int x, int y, int z) { return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y); }
+    BLOCK_TYPE get_block_type(int x, int y, int z) { return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y); }
 
-    void draw(const shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) const {
+    void draw(shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) {
         glCullFace(GL_FRONT);
 
         shader.use     ();
@@ -63,8 +57,8 @@ private:
     unsigned int m_VBO {0u};
     unsigned int m_EBO {0u};
 
-    std::vector<tools::BLOCK_TYPE>  m_block;
-    std::vector<tools::vertex_3d_t> m_vertice;
+    std::vector<BLOCK_TYPE>         m_block;
+    std::vector<vertex_3d_t<float>> m_vertice;
     std::vector<unsigned int>       m_indices;
 
     void mesh_setup() {
@@ -91,26 +85,26 @@ private:
         glBindVertexArray(0);
     }
 
-    void mesh(unsigned int &i, const int x, const int y, const int z, const tools::face &face, const int block_type) {
-        tools::face_texture tex;
+    void mesh(unsigned int &i, const int x, const int y, const int z, const face &face, const int block_type) {
+        face_texture tex;
 
         switch (block_type) {
-        case static_cast<int>(tools::BLOCK_TYPE::GRASS):
+        case static_cast<int>(BLOCK_TYPE::GRASS):
             tex = {2.0f, 2.0f, 2.0f, 2.0f, 1.0f, 3.0f};
             break;
-        case static_cast<int>(tools::BLOCK_TYPE::DIRT):
+        case static_cast<int>(BLOCK_TYPE::DIRT):
             tex = {3.0f, 3.0f, 3.0f, 3.0f, 3.0f, 3.0f};
             break;
-        case static_cast<int>(tools::BLOCK_TYPE::STONE):
+        case static_cast<int>(BLOCK_TYPE::STONE):
             tex = {4.0f, 4.0f, 4.0f, 4.0f, 4.0f, 4.0f};
             break;
-        case static_cast<int>(tools::BLOCK_TYPE::SAND):
+        case static_cast<int>(BLOCK_TYPE::SAND):
             tex = {5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f};
             break;
-        case static_cast<int>(tools::BLOCK_TYPE::MAGMA):
+        case static_cast<int>(BLOCK_TYPE::MAGMA):
             tex = {6.0f, 6.0f, 6.0f, 6.0f, 6.0f, 6.0f};
             break;
-        case static_cast<int>(tools::BLOCK_TYPE::FELDSPAR):
+        case static_cast<int>(BLOCK_TYPE::FELDSPAR):
             tex = {7.0f, 7.0f, 7.0f, 7.0f, 7.0f, 7.0f};
             break;
         }

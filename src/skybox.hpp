@@ -15,7 +15,7 @@ struct skybox {
         glDeleteBuffers     (1, &m_EBO);
     }
 
-    void draw(const shader::shader_program &shader, const unsigned int &texture, camera::camera &cam) const {
+    void draw(shader::shader_program &shader, const unsigned int &texture, camera::camera &cam) {
         glDepthMask(false);
 
         shader.use     ();
@@ -35,8 +35,8 @@ private:
     unsigned int m_VBO {0u};
     unsigned int m_EBO {0u};
 
-    std::vector<tools::vertex_3d> m_vertice;
-    std::vector<unsigned int> m_indices;
+    std::vector<vertex_3d<float>> m_vertice;
+    std::vector<unsigned int>     m_indices;
 
     void mesh_setup() {
         glGenVertexArrays(1, &m_VAO);

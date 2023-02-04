@@ -3,8 +3,14 @@
 
 namespace framebuffer {
 
+enum struct FRAMEBUFFER_TYPE : int {
+    DEFAULT = 0,
+    INVERT_COLOR,
+    GRAY_SCALE
+};
+
 struct framebuffer {
-    framebuffer(const int width, const int height, const tools::FRAMEBUFFER_TYPE type) : m_width {width}, m_height {height}, m_type {type} {
+    framebuffer(const int width, const int height, const FRAMEBUFFER_TYPE type) : m_width {width}, m_height {height}, m_type {type} {
         mesh             ();
         mesh_setup       ();
         framebuffer_setup();
@@ -18,14 +24,14 @@ struct framebuffer {
         glDeleteTextures    (1, &m_texture_color_buffer);
     }
 
-    void clear_color(const float r, const float g, const float b) const {
+    void clear_color(const float r, const float g, const float b) {
         glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
         glEnable         (GL_DEPTH_TEST);
         glClearColor     (r, g, b, 1.0f);
         glClear          (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    void draw(const shader::shader_program &shader) const {
+    void draw(shader::shader_program &shader) {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDisable        (GL_DEPTH_TEST);
         glClearColor     (1.0f, 1.0f, 1.0f, 1.0f);
@@ -50,10 +56,10 @@ private:
     unsigned int m_EBO                  {0u};
     unsigned int m_texture_color_buffer {0u};
 
-    std::vector<tools::vertex_2d> m_vertice;
-    std::vector<unsigned int> m_indices;
+    std::vector<vertex_2d<float>> m_vertice;
+    std::vector<unsigned int>     m_indices;
 
-    tools::FRAMEBUFFER_TYPE m_type {tools::FRAMEBUFFER_TYPE::DEFAULT};
+    FRAMEBUFFER_TYPE m_type {FRAMEBUFFER_TYPE::DEFAULT};
 
     void framebuffer_setup() {
         auto RBO {0u};

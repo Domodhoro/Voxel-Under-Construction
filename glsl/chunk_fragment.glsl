@@ -5,7 +5,9 @@ uniform sampler2D TextureSampler;
 out highp vec4 FragColor;
 in  highp vec3 FragTexture;
 
-highp vec2 tex_sample(highp vec2 tex, highp float size, highp float x, highp float y);
+highp vec2 tex_sample(highp vec2 tex, highp float size, highp float x, highp float y) {
+    return vec2((tex.x + x) * size, (tex.y + y) * size);
+}
 
 void main() {
     highp vec4 color = vec4(1.0f);
@@ -22,8 +24,4 @@ void main() {
     if (color.r == 1.0f && color.g != 1.0f && color.b == 1.0f) discard;
 
     FragColor = color;
-}
-
-highp vec2 tex_sample(highp vec2 tex, highp float size, highp float x, highp float y) {
-    return vec2((tex.x + x) * size, (tex.y + y) * size);
 }
