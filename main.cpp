@@ -83,7 +83,6 @@ struct my_exception {
 
 camera::camera cam {static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)};
 
-static GLFWwindow *initialization(int window_width, int window_height, const char *window_title);
 static void keyboard_callback    (GLFWwindow *window);
 static void mouse_callback       (GLFWwindow *window);
 
@@ -100,7 +99,7 @@ int main(int argc, char *argv[]) {
 
     auto window {glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr)};
 
-    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
+    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualizaÃ§Ã£o"};
 
     glfwMakeContextCurrent(window);
 
