@@ -71,6 +71,15 @@ struct face_texture {
     float D {0.0f};
 };
 
+struct box {
+    float x      {0.0f};
+    float y      {0.0f};
+    float z      {0.0f};
+    float length {0.0f};
+    float width  {0.0f};
+    float height {0.0f};
+};
+
 }
 
 #endif

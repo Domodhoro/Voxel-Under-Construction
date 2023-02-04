@@ -1,29 +1,57 @@
-#include <iostream>
-#include <memory>
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <cmath>
-#include <vector>
-#include <algorithm>
+/*
+    MIT License
+
+    Copyright (c) 2023 Guilherme M. Aguiar (guilhermemaguiar2022@gmail.com)
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+*/
+
+#if __cplusplus
+extern "C" {
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "./lib/stb_image.h"
+}
+#endif
+
+#include <memory>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <algorithm>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "./lib/stb_image.h"
-
-#include "./lib/FastNoiseLite.h"
+#include "./lib/FastNoiseLite.hpp"
 
 constexpr auto FPS                {60};
 constexpr auto WINDOW_WIDTH       {800};
-constexpr auto WINDOW_HEIGHT      {500};
+constexpr auto WINDOW_HEIGHT      {600};
 constexpr auto WINDOW_TITLE       {"Voxel-Engine"};
-constexpr auto ASPECT             {static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)};
 constexpr auto CAMERA_SPEED       {0.1f};
 constexpr auto CAMERA_FOV         {72.0f};
 constexpr auto CAMERA_SENSITIVITY {0.1f};
@@ -34,7 +62,7 @@ constexpr auto CHUNK_SIZE_Z       {CHUNK_SIZE_X};
 
 struct my_exception {
     my_exception(const char *file, int line, const char *description) {
-        printf("ops! uma falha ocorreu...\n\n");
+        printf("Ops! Uma falha ocorreu.\n\n");
         printf("File:        %s\n", file);
         printf("Line:        %i\n", line);
         printf("Description: %s\n", description);
@@ -53,8 +81,7 @@ struct my_exception {
 #include "./src/terrain_generator.hpp"
 #include "./src/chunk.hpp"
 
-camera::camera cam                           {ASPECT};
-terrain_generator::terrain_generator terrain {WORLD_SEED};
+camera::camera cam {static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)};
 
 static GLFWwindow *initialization(int window_width, int window_height, const char *window_title);
 static void keyboard_callback    (GLFWwindow *window);
@@ -63,7 +90,32 @@ static void mouse_callback       (GLFWwindow *window);
 int main(int argc, char *argv[]) {
     printf("%s\n", argv[0]);
 
-    auto window {initialization(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)};
+    if (glfwInit() == GLFW_NOT_INITIALIZED) my_exception {__FILE__, __LINE__, "falha ao iniciar o GLFW"};
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_DECORATED, false);
+    glfwWindowHint(GLFW_RESIZABLE, false);
+
+    auto window {glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr)};
+
+    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
+
+    glfwMakeContextCurrent(window);
+
+    auto mode {glfwGetVideoMode(glfwGetPrimaryMonitor())};
+
+    auto window_pos_x {(mode->width  - WINDOW_WIDTH)  / 2};
+    auto window_pos_y {(mode->height - WINDOW_HEIGHT) / 2};
+
+    glfwSetWindowPos(window, window_pos_x, window_pos_y);
+
+    stb_image_wrapper::load_window_icon(window, "./img/icon.bmp");
+
+    glewExperimental = true;
+
+    if (glewInit() != GLEW_OK) my_exception {__FILE__, __LINE__, "falha ao iniciar GLEW"};
 
     cam.disable_cursor (window);
     cam.set_speed      (CAMERA_SPEED);
@@ -87,21 +139,15 @@ int main(int argc, char *argv[]) {
     auto skybox_texture {stb_image_wrapper::load_cube_map_texture(sky_texture)};
     auto chunk_texture  {stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
-    framebuffer::framebuffer window_framebuffer {WINDOW_WIDTH, WINDOW_HEIGHT, tools::FRAMEBUFFER_TYPE::DEFAULT};
-    skybox::skybox world_skybox                 {};
-    chunk::chunk spawn_chunk                    {0, 0, 0, terrain};
+    terrain_generator::terrain_generator terrain {WORLD_SEED};
+    framebuffer::framebuffer window_framebuffer  {WINDOW_WIDTH, WINDOW_HEIGHT, tools::FRAMEBUFFER_TYPE::DEFAULT};
+    skybox::skybox world_skybox                  {};
+    chunk::chunk spawn_chunk                     {0, 0, 0, terrain};
 
     // test .....................................................................................
 
-    /*
-    const auto radius {0.5f};
-
-    AABB::sphere a {0.5f, 90.5f, 0.5f, radius};
-    AABB::sphere b {0.5f,  0.0f, 0.5f, radius};
-    */
-
-    AABB::box a {0.0f, 90.0f, 0.0f, 1.0f, 1.0f, 1.0f};
-    AABB::box b {0.0f,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f};;
+    tools::box a {0.0f, 90.0f, 0.0f, 1.0f, 1.0f, 1.0f};
+    tools::box b {0.0f,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f};
 
     // test .....................................................................................
 
@@ -121,15 +167,15 @@ int main(int argc, char *argv[]) {
 
             // test .....................................................................................
 
-            /*
-            b = {cam.get_position().x, cam.get_position().y, cam.get_position().z, radius};
-
-            if (AABB::collision_detection(a, b)) AABB::collision_resolution(a, b, cam);
-            */
-
             b = {cam.get_position().x - 0.5f, cam.get_position().y - 0.5f, cam.get_position().z - 0.5f, 1.0f, 1.0f, 1.0f};
 
-            if (AABB::collision_detection(a, b)) AABB::collision_resolution(a, b, cam);
+            if (AABB::collision_detection(a, b)) {
+                printf("collision...\n");
+
+                AABB::collision_resolution(a, b, cam);
+            } else {
+                printf("no collision...\n");
+            }
 
             // test .....................................................................................
 
@@ -151,37 +197,6 @@ int main(int argc, char *argv[]) {
     glfwTerminate    ();
 
     return 0;
-}
-
-static GLFWwindow *initialization(const int window_width, const int window_height, const char *window_title) {
-    if (glfwInit() == GLFW_NOT_INITIALIZED) my_exception {__FILE__, __LINE__, "falha ao iniciar o GLFW"};
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_DECORATED, false);
-    glfwWindowHint(GLFW_RESIZABLE, false);
-
-    auto window {glfwCreateWindow(window_width, window_height, window_title, nullptr, nullptr)};
-
-    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
-
-    glfwMakeContextCurrent(window);
-
-    auto mode {glfwGetVideoMode(glfwGetPrimaryMonitor())};
-
-    auto window_pos_x {(mode->width  - window_width)  / 2};
-    auto window_pos_y {(mode->height - window_height) / 2};
-
-    glfwSetWindowPos(window, window_pos_x, window_pos_y);
-
-    stb_image_wrapper::load_window_icon(window, "./img/icon.bmp");
-
-    glewExperimental = true;
-
-    if (glewInit() != GLEW_OK) my_exception {__FILE__, __LINE__, "falha ao iniciar GLEW"};
-
-    return window;
 }
 
 static void keyboard_callback(GLFWwindow *window) {

@@ -35,9 +35,9 @@ struct camera {
         if (m_beta >=  angle_max) m_beta =  angle_max;
         if (m_beta <= -angle_max) m_beta = -angle_max;
 
-        m_Direction.x = std::cos(glm::radians(m_alpha)) * std::cos(glm::radians(m_beta));
-        m_Direction.y = std::sin(glm::radians(m_beta));
-        m_Direction.z = std::sin(glm::radians(m_alpha)) * std::cos(glm::radians(m_beta));
+        m_Direction.x = cos(glm::radians(m_alpha)) * cos(glm::radians(m_beta));
+        m_Direction.y = sin(glm::radians(m_beta));
+        m_Direction.z = sin(glm::radians(m_alpha)) * cos(glm::radians(m_beta));
 
         m_Front = glm::normalize(m_Direction);
     }
