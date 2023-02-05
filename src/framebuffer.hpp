@@ -3,12 +3,6 @@
 
 namespace framebuffer {
 
-enum struct FRAMEBUFFER_TYPE : int {
-    DEFAULT = 0,
-    INVERT_COLOR,
-    GRAY_SCALE
-};
-
 struct framebuffer {
     framebuffer(const int width, const int height, const FRAMEBUFFER_TYPE type) : m_width {width}, m_height {height}, m_type {type} {
         mesh             ();

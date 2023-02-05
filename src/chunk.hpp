@@ -12,16 +12,16 @@ struct chunk {
         for (auto z = 0; z != CHUNK_SIZE_Z; ++z) for (auto y = 0; y != CHUNK_SIZE_Y; ++y) for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
             if (get_block_type(x, y, z) == BLOCK_TYPE::AIR) continue;
 
-            face face;
+            face<bool> faces {true, true, true, true, true, true};
 
-            if (x > 0                  && get_block_type(x - 1, y, z) != BLOCK_TYPE::AIR) face.L = false;
-            if (y > 0                  && get_block_type(x, y - 1, z) != BLOCK_TYPE::AIR) face.D = false;
-            if (z > 0                  && get_block_type(x, y, z - 1) != BLOCK_TYPE::AIR) face.F = false;
-            if (x < (CHUNK_SIZE_X - 1) && get_block_type(x + 1, y, z) != BLOCK_TYPE::AIR) face.R = false;
-            if (y < (CHUNK_SIZE_Y - 1) && get_block_type(x, y + 1, z) != BLOCK_TYPE::AIR) face.U = false;
-            if (z < (CHUNK_SIZE_Z - 1) && get_block_type(x, y, z + 1) != BLOCK_TYPE::AIR) face.B = false;
+            if (x > 0                  && get_block_type(x - 1, y, z) != BLOCK_TYPE::AIR) faces.left  = false;
+            if (y > 0                  && get_block_type(x, y - 1, z) != BLOCK_TYPE::AIR) faces.down  = false;
+            if (z > 0                  && get_block_type(x, y, z - 1) != BLOCK_TYPE::AIR) faces.front = false;
+            if (x < (CHUNK_SIZE_X - 1) && get_block_type(x + 1, y, z) != BLOCK_TYPE::AIR) faces.right = false;
+            if (y < (CHUNK_SIZE_Y - 1) && get_block_type(x, y + 1, z) != BLOCK_TYPE::AIR) faces.up    = false;
+            if (z < (CHUNK_SIZE_Z - 1) && get_block_type(x, y, z + 1) != BLOCK_TYPE::AIR) faces.back  = false;
 
-            mesh(i, x + X, y + Y, z + Z, face, static_cast<int>(get_block_type(x, y, z)));
+            mesh(i, x + X, y + Y, z + Z, faces, static_cast<int>(get_block_type(x, y, z)));
         }
 
         mesh_setup();
@@ -85,94 +85,94 @@ private:
         glBindVertexArray(0);
     }
 
-    void mesh(unsigned int &i, const int x, const int y, const int z, const face &face, const int block_type) {
-        face_texture tex;
+    void mesh(unsigned int &i, const int x, const int y, const int z, const face<bool> &faces, const int block_type) {
+        face<float> textures {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
         switch (block_type) {
         case static_cast<int>(BLOCK_TYPE::GRASS):
-            tex = {2.0f, 2.0f, 2.0f, 2.0f, 1.0f, 3.0f};
+            textures = {2.0f, 2.0f, 2.0f, 2.0f, 1.0f, 3.0f};
             break;
         case static_cast<int>(BLOCK_TYPE::DIRT):
-            tex = {3.0f, 3.0f, 3.0f, 3.0f, 3.0f, 3.0f};
+            textures = {3.0f, 3.0f, 3.0f, 3.0f, 3.0f, 3.0f};
             break;
         case static_cast<int>(BLOCK_TYPE::STONE):
-            tex = {4.0f, 4.0f, 4.0f, 4.0f, 4.0f, 4.0f};
+            textures = {4.0f, 4.0f, 4.0f, 4.0f, 4.0f, 4.0f};
             break;
         case static_cast<int>(BLOCK_TYPE::SAND):
-            tex = {5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f};
+            textures = {5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f};
             break;
         case static_cast<int>(BLOCK_TYPE::MAGMA):
-            tex = {6.0f, 6.0f, 6.0f, 6.0f, 6.0f, 6.0f};
+            textures = {6.0f, 6.0f, 6.0f, 6.0f, 6.0f, 6.0f};
             break;
         case static_cast<int>(BLOCK_TYPE::FELDSPAR):
-            tex = {7.0f, 7.0f, 7.0f, 7.0f, 7.0f, 7.0f};
+            textures = {7.0f, 7.0f, 7.0f, 7.0f, 7.0f, 7.0f};
             break;
         }
 
-        if (face.F) {
-            m_vertice.push_back({x - 0.0f, y + 1.0f, z - 0.0f, 0.0f, 1.0f, tex.F});
-            m_vertice.push_back({x - 0.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, tex.F});
-            m_vertice.push_back({x + 1.0f, y - 0.0f, z - 0.0f, 1.0f, 0.0f, tex.F});
-            m_vertice.push_back({x + 1.0f, y + 1.0f, z - 0.0f, 1.0f, 1.0f, tex.F});
+        if (faces.front) {
+            m_vertice.push_back({x - 0.0f, y + 1.0f, z - 0.0f, 0.0f, 1.0f, textures.front});
+            m_vertice.push_back({x - 0.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, textures.front});
+            m_vertice.push_back({x + 1.0f, y - 0.0f, z - 0.0f, 1.0f, 0.0f, textures.front});
+            m_vertice.push_back({x + 1.0f, y + 1.0f, z - 0.0f, 1.0f, 1.0f, textures.front});
 
-            m_indices.insert(m_indices.end(), {i + 0, i + 1, i + 3, i + 3, i + 1, i + 2});
+            m_indices.insert(m_indices.end(), {i + 0u, i + 1u, i + 3u, i + 3u, i + 1u, i + 2u});
 
-            i += 4;
+            i += 4u;
         }
 
-        if (face.B) {
-            m_vertice.push_back({x - 0.0f, y + 1.0f, z + 1.0f, 0.0f, 1.0f, tex.B});
-            m_vertice.push_back({x - 0.0f, y - 0.0f, z + 1.0f, 0.0f, 0.0f, tex.B});
-            m_vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, tex.B});
-            m_vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, tex.B});
+        if (faces.back) {
+            m_vertice.push_back({x - 0.0f, y + 1.0f, z + 1.0f, 0.0f, 1.0f, textures.back});
+            m_vertice.push_back({x - 0.0f, y - 0.0f, z + 1.0f, 0.0f, 0.0f, textures.back});
+            m_vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, textures.back});
+            m_vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, textures.back});
 
             m_indices.insert(m_indices.end(), {i + 1, i + 0, i + 3, i + 1, i + 3, i + 2});
 
-            i += 4;
+            i += 4u;
         }
 
-        if (face.R) {
-            m_vertice.push_back({x + 1.0f, y + 1.0f, z - 0.0f, 0.0f, 1.0f, tex.R});
-            m_vertice.push_back({x + 1.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, tex.R});
-            m_vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, tex.R});
-            m_vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, tex.R});
+        if (faces.right) {
+            m_vertice.push_back({x + 1.0f, y + 1.0f, z - 0.0f, 0.0f, 1.0f, textures.right});
+            m_vertice.push_back({x + 1.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, textures.right});
+            m_vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, textures.right});
+            m_vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, textures.right});
 
-            m_indices.insert(m_indices.end(), {i + 0, i + 1, i + 3, i + 3, i + 1, i + 2});
-
-            i += 4;
-        }
-
-        if (face.L) {
-            m_vertice.push_back({x - 0.0f, y + 1.0f, z - 0.0f, 0.0f, 1.0f, tex.L});
-            m_vertice.push_back({x - 0.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, tex.L});
-            m_vertice.push_back({x - 0.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, tex.L});
-            m_vertice.push_back({x - 0.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, tex.L});
-
-            m_indices.insert(m_indices.end(), {i + 1, i + 0, i + 3, i + 1, i + 3, i + 2});
+            m_indices.insert(m_indices.end(), {i + 0u, i + 1u, i + 3u, i + 3u, i + 1u, i + 2u});
 
             i += 4;
         }
 
-        if (face.U) {
-            m_vertice.push_back({x - 0.0f, y + 1.0f, z + 1.0f, 0.0f, 1.0f, tex.U});
-            m_vertice.push_back({x - 0.0f, y + 1.0f, z - 0.0f, 0.0f, 0.0f, tex.U});
-            m_vertice.push_back({x + 1.0f, y + 1.0f, z - 0.0f, 1.0f, 0.0f, tex.U});
-            m_vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, tex.U});
+        if (faces.left) {
+            m_vertice.push_back({x - 0.0f, y + 1.0f, z - 0.0f, 0.0f, 1.0f, textures.left});
+            m_vertice.push_back({x - 0.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, textures.left});
+            m_vertice.push_back({x - 0.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, textures.left});
+            m_vertice.push_back({x - 0.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, textures.left});
 
-            m_indices.insert(m_indices.end(), {i + 0, i + 1, i + 3, i + 3, i + 1, i + 2});
+            m_indices.insert(m_indices.end(), {i + 1u, i + 0u, i + 3u, i + 1u, i + 3u, i + 2u});
 
-            i += 4;
+            i += 4u;
         }
 
-        if (face.D) {
-            m_vertice.push_back({x - 0.0f, y - 0.0f, z + 1.0f, 0.0f, 1.0f, tex.D});
-            m_vertice.push_back({x - 0.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, tex.D});
-            m_vertice.push_back({x + 1.0f, y - 0.0f, z - 0.0f, 1.0f, 0.0f, tex.D});
-            m_vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 1.0f, tex.D});
+        if (faces.up) {
+            m_vertice.push_back({x - 0.0f, y + 1.0f, z + 1.0f, 0.0f, 1.0f, textures.up});
+            m_vertice.push_back({x - 0.0f, y + 1.0f, z - 0.0f, 0.0f, 0.0f, textures.up});
+            m_vertice.push_back({x + 1.0f, y + 1.0f, z - 0.0f, 1.0f, 0.0f, textures.up});
+            m_vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, textures.up});
 
-            m_indices.insert(m_indices.end(), {i + 1, i + 0, i + 3, i + 1, i + 3, i + 2});
+            m_indices.insert(m_indices.end(), {i + 0u, i + 1u, i + 3u, i + 3u, i + 1u, i + 2u});
 
-            i += 4;
+            i += 4u;
+        }
+
+        if (faces.down) {
+            m_vertice.push_back({x - 0.0f, y - 0.0f, z + 1.0f, 0.0f, 1.0f, textures.down});
+            m_vertice.push_back({x - 0.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, textures.down});
+            m_vertice.push_back({x + 1.0f, y - 0.0f, z - 0.0f, 1.0f, 0.0f, textures.down});
+            m_vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 1.0f, textures.down});
+
+            m_indices.insert(m_indices.end(), {i + 1u, i + 0u, i + 3u, i + 1u, i + 3u, i + 2u});
+
+            i += 4u;
         }
     }
 };

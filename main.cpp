@@ -62,43 +62,45 @@ constexpr auto CHUNK_SIZE_X       {16};
 constexpr auto CHUNK_SIZE_Y       {128};
 constexpr auto CHUNK_SIZE_Z       {CHUNK_SIZE_X};
 
-enum struct BLOCK_TYPE : int {
-    AIR = 0,
-    GRASS,
-    DIRT,
-    STONE,
-    SAND,
-    MAGMA,
-    FELDSPAR
+struct my_exception {
+    my_exception(const char *file, int line, const char *description) {
+        printf("Ops! Uma falha ocorreu.\n\n");
+        printf("File:        %s\n", file);
+        printf("Line:        %i\n", line);
+        printf("Description: %s\n", description);
+    }
+
+    ~my_exception() { exit(EXIT_FAILURE); }
 };
 
 template<typename T>
 struct vec2 {
-    T X;
-    T Y;
+    T x;
+    T y;
 };
 
 template<typename T>
 struct vec3 {
     vec2<T> v;
-    T Z;
+    T z;
 };
 
+template<typename T>
 struct tex_coords {
-    float U {0.0f};
-    float V {0.0f};
+    T u;
+    T v;
 };
 
 template<typename T>
 struct vertex_2d {
     vec2<T> v;
-    tex_coords t;
+    tex_coords<T> t;
 };
 
 template<typename T>
 struct vertex_3d {
     vec3<T> v;
-    tex_coords t;
+    tex_coords<T> t;
 };
 
 template<typename T>
@@ -113,33 +115,37 @@ struct vertex_3d_t {
     T type;
 };
 
+template<typename T>
 struct face {
-    bool F {true};
-    bool B {true};
-    bool R {true};
-    bool L {true};
-    bool U {true};
-    bool D {true};
+    T front;
+    T back;
+    T right;
+    T left;
+    T up;
+    T down;
 };
 
-struct face_texture {
-    float F {0.0f};
-    float B {0.0f};
-    float R {0.0f};
-    float L {0.0f};
-    float U {0.0f};
-    float D {0.0f};
+enum struct FRAMEBUFFER_TYPE : int {
+    DEFAULT = 0,
+    INVERT_COLOR,
+    GRAY_SCALE
 };
 
-struct my_exception {
-    my_exception(const char *file, int line, const char *description) {
-        printf("Ops! Uma falha ocorreu.\n\n");
-        printf("File:        %s\n", file);
-        printf("Line:        %i\n", line);
-        printf("Description: %s\n", description);
-    }
+enum struct CAMERA_MOVEMENTS : int {
+    FORWARD = 0,
+    BACKWARD,
+    RIGHT,
+    LEFT
+};
 
-    ~my_exception() { exit(EXIT_FAILURE); }
+enum struct BLOCK_TYPE : int {
+    AIR = 0,
+    GRASS,
+    DIRT,
+    STONE,
+    SAND,
+    MAGMA,
+    FELDSPAR
 };
 
 #include "./src/camera.hpp"
@@ -157,10 +163,10 @@ camera::camera cam {
 static void keyboard_callback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cam.keyboard_update(camera::CAMERA_MOVEMENTS::FORWARD);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_update(camera::CAMERA_MOVEMENTS::BACKWARD);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_update(camera::CAMERA_MOVEMENTS::RIGHT);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_update(camera::CAMERA_MOVEMENTS::LEFT);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cam.keyboard_update(CAMERA_MOVEMENTS::FORWARD);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_update(CAMERA_MOVEMENTS::BACKWARD);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_update(CAMERA_MOVEMENTS::RIGHT);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_update(CAMERA_MOVEMENTS::LEFT);
 }
 
 static void mouse_callback(GLFWwindow *window) {
@@ -253,7 +259,7 @@ int main(int argc, char *argv[]) {
     auto chunk_texture  {stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
     terrain_generator::terrain_generator terrain {generate_seed()};
-    framebuffer::framebuffer window_framebuffer  {WINDOW_WIDTH, WINDOW_HEIGHT, framebuffer::FRAMEBUFFER_TYPE::DEFAULT};
+    framebuffer::framebuffer window_framebuffer  {WINDOW_WIDTH, WINDOW_HEIGHT, FRAMEBUFFER_TYPE::DEFAULT};
     skybox::skybox world_skybox                  {};
     chunk::chunk spawn_chunk                     {0, 0, 0, terrain};
 

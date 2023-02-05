@@ -3,13 +3,6 @@
 
 namespace camera {
 
-enum struct CAMERA_MOVEMENTS : int {
-    FORWARD = 0,
-    BACKWARD,
-    RIGHT,
-    LEFT
-};
-
 struct camera {
     camera(const float aspect) : m_aspect {aspect} {}
 
