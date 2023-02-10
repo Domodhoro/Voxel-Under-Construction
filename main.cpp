@@ -22,7 +22,7 @@
     SOFTWARE.
 */
 
-#if __cplusplus
+#ifdef __cplusplus
 
 extern "C" {
 #include <stdio.h>
@@ -70,7 +70,7 @@ struct my_exception {
         printf("Description: %s\n", description);
     }
 
-    ~my_exception() { exit(EXIT_FAILURE); }
+    virtual ~my_exception() { exit(EXIT_FAILURE); }
 };
 
 template<typename T>
@@ -81,37 +81,44 @@ struct vec2 {
 
 template<typename T>
 struct vec3 {
-    vec2<T> v;
+    T x;
+    T y;
     T z;
 };
 
 template<typename T>
-struct tex_coords {
+struct vertex_2d {
+    T x;
+    T y;
     T u;
     T v;
 };
 
 template<typename T>
-struct vertex_2d {
-    vec2<T> v;
-    tex_coords<T> t;
-};
-
-template<typename T>
 struct vertex_3d {
-    vec3<T> v;
-    tex_coords<T> t;
+    T x;
+    T y;
+    T z;
+    T u;
+    T v;
 };
 
 template<typename T>
 struct vertex_2d_t {
-    vertex_2d<T> vertice;
+    T x;
+    T y;
+    T u;
+    T v;
     T type;
 };
 
 template<typename T>
 struct vertex_3d_t {
-    vertex_3d<T> vertice;
+    T x;
+    T y;
+    T z;
+    T u;
+    T v;
     T type;
 };
 
@@ -125,17 +132,17 @@ struct face {
     T down;
 };
 
-enum struct FRAMEBUFFER_TYPE : int {
-    DEFAULT = 0,
-    INVERT_COLOR,
-    GRAY_SCALE
-};
-
 enum struct CAMERA_MOVEMENTS : int {
     FORWARD = 0,
     BACKWARD,
     RIGHT,
     LEFT
+};
+
+enum struct FRAMEBUFFER_TYPE : int {
+    DEFAULT = 0,
+    INVERT_COLOR,
+    GRAY_SCALE
 };
 
 enum struct BLOCK_TYPE : int {
@@ -156,11 +163,7 @@ enum struct BLOCK_TYPE : int {
 #include "./src/terrain_generator.hpp"
 #include "./src/chunk.hpp"
 
-camera::camera cam {
-    static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)
-};
-
-static void keyboard_callback(GLFWwindow *window) {
+static void keyboard_callback(GLFWwindow *window, camera::camera &cam) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cam.keyboard_update(CAMERA_MOVEMENTS::FORWARD);
@@ -169,7 +172,7 @@ static void keyboard_callback(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_update(CAMERA_MOVEMENTS::LEFT);
 }
 
-static void mouse_callback(GLFWwindow *window) {
+static void mouse_callback(GLFWwindow *window, camera::camera &cam) {
     auto x {0.0d};
     auto y {0.0d};
 
@@ -192,14 +195,6 @@ static void mouse_callback(GLFWwindow *window) {
     last_y = y;
 
     cam.mouse_update(off_set_x, off_set_y);
-}
-
-static int generate_seed() {
-    time_t *t {nullptr};
-
-    srand(static_cast<unsigned>(time(t)));
-
-    return 1 + rand() % 9'999'999;
 }
 
 int main(int argc, char *argv[]) {
@@ -236,6 +231,10 @@ int main(int argc, char *argv[]) {
 
     if (glewInit() != GLEW_OK) my_exception {__FILE__, __LINE__, "falha ao iniciar GLEW"};
 
+    camera::camera cam {
+        static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)
+    };
+
     cam.disable_cursor     (window);
     cam.set_speed          (CAMERA_SPEED);
     cam.set_sensitivity    (CAMERA_SENSITIVITY);
@@ -258,7 +257,7 @@ int main(int argc, char *argv[]) {
     auto skybox_texture {stb_image_wrapper::load_cube_map_texture(sky_texture)};
     auto chunk_texture  {stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
-    terrain_generator::terrain_generator terrain {generate_seed()};
+    terrain_generator::terrain_generator terrain {1007};
     framebuffer::framebuffer window_framebuffer  {WINDOW_WIDTH, WINDOW_HEIGHT, FRAMEBUFFER_TYPE::DEFAULT};
     skybox::skybox world_skybox                  {};
     chunk::chunk spawn_chunk                     {0, 0, 0, terrain};
@@ -267,15 +266,15 @@ int main(int argc, char *argv[]) {
     glEnable   (GL_CULL_FACE);
     glFrontFace(GL_CCW);
 
-    auto last_frame    {0.0f};
-    auto current_frame {0.0f};
+    static auto last_frame    {0.0f};
+    static auto current_frame {0.0f};
 
     while (!glfwWindowShouldClose(window)) {
         current_frame = glfwGetTime();
 
         if ((current_frame - last_frame) > (1.0f / FPS)) {
-            keyboard_callback(window);
-            mouse_callback   (window);
+            keyboard_callback(window, cam);
+            mouse_callback   (window, cam);
 
             window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
             world_skybox.draw             (skybox_shader, skybox_texture, cam);

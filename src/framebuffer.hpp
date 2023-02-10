@@ -10,7 +10,7 @@ struct framebuffer {
         framebuffer_setup();
     }
 
-    ~framebuffer() {
+    virtual ~framebuffer() {
         glDeleteFramebuffers(1, &m_FBO);
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers     (1, &m_VBO);
@@ -18,14 +18,14 @@ struct framebuffer {
         glDeleteTextures    (1, &m_texture_color_buffer);
     }
 
-    void clear_color(const float r, const float g, const float b) {
+    void clear_color(const float r, const float g, const float b) const {
         glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
         glEnable         (GL_DEPTH_TEST);
         glClearColor     (r, g, b, 1.0f);
         glClear          (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    void draw(shader::shader_program &shader) {
+    void draw(shader::shader_program &shader) const {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDisable        (GL_DEPTH_TEST);
         glClearColor     (1.0f, 1.0f, 1.0f, 1.0f);
@@ -40,7 +40,7 @@ struct framebuffer {
         glBindVertexArray(0);
     }
 
-private:
+protected:
     int m_width  {800};
     int m_height {600};
 

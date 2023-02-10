@@ -6,7 +6,7 @@ namespace camera {
 struct camera {
     camera(const float aspect) : m_aspect {aspect} {}
 
-    void disable_cursor(GLFWwindow *window) { glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); }
+    void disable_cursor(GLFWwindow *window) const { glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); }
 
     void set_position   (const glm::tvec3<float> Position) { m_Position    = Position; }
     void set_speed      (const float speed)                { m_speed       = speed; }
@@ -15,9 +15,9 @@ struct camera {
     void set_near_plane (const float near)                 { m_near        = near; }
     void set_far_plane  (const float far)                  { m_far         = far; }
 
-    glm::tvec3<float> get_position () { return m_Position; }
-    glm::mat4 get_projection_matrix() { return glm::perspective<float>(glm::radians(m_FOV), m_aspect, m_near, m_far); }
-    glm::mat4 get_view_matrix      () { return glm::lookAt<float>     (m_Position, m_Position + m_Front, m_Up); }
+    glm::tvec3<float> get_position () const { return m_Position; }
+    glm::mat4 get_projection_matrix() const { return glm::perspective<float>(glm::radians(m_FOV), m_aspect, m_near, m_far); }
+    glm::mat4 get_view_matrix      () const { return glm::lookAt<float>     (m_Position, m_Position + m_Front, m_Up); }
 
     void keyboard_update(const CAMERA_MOVEMENTS input) {
         if (input == CAMERA_MOVEMENTS::FORWARD)  m_Position += m_speed * m_Front;
@@ -42,7 +42,7 @@ struct camera {
         m_Front = glm::normalize(m_Direction);
     }
 
-private:
+protected:
     float m_aspect      {1.0f};
     float m_speed       {1.0f};
     float m_sensitivity {0.1f};

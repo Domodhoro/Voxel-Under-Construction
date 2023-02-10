@@ -13,7 +13,7 @@ struct terrain_generator {
         m_noise.SetFrequency     (0.01f);
     }
 
-    void use(std::vector<BLOCK_TYPE> &block, int X, int Y, int Z) {
+    void use(std::vector<BLOCK_TYPE> &block, int X, int Y, int Z) const {
         for (auto z = 0; z != CHUNK_SIZE_Z; ++z) for (auto y = 0; y != CHUNK_SIZE_Y; ++y) for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
             const auto height {get_height(x + X, y + Y, z + Z)};
 
@@ -26,10 +26,10 @@ struct terrain_generator {
         }
     }
 
-private:
+protected:
     FastNoiseLite m_noise;
 
-    int get_height(float x, float y, float z) { return 64 + abs(floor(16.0f * m_noise.GetNoise(x, z))); }
+    int get_height(float x, float y, float z) const { return 64 + abs(floor(16.0f * m_noise.GetNoise(x, z))); }
 };
 
 }

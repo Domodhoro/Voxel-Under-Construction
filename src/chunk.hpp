@@ -7,6 +7,8 @@ struct chunk {
     chunk(const int X, const int Y, const int Z, terrain_generator::terrain_generator &terrain) : m_position {glm::tvec3<int>(X, Y, Z)} {
         terrain.use(m_block, X, Y, Z);
 
+        m_block.at(0 + 90 * CHUNK_SIZE_X + 0 * CHUNK_SIZE_X * CHUNK_SIZE_Y) = BLOCK_TYPE::STONE;
+
         auto i {0u};
 
         for (auto z = 0; z != CHUNK_SIZE_Z; ++z) for (auto y = 0; y != CHUNK_SIZE_Y; ++y) for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
@@ -27,15 +29,15 @@ struct chunk {
         mesh_setup();
     }
 
-    ~chunk() {
+    virtual ~chunk() {
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers     (1, &m_VBO);
         glDeleteBuffers     (1, &m_EBO);
     }
 
-    BLOCK_TYPE get_block_type(int x, int y, int z) { return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y); }
+    BLOCK_TYPE get_block_type(int x, int y, int z) const { return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y); }
 
-    void draw(shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) {
+    void draw(shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) const {
         glCullFace(GL_FRONT);
 
         shader.use     ();
@@ -50,7 +52,7 @@ struct chunk {
         glCullFace(GL_BACK);
     }
 
-private:
+protected:
     glm::tvec3<int> m_position {0};
 
     unsigned int m_VAO {0u};

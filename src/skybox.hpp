@@ -9,13 +9,13 @@ struct skybox {
         mesh_setup();
     }
 
-    ~skybox() {
+    virtual ~skybox() {
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers     (1, &m_VBO);
         glDeleteBuffers     (1, &m_EBO);
     }
 
-    void draw(shader::shader_program &shader, const unsigned int &texture, camera::camera &cam) {
+    void draw(shader::shader_program &shader, const unsigned int &texture, camera::camera &cam) const {
         glDepthMask(false);
 
         shader.use     ();
@@ -30,7 +30,7 @@ struct skybox {
         glDepthMask(true);
     }
 
-private:
+protected:
     unsigned int m_VAO {0u};
     unsigned int m_VBO {0u};
     unsigned int m_EBO {0u};
