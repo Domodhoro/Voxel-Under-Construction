@@ -42,6 +42,8 @@ struct camera {
         m_Front = glm::normalize(m_Direction);
     }
 
+    AABB::AABB get_AABB() const { return {m_Position, 0.5f, 0.5f, 0.5f}; }
+
 protected:
     float m_aspect      {1.0f};
     float m_speed       {1.0f};

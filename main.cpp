@@ -155,6 +155,7 @@ enum struct BLOCK_TYPE : int {
     FELDSPAR
 };
 
+#include "./src/AABB.hpp"
 #include "./src/camera.hpp"
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.hpp"
@@ -262,6 +263,8 @@ int main(int argc, char *argv[]) {
     skybox::skybox world_skybox                  {};
     chunk::chunk spawn_chunk                     {0, 0, 0, terrain};
 
+    AABB::AABB obj_AABB {glm::tvec3<float>(0.5f, 90.5f, 0.5f), 0.5f, 0.5f, 0.5f};
+
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);
     glFrontFace(GL_CCW);
@@ -275,6 +278,12 @@ int main(int argc, char *argv[]) {
         if ((current_frame - last_frame) > (1.0f / FPS)) {
             keyboard_callback(window, cam);
             mouse_callback   (window, cam);
+
+            if (AABB::check_camera_collision(cam.get_AABB(), obj_AABB)) {
+                printf("collision...\n");
+            } else {
+                printf("no collision...\n");
+            }
 
             window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
             world_skybox.draw             (skybox_shader, skybox_texture, cam);
