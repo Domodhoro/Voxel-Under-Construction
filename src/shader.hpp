@@ -16,7 +16,7 @@ struct shader_program {
         if (!success) my_exception {__FILE__, __LINE__, "falha ao compilar 'shader'"};
     }
 
-    virtual ~shader_program() { glDeleteProgram(m_shader); }
+    ~shader_program() { glDeleteProgram(m_shader); }
 
     void use() const { glUseProgram(m_shader); }
 

@@ -74,6 +74,17 @@ unsigned int load_cube_map_texture(const std::vector<std::string> &faces) {
     return texture;
 }
 
+void gen_framebuffer_texture(const int width, const int height, unsigned int &texture_color_buffer) {
+    glGenTextures         (1, &texture_color_buffer);
+    glBindTexture         (GL_TEXTURE_2D, texture_color_buffer);
+    glTexImage2D          (GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_INT, nullptr);
+    glTexParameteri       (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri       (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_color_buffer, 0);
+
+    if (texture_color_buffer == 0u) my_exception {__FILE__, __LINE__, "falha ao gerar 'framebuffer texture'"};
+}
+
 }
 
 #endif

@@ -9,7 +9,7 @@ struct skybox {
         mesh_setup();
     }
 
-    virtual ~skybox() {
+    ~skybox() {
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers     (1, &m_VBO);
         glDeleteBuffers     (1, &m_EBO);

@@ -10,7 +10,7 @@ struct framebuffer {
         framebuffer_setup();
     }
 
-    virtual ~framebuffer() {
+    ~framebuffer() {
         glDeleteFramebuffers(1, &m_FBO);
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers     (1, &m_VBO);
@@ -61,12 +61,7 @@ protected:
         glGenFramebuffers(1, &m_FBO);
         glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
 
-        glGenTextures         (1, &m_texture_color_buffer);
-        glBindTexture         (GL_TEXTURE_2D, m_texture_color_buffer);
-        glTexImage2D          (GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-        glTexParameteri       (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri       (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture_color_buffer, 0);
+        stb_image_wrapper::gen_framebuffer_texture(m_width, m_height, m_texture_color_buffer);
 
         glGenRenderbuffers       (1, &RBO);
         glBindRenderbuffer       (GL_RENDERBUFFER, RBO);

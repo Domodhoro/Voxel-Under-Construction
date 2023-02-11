@@ -55,7 +55,7 @@ constexpr auto FPS                {60};
 constexpr auto WINDOW_WIDTH       {800};
 constexpr auto WINDOW_HEIGHT      {500};
 constexpr auto WINDOW_TITLE       {"Voxel-Engine"};
-constexpr auto CAMERA_SPEED       {0.1f};
+constexpr auto CAMERA_SPEED       {0.05f};
 constexpr auto CAMERA_FOV         {72.0f};
 constexpr auto CAMERA_SENSITIVITY {0.1f};
 constexpr auto CHUNK_SIZE_X       {16};
@@ -64,13 +64,13 @@ constexpr auto CHUNK_SIZE_Z       {CHUNK_SIZE_X};
 
 struct my_exception {
     my_exception(const char *file, int line, const char *description) {
-        printf("Ops! Uma falha ocorreu.\n\n");
+        puts  ("Ops! Uma falha ocorreu.");
         printf("File:        %s\n", file);
         printf("Line:        %i\n", line);
         printf("Description: %s\n", description);
     }
 
-    virtual ~my_exception() { exit(EXIT_FAILURE); }
+    ~my_exception() { exit(EXIT_FAILURE); }
 };
 
 template<typename T>
@@ -132,6 +132,16 @@ struct face {
     T down;
 };
 
+struct AABB {
+    glm::tvec3<float> min {0.0f};
+    glm::tvec3<float> max {1.0f};
+
+    AABB(glm::tvec3<float> center, float hw, float hh, float hd) {
+        min = center - glm::tvec3<float>(hw, hh, hd);
+        max = center + glm::tvec3<float>(hw, hh, hd);
+    }
+};
+
 enum struct CAMERA_MOVEMENTS : int {
     FORWARD = 0,
     BACKWARD,
@@ -155,8 +165,8 @@ enum struct BLOCK_TYPE : int {
     FELDSPAR
 };
 
-#include "./src/AABB.hpp"
 #include "./src/camera.hpp"
+#include "./src/collision.hpp"
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.hpp"
 #include "./src/framebuffer.hpp"
@@ -199,7 +209,7 @@ static void mouse_callback(GLFWwindow *window, camera::camera &cam) {
 }
 
 int main(int argc, char *argv[]) {
-    printf("%s\n", argv[0]);
+    puts(argv[0]);
 
     if (glfwInit() == GLFW_NOT_INITIALIZED) my_exception {__FILE__, __LINE__, "falha ao iniciar o GLFW"};
 
@@ -263,7 +273,7 @@ int main(int argc, char *argv[]) {
     skybox::skybox world_skybox                  {};
     chunk::chunk spawn_chunk                     {0, 0, 0, terrain};
 
-    AABB::AABB obj_AABB {glm::tvec3<float>(0.5f, 90.5f, 0.5f), 0.5f, 0.5f, 0.5f};
+    AABB object_AABB {glm::tvec3<float>(0.5f, 90.5f, 0.5f), 0.5f, 0.5f, 0.5f};
 
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);
@@ -279,11 +289,7 @@ int main(int argc, char *argv[]) {
             keyboard_callback(window, cam);
             mouse_callback   (window, cam);
 
-            if (AABB::check_camera_collision(cam.get_AABB(), obj_AABB)) {
-                printf("collision...\n");
-            } else {
-                printf("no collision...\n");
-            }
+            if (collision::collision_detection(cam.get_AABB(), object_AABB)) collision::collision_resolution(cam, object_AABB);
 
             window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
             world_skybox.draw             (skybox_shader, skybox_texture, cam);

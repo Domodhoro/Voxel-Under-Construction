@@ -29,7 +29,7 @@ struct chunk {
         mesh_setup();
     }
 
-    virtual ~chunk() {
+    ~chunk() {
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers     (1, &m_VBO);
         glDeleteBuffers     (1, &m_EBO);
