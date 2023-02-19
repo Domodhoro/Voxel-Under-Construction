@@ -4,7 +4,7 @@
 namespace chunk {
 
 struct chunk {
-    chunk(const int X, const int Y, const int Z, terrain_generator::terrain_generator &terrain) : m_position {glm::tvec3<int>(X, Y, Z)} {
+    chunk(const int X, const int Y, const int Z, terrain_generator::terrain_generator &terrain) : m_Position {X, Y, Z} {
         terrain.use(m_block, X, Y, Z);
 
         m_block.at(0 + 90 * CHUNK_SIZE_X + 0 * CHUNK_SIZE_X * CHUNK_SIZE_Y) = BLOCK_TYPE::STONE;
@@ -35,7 +35,9 @@ struct chunk {
         glDeleteBuffers     (1, &m_EBO);
     }
 
-    BLOCK_TYPE get_block_type(int x, int y, int z) const { return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y); }
+    BLOCK_TYPE get_block_type(int x, int y, int z) const {
+        return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y);
+    }
 
     void draw(shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) const {
         glCullFace(GL_FRONT);
@@ -53,7 +55,7 @@ struct chunk {
     }
 
 protected:
-    glm::tvec3<int> m_position {0};
+    glm::tvec3<int> m_Position {0};
 
     unsigned int m_VAO {0u};
     unsigned int m_VBO {0u};
@@ -128,7 +130,7 @@ protected:
             m_vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, textures.back});
             m_vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, textures.back});
 
-            m_indices.insert(m_indices.end(), {i + 1, i + 0, i + 3, i + 1, i + 3, i + 2});
+            m_indices.insert(m_indices.end(), {i + 1u, i + 0u, i + 3u, i + 1u, i + 3u, i + 2u});
 
             i += 4u;
         }
@@ -141,7 +143,7 @@ protected:
 
             m_indices.insert(m_indices.end(), {i + 0u, i + 1u, i + 3u, i + 3u, i + 1u, i + 2u});
 
-            i += 4;
+            i += 4u;
         }
 
         if (faces.left) {

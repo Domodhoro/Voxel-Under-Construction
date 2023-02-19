@@ -52,10 +52,10 @@ extern "C" {
 #include "./lib/FastNoiseLite.hpp"
 
 constexpr auto FPS                {60};
-constexpr auto WINDOW_WIDTH       {800};
-constexpr auto WINDOW_HEIGHT      {500};
+constexpr auto WINDOW_WIDTH       {1300};
+constexpr auto WINDOW_HEIGHT      {800};
 constexpr auto WINDOW_TITLE       {"Voxel-Engine"};
-constexpr auto CAMERA_SPEED       {0.05f};
+constexpr auto CAMERA_SPEED       {0.1f};
 constexpr auto CAMERA_FOV         {72.0f};
 constexpr auto CAMERA_SENSITIVITY {0.1f};
 constexpr auto CHUNK_SIZE_X       {16};
@@ -136,9 +136,9 @@ struct AABB {
     glm::tvec3<float> min {0.0f};
     glm::tvec3<float> max {1.0f};
 
-    AABB(glm::tvec3<float> center, float hw, float hh, float hd) {
-        min = center - glm::tvec3<float>(hw, hh, hd);
-        max = center + glm::tvec3<float>(hw, hh, hd);
+    AABB(const glm::tvec3<float> center, float half_width, float half_heigth, float half_depth) {
+        min = center - glm::tvec3<float>(half_width, half_heigth, half_depth);
+        max = center + glm::tvec3<float>(half_width, half_heigth, half_depth);
     }
 };
 
@@ -242,15 +242,13 @@ int main(int argc, char *argv[]) {
 
     if (glewInit() != GLEW_OK) my_exception {__FILE__, __LINE__, "falha ao iniciar GLEW"};
 
-    camera::camera cam {
-        static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT)
-    };
+    camera::camera cam {WINDOW_WIDTH, WINDOW_HEIGHT};
 
-    cam.disable_cursor     (window);
-    cam.set_speed          (CAMERA_SPEED);
-    cam.set_sensitivity    (CAMERA_SENSITIVITY);
-    cam.set_FOV            (CAMERA_FOV);
-    cam.set_position       ({8.0f, 92.0f, 8.0f});
+    cam.disable_cursor (window);
+    cam.set_speed      (CAMERA_SPEED);
+    cam.set_sensitivity(CAMERA_SENSITIVITY);
+    cam.set_FOV        (CAMERA_FOV);
+    cam.set_position   ({8.0f, 92.0f, 8.0f});
 
     auto framebuffer_shader {shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")};
     auto skybox_shader      {shader::shader_program("./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl")};
@@ -275,6 +273,8 @@ int main(int argc, char *argv[]) {
 
     AABB object_AABB {glm::tvec3<float>(0.5f, 90.5f, 0.5f), 0.5f, 0.5f, 0.5f};
 
+    collision::collision hit {};
+
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);
     glFrontFace(GL_CCW);
@@ -289,7 +289,7 @@ int main(int argc, char *argv[]) {
             keyboard_callback(window, cam);
             mouse_callback   (window, cam);
 
-            if (collision::collision_detection(cam.get_AABB(), object_AABB)) collision::collision_resolution(cam, object_AABB);
+            if (hit.detection(cam.get_AABB(), object_AABB)) hit.response(cam, object_AABB);
 
             window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
             world_skybox.draw             (skybox_shader, skybox_texture, cam);

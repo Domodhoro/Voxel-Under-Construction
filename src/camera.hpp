@@ -4,11 +4,14 @@
 namespace camera {
 
 struct camera {
-    camera(const float aspect) : m_aspect {aspect} {}
+    camera() = default;
+
+    camera(const int width, const int height) : m_aspect {static_cast<float>(width) / static_cast<float>(height)} {}
 
     void disable_cursor(GLFWwindow *window) const { glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); }
 
     void set_position   (const glm::tvec3<float> Position) { m_Position    = Position; }
+    void set_aspect     (const float aspect)               { m_aspect      = aspect; }
     void set_speed      (const float speed)                { m_speed       = speed; }
     void set_sensitivity(const float sensitivity)          { m_sensitivity = sensitivity; }
     void set_FOV        (const float FOV)                  { m_FOV         = FOV; }
@@ -18,6 +21,8 @@ struct camera {
     glm::tvec3<float> get_position () const { return m_Position; }
     glm::mat4 get_projection_matrix() const { return glm::perspective<float>(glm::radians(m_FOV), m_aspect, m_near, m_far); }
     glm::mat4 get_view_matrix      () const { return glm::lookAt<float>     (m_Position, m_Position + m_Front, m_Up); }
+
+    AABB get_AABB() const { return {m_Position, 0.5f, 1.0f, 0.5f}; }
 
     void keyboard_update(const CAMERA_MOVEMENTS input) {
         if (input == CAMERA_MOVEMENTS::FORWARD)  m_Position += m_speed * m_Front;
@@ -41,8 +46,6 @@ struct camera {
 
         m_Front = glm::normalize(m_Direction);
     }
-
-    AABB get_AABB() const { return {m_Position, 0.5f, 1.0f, 0.5f}; }
 
 protected:
     float m_aspect      {1.0f};
