@@ -167,46 +167,13 @@ enum struct BLOCK_TYPE : int {
 
 #include "./src/camera.hpp"
 #include "./src/collision.hpp"
+#include "./src/user_input.hpp"
 #include "./src/shader.hpp"
 #include "./src/stb_image_wrapper.hpp"
 #include "./src/framebuffer.hpp"
 #include "./src/skybox.hpp"
 #include "./src/terrain_generator.hpp"
 #include "./src/chunk.hpp"
-
-static void keyboard_callback(GLFWwindow *window, camera::camera &cam) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cam.keyboard_update(CAMERA_MOVEMENTS::FORWARD);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cam.keyboard_update(CAMERA_MOVEMENTS::BACKWARD);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cam.keyboard_update(CAMERA_MOVEMENTS::RIGHT);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cam.keyboard_update(CAMERA_MOVEMENTS::LEFT);
-}
-
-static void mouse_callback(GLFWwindow *window, camera::camera &cam) {
-    auto x {0.0d};
-    auto y {0.0d};
-
-    glfwGetCursorPos(window, &x, &y);
-
-    static auto first_mouse {true};
-    static auto last_x      {0.0f};
-    static auto last_y      {0.0f};
-
-    if (first_mouse) {
-        last_x      = x;
-        last_y      = y;
-        first_mouse = false;
-    }
-
-    auto off_set_x {x - last_x};
-    auto off_set_y {last_y - y};
-
-    last_x = x;
-    last_y = y;
-
-    cam.mouse_update(off_set_x, off_set_y);
-}
 
 int main(int argc, char *argv[]) {
     puts(argv[0]);
@@ -288,8 +255,8 @@ int main(int argc, char *argv[]) {
         current_frame = glfwGetTime();
 
         if ((current_frame - last_frame) > (1.0f / FPS)) {
-            keyboard_callback(window, cam);
-            mouse_callback   (window, cam);
+            user_input::keyboard_callback(window, cam);
+            user_input::mouse_callback   (window, cam);
 
             // test...................
 

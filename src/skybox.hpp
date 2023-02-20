@@ -46,15 +46,15 @@ protected:
         glBindVertexArray(m_VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferData(GL_ARRAY_BUFFER, m_vertice.size() * 5 * sizeof(float), &m_vertice.at(0), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, m_vertice.size() * sizeof(vertex_3d<float>), &m_vertice.at(0), GL_STATIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned int), &m_indices.at(0), GL_STATIC_DRAW);
 
-        glVertexAttribPointer    (0, 3, GL_FLOAT, false, 5 * sizeof(float), (void*)(0 * sizeof(float)));
+        glVertexAttribPointer    (0, 3, GL_FLOAT, false, sizeof(vertex_3d<float>), (void*)(0 * sizeof(float)));
         glEnableVertexAttribArray(0);
 
-        glVertexAttribPointer    (1, 2, GL_FLOAT, false, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        glVertexAttribPointer    (1, 2, GL_FLOAT, false, sizeof(vertex_3d<float>), (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
         if (m_VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'skybox'"};
