@@ -273,7 +273,7 @@ int main(int argc, char *argv[]) {
 
     // test...................
 
-    const auto object_AABB {spawn_chunk.get_AABB(0, 100, 0)};
+    AABB object_AABB {{0.5f, 90.5f, 0.5f}, 0.5f, 0.5f, 0.5f};
 
     // test...................
 
@@ -293,7 +293,7 @@ int main(int argc, char *argv[]) {
 
             // test...................
 
-            if (collision::detection(cam.get_AABB(), object_AABB)) collision::resolution(cam, object_AABB);
+            collision::collision(cam, object_AABB);
 
             // test...................
 

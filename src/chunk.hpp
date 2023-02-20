@@ -9,7 +9,7 @@ struct chunk {
 
         // test...................
 
-        m_block.at(0 + 100 * CHUNK_SIZE_X + 0 * CHUNK_SIZE_X * CHUNK_SIZE_Y) = BLOCK_TYPE::STONE;
+        m_block.at(0 + 90 * CHUNK_SIZE_X + 0 * CHUNK_SIZE_X * CHUNK_SIZE_Y) = BLOCK_TYPE::STONE;
 
         // test...................
 
@@ -40,12 +40,6 @@ struct chunk {
     }
 
     BLOCK_TYPE get_block_type(int x, int y, int z) const { return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y); }
-
-    AABB get_AABB(int x, int y, int z) const {
-        const AABB aabb {glm::tvec3<float>(x + 0.5f, y + 0.5f, z + 0.5f), 0.5f, 0.5f, 0.5f};
-
-        if (get_block_type(x, y, z) != BLOCK_TYPE::AIR) return aabb;
-    }
 
     void draw(shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) const {
         glCullFace(GL_FRONT);

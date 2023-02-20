@@ -22,8 +22,6 @@ struct camera {
     glm::mat4 get_projection_matrix() const { return glm::perspective<float>(glm::radians(m_FOV), m_aspect, m_near, m_far); }
     glm::mat4 get_view_matrix      () const { return glm::lookAt<float>     (m_Position, m_Position + m_Front, m_Up); }
 
-    AABB get_AABB() const { return {m_Position, 0.5f, 1.0f, 0.5f}; }
-
     void keyboard_update(const CAMERA_MOVEMENTS input) {
         if (input == CAMERA_MOVEMENTS::FORWARD)  m_Position += m_speed * m_Front;
         if (input == CAMERA_MOVEMENTS::RIGHT)    m_Position -= m_speed * m_Front;
