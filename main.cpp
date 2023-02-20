@@ -271,9 +271,11 @@ int main(int argc, char *argv[]) {
     skybox::skybox world_skybox                  {};
     chunk::chunk spawn_chunk                     {0, 0, 0, terrain};
 
-    AABB object_AABB {glm::tvec3<float>(0.5f, 90.5f, 0.5f), 0.5f, 0.5f, 0.5f};
+    // test...................
 
-    collision::collision hit {};
+    const auto object_AABB {spawn_chunk.get_AABB(0, 100, 0)};
+
+    // test...................
 
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);
@@ -289,7 +291,11 @@ int main(int argc, char *argv[]) {
             keyboard_callback(window, cam);
             mouse_callback   (window, cam);
 
-            if (hit.detection(cam.get_AABB(), object_AABB)) hit.response(cam, object_AABB);
+            // test...................
+
+            if (collision::detection(cam.get_AABB(), object_AABB)) collision::resolution(cam, object_AABB);
+
+            // test...................
 
             window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
             world_skybox.draw             (skybox_shader, skybox_texture, cam);

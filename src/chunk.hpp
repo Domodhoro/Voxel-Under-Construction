@@ -7,7 +7,11 @@ struct chunk {
     chunk(const int X, const int Y, const int Z, terrain_generator::terrain_generator &terrain) : m_Position {X, Y, Z} {
         terrain.use(m_block, X, Y, Z);
 
-        m_block.at(0 + 90 * CHUNK_SIZE_X + 0 * CHUNK_SIZE_X * CHUNK_SIZE_Y) = BLOCK_TYPE::STONE;
+        // test...................
+
+        m_block.at(0 + 100 * CHUNK_SIZE_X + 0 * CHUNK_SIZE_X * CHUNK_SIZE_Y) = BLOCK_TYPE::STONE;
+
+        // test...................
 
         auto i {0u};
 
@@ -35,8 +39,12 @@ struct chunk {
         glDeleteBuffers     (1, &m_EBO);
     }
 
-    BLOCK_TYPE get_block_type(int x, int y, int z) const {
-        return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y);
+    BLOCK_TYPE get_block_type(int x, int y, int z) const { return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y); }
+
+    AABB get_AABB(int x, int y, int z) const {
+        const AABB aabb {glm::tvec3<float>(x + 0.5f, y + 0.5f, z + 0.5f), 0.5f, 0.5f, 0.5f};
+
+        if (get_block_type(x, y, z) != BLOCK_TYPE::AIR) return aabb;
     }
 
     void draw(shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) const {
@@ -73,15 +81,15 @@ protected:
         glBindVertexArray(m_VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferData(GL_ARRAY_BUFFER, m_vertice.size() * 6 * sizeof(float), &m_vertice.at(0), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, m_vertice.size() * sizeof(vertex_3d_t<float>), &m_vertice.at(0), GL_STATIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned int), &m_indices.at(0), GL_STATIC_DRAW);
 
-        glVertexAttribPointer    (0, 3, GL_FLOAT, false, 6 * sizeof(float), (void*)(0 * sizeof(float)));
+        glVertexAttribPointer    (0, 3, GL_FLOAT, false, sizeof(vertex_3d_t<float>), (void*)(0 * sizeof(float)));
         glEnableVertexAttribArray(0);
 
-        glVertexAttribPointer    (1, 3, GL_FLOAT, false, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+        glVertexAttribPointer    (1, 3, GL_FLOAT, false, sizeof(vertex_3d_t<float>), (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
         if (m_VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'chunk'"};
