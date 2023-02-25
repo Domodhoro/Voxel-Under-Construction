@@ -4,13 +4,13 @@
 namespace chunk {
 
 struct chunk {
-    chunk(const int X, const int Y, const int Z, terrain_generator::terrain_generator &terrain) : m_Position {X, Y, Z} {
-        terrain.use(m_block, X, Y, Z);
+    chunk(const int X, const int Y, const int Z, terrain_generator::terrain_generator &terrain) : Position {X, Y, Z} {
+        terrain.use(block, X, Y, Z);
 
         // test...................
 
-        m_block.at(0 + 90 * CHUNK_SIZE_X + 0 * CHUNK_SIZE_X * CHUNK_SIZE_Y) = BLOCK_TYPE::STONE;
-        m_block.at(0 + 92 * CHUNK_SIZE_X + 0 * CHUNK_SIZE_X * CHUNK_SIZE_Y) = BLOCK_TYPE::GRASS;
+        block.at(0 + 90 * CHUNK_SIZE_X + 0 * CHUNK_SIZE_X * CHUNK_SIZE_Y) = BLOCK_TYPE::STONE;
+        block.at(0 + 92 * CHUNK_SIZE_X + 0 * CHUNK_SIZE_X * CHUNK_SIZE_Y) = BLOCK_TYPE::GRASS;
 
         // test...................
 
@@ -21,12 +21,12 @@ struct chunk {
 
             face<bool> faces {true, true, true, true, true, true};
 
-            if (x > 0                  && get_block_type(x - 1, y, z) != BLOCK_TYPE::AIR) faces.left  = false;
-            if (y > 0                  && get_block_type(x, y - 1, z) != BLOCK_TYPE::AIR) faces.down  = false;
-            if (z > 0                  && get_block_type(x, y, z - 1) != BLOCK_TYPE::AIR) faces.front = false;
-            if (x < (CHUNK_SIZE_X - 1) && get_block_type(x + 1, y, z) != BLOCK_TYPE::AIR) faces.right = false;
-            if (y < (CHUNK_SIZE_Y - 1) && get_block_type(x, y + 1, z) != BLOCK_TYPE::AIR) faces.up    = false;
-            if (z < (CHUNK_SIZE_Z - 1) && get_block_type(x, y, z + 1) != BLOCK_TYPE::AIR) faces.back  = false;
+            if (x > 0                  && get_block_type(x - 1, y, z) != BLOCK_TYPE::AIR) faces.L = false;
+            if (y > 0                  && get_block_type(x, y - 1, z) != BLOCK_TYPE::AIR) faces.D = false;
+            if (z > 0                  && get_block_type(x, y, z - 1) != BLOCK_TYPE::AIR) faces.F = false;
+            if (x < (CHUNK_SIZE_X - 1) && get_block_type(x + 1, y, z) != BLOCK_TYPE::AIR) faces.R = false;
+            if (y < (CHUNK_SIZE_Y - 1) && get_block_type(x, y + 1, z) != BLOCK_TYPE::AIR) faces.U = false;
+            if (z < (CHUNK_SIZE_Z - 1) && get_block_type(x, y, z + 1) != BLOCK_TYPE::AIR) faces.B = false;
 
             mesh(i, x + X, y + Y, z + Z, faces, static_cast<int>(get_block_type(x, y, z)));
         }
@@ -35,14 +35,14 @@ struct chunk {
     }
 
     ~chunk() {
-        glDeleteVertexArrays(1, &m_VAO);
-        glDeleteBuffers     (1, &m_VBO);
-        glDeleteBuffers     (1, &m_EBO);
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers     (1, &VBO);
+        glDeleteBuffers     (1, &EBO);
     }
 
-    BLOCK_TYPE get_block_type(int x, int y, int z) const { return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y); }
+    BLOCK_TYPE get_block_type(int x, int y, int z) const { return block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y); }
 
-    void draw(shader::shader &shader, const unsigned int &texture, camera::camera &camera) const {
+    void draw(shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) const {
         glCullFace(GL_FRONT);
 
         shader.use     ();
@@ -50,36 +50,36 @@ struct chunk {
         shader.set_mat4("Projection", camera.get_projection_matrix());
 
         glBindTexture    (GL_TEXTURE_2D, texture);
-        glBindVertexArray(m_VAO);
-        glDrawElements   (GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, (void*)(0));
+        glBindVertexArray(VAO);
+        glDrawElements   (GL_TRIANGLES, indice.size(), GL_UNSIGNED_INT, (void*)(0));
         glBindVertexArray(0);
 
         glCullFace(GL_BACK);
     }
 
 protected:
-    glm::tvec3<int> m_Position {0};
+    glm::tvec3<int> Position {0};
 
-    unsigned int m_VAO {0u};
-    unsigned int m_VBO {0u};
-    unsigned int m_EBO {0u};
+    unsigned int VAO {0u};
+    unsigned int VBO {0u};
+    unsigned int EBO {0u};
 
-    std::vector<BLOCK_TYPE>         m_block;
-    std::vector<vertex_3d_t<float>> m_vertice;
-    std::vector<unsigned int>       m_indices;
+    std::vector<BLOCK_TYPE>         block;
+    std::vector<vertex_3d_t<float>> vertice;
+    std::vector<unsigned int>       indice;
 
     void mesh_setup() {
-        glGenVertexArrays(1, &m_VAO);
-        glGenBuffers     (1, &m_VBO);
-        glGenBuffers     (1, &m_EBO);
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers     (1, &VBO);
+        glGenBuffers     (1, &EBO);
 
-        glBindVertexArray(m_VAO);
+        glBindVertexArray(VAO);
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferData(GL_ARRAY_BUFFER, m_vertice.size() * sizeof(vertex_3d_t<float>), &m_vertice.at(0), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertice.size() * sizeof(vertex_3d_t<float>), &vertice.at(0), GL_STATIC_DRAW);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned int), &m_indices.at(0), GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indice.size() * sizeof(unsigned int), &indice.at(0), GL_STATIC_DRAW);
 
         glVertexAttribPointer    (0, 3, GL_FLOAT, false, sizeof(vertex_3d_t<float>), (void*)(0 * sizeof(float)));
         glEnableVertexAttribArray(0);
@@ -87,7 +87,7 @@ protected:
         glVertexAttribPointer    (1, 3, GL_FLOAT, false, sizeof(vertex_3d_t<float>), (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
-        if (m_VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'chunk'"};
+        if (VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'chunk'"};
 
         glBindVertexArray(0);
     }
@@ -116,68 +116,68 @@ protected:
             break;
         }
 
-        if (faces.front) {
-            m_vertice.push_back({x - 0.0f, y + 1.0f, z - 0.0f, 0.0f, 1.0f, textures.front});
-            m_vertice.push_back({x - 0.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, textures.front});
-            m_vertice.push_back({x + 1.0f, y - 0.0f, z - 0.0f, 1.0f, 0.0f, textures.front});
-            m_vertice.push_back({x + 1.0f, y + 1.0f, z - 0.0f, 1.0f, 1.0f, textures.front});
+        if (faces.F) {
+            vertice.push_back({x - 0.0f, y + 1.0f, z - 0.0f, 0.0f, 1.0f, textures.F});
+            vertice.push_back({x - 0.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, textures.F});
+            vertice.push_back({x + 1.0f, y - 0.0f, z - 0.0f, 1.0f, 0.0f, textures.F});
+            vertice.push_back({x + 1.0f, y + 1.0f, z - 0.0f, 1.0f, 1.0f, textures.F});
 
-            m_indices.insert(m_indices.end(), {i + 0u, i + 1u, i + 3u, i + 3u, i + 1u, i + 2u});
-
-            i += 4u;
-        }
-
-        if (faces.back) {
-            m_vertice.push_back({x - 0.0f, y + 1.0f, z + 1.0f, 0.0f, 1.0f, textures.back});
-            m_vertice.push_back({x - 0.0f, y - 0.0f, z + 1.0f, 0.0f, 0.0f, textures.back});
-            m_vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, textures.back});
-            m_vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, textures.back});
-
-            m_indices.insert(m_indices.end(), {i + 1u, i + 0u, i + 3u, i + 1u, i + 3u, i + 2u});
+            indice.insert(indice.end(), {i + 0u, i + 1u, i + 3u, i + 3u, i + 1u, i + 2u});
 
             i += 4u;
         }
 
-        if (faces.right) {
-            m_vertice.push_back({x + 1.0f, y + 1.0f, z - 0.0f, 0.0f, 1.0f, textures.right});
-            m_vertice.push_back({x + 1.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, textures.right});
-            m_vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, textures.right});
-            m_vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, textures.right});
+        if (faces.B) {
+            vertice.push_back({x - 0.0f, y + 1.0f, z + 1.0f, 0.0f, 1.0f, textures.B});
+            vertice.push_back({x - 0.0f, y - 0.0f, z + 1.0f, 0.0f, 0.0f, textures.B});
+            vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, textures.B});
+            vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, textures.B});
 
-            m_indices.insert(m_indices.end(), {i + 0u, i + 1u, i + 3u, i + 3u, i + 1u, i + 2u});
-
-            i += 4u;
-        }
-
-        if (faces.left) {
-            m_vertice.push_back({x - 0.0f, y + 1.0f, z - 0.0f, 0.0f, 1.0f, textures.left});
-            m_vertice.push_back({x - 0.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, textures.left});
-            m_vertice.push_back({x - 0.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, textures.left});
-            m_vertice.push_back({x - 0.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, textures.left});
-
-            m_indices.insert(m_indices.end(), {i + 1u, i + 0u, i + 3u, i + 1u, i + 3u, i + 2u});
+            indice.insert(indice.end(), {i + 1u, i + 0u, i + 3u, i + 1u, i + 3u, i + 2u});
 
             i += 4u;
         }
 
-        if (faces.up) {
-            m_vertice.push_back({x - 0.0f, y + 1.0f, z + 1.0f, 0.0f, 1.0f, textures.up});
-            m_vertice.push_back({x - 0.0f, y + 1.0f, z - 0.0f, 0.0f, 0.0f, textures.up});
-            m_vertice.push_back({x + 1.0f, y + 1.0f, z - 0.0f, 1.0f, 0.0f, textures.up});
-            m_vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, textures.up});
+        if (faces.R) {
+            vertice.push_back({x + 1.0f, y + 1.0f, z - 0.0f, 0.0f, 1.0f, textures.R});
+            vertice.push_back({x + 1.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, textures.R});
+            vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, textures.R});
+            vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, textures.R});
 
-            m_indices.insert(m_indices.end(), {i + 0u, i + 1u, i + 3u, i + 3u, i + 1u, i + 2u});
+            indice.insert(indice.end(), {i + 0u, i + 1u, i + 3u, i + 3u, i + 1u, i + 2u});
 
             i += 4u;
         }
 
-        if (faces.down) {
-            m_vertice.push_back({x - 0.0f, y - 0.0f, z + 1.0f, 0.0f, 1.0f, textures.down});
-            m_vertice.push_back({x - 0.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, textures.down});
-            m_vertice.push_back({x + 1.0f, y - 0.0f, z - 0.0f, 1.0f, 0.0f, textures.down});
-            m_vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 1.0f, textures.down});
+        if (faces.L) {
+            vertice.push_back({x - 0.0f, y + 1.0f, z - 0.0f, 0.0f, 1.0f, textures.L});
+            vertice.push_back({x - 0.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, textures.L});
+            vertice.push_back({x - 0.0f, y - 0.0f, z + 1.0f, 1.0f, 0.0f, textures.L});
+            vertice.push_back({x - 0.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, textures.L});
 
-            m_indices.insert(m_indices.end(), {i + 1u, i + 0u, i + 3u, i + 1u, i + 3u, i + 2u});
+            indice.insert(indice.end(), {i + 1u, i + 0u, i + 3u, i + 1u, i + 3u, i + 2u});
+
+            i += 4u;
+        }
+
+        if (faces.U) {
+            vertice.push_back({x - 0.0f, y + 1.0f, z + 1.0f, 0.0f, 1.0f, textures.U});
+            vertice.push_back({x - 0.0f, y + 1.0f, z - 0.0f, 0.0f, 0.0f, textures.U});
+            vertice.push_back({x + 1.0f, y + 1.0f, z - 0.0f, 1.0f, 0.0f, textures.U});
+            vertice.push_back({x + 1.0f, y + 1.0f, z + 1.0f, 1.0f, 1.0f, textures.U});
+
+            indice.insert(indice.end(), {i + 0u, i + 1u, i + 3u, i + 3u, i + 1u, i + 2u});
+
+            i += 4u;
+        }
+
+        if (faces.D) {
+            vertice.push_back({x - 0.0f, y - 0.0f, z + 1.0f, 0.0f, 1.0f, textures.D});
+            vertice.push_back({x - 0.0f, y - 0.0f, z - 0.0f, 0.0f, 0.0f, textures.D});
+            vertice.push_back({x + 1.0f, y - 0.0f, z - 0.0f, 1.0f, 0.0f, textures.D});
+            vertice.push_back({x + 1.0f, y - 0.0f, z + 1.0f, 1.0f, 1.0f, textures.D});
+
+            indice.insert(indice.end(), {i + 1u, i + 0u, i + 3u, i + 1u, i + 3u, i + 2u});
 
             i += 4u;
         }

@@ -6,15 +6,13 @@ namespace collision {
 static void collision(camera::camera &cam, const AABB &object_AABB) {
     AABB cam_AABB {cam.get_position(), 0.5f, 1.0f, 0.5f};
 
-    auto detection = [](const AABB cam_AABB, const AABB &object_AABB) -> bool {
-        if (cam_AABB.max.x <= object_AABB.min.x || cam_AABB.min.x >= object_AABB.max.x) return false;
-        if (cam_AABB.max.y <= object_AABB.min.y || cam_AABB.min.y >= object_AABB.max.y) return false;
-        if (cam_AABB.max.z <= object_AABB.min.z || cam_AABB.min.z >= object_AABB.max.z) return false;
+    auto collision_detected {true};
 
-        return true;
-    };
+    if (cam_AABB.max.x <= object_AABB.min.x || cam_AABB.min.x >= object_AABB.max.x) collision_detected = false;
+    if (cam_AABB.max.y <= object_AABB.min.y || cam_AABB.min.y >= object_AABB.max.y) collision_detected = false;
+    if (cam_AABB.max.z <= object_AABB.min.z || cam_AABB.min.z >= object_AABB.max.z) collision_detected = false;
 
-    if (detection(cam_AABB, object_AABB)) {
+    if (collision_detected) {
         vec3<float> overlap {0.0f, 0.0f, 0.0f};
 
         if (cam_AABB.max.x > object_AABB.min.x && cam_AABB.min.x < object_AABB.max.x) {

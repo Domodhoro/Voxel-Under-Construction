@@ -88,25 +88,21 @@ struct vec3 {
 
 template<typename T>
 struct vertex_2d {
-    T x;
-    T y;
+    vec2<T> base;
     T u;
     T v;
 };
 
 template<typename T>
 struct vertex_3d {
-    T x;
-    T y;
-    T z;
+    vec3<T> base;
     T u;
     T v;
 };
 
 template<typename T>
 struct vertex_2d_t {
-    T x;
-    T y;
+    vec2<T> base;
     T u;
     T v;
     T type;
@@ -114,9 +110,7 @@ struct vertex_2d_t {
 
 template<typename T>
 struct vertex_3d_t {
-    T x;
-    T y;
-    T z;
+    vec3<T> base;
     T u;
     T v;
     T type;
@@ -124,19 +118,19 @@ struct vertex_3d_t {
 
 template<typename T>
 struct face {
-    T front;
-    T back;
-    T right;
-    T left;
-    T up;
-    T down;
+    T F;
+    T B;
+    T R;
+    T L;
+    T U;
+    T D;
 };
 
 struct AABB {
     glm::tvec3<float> min {0.0f};
     glm::tvec3<float> max {1.0f};
 
-    AABB(const glm::tvec3<float> center, float half_width, float half_heigth, float half_depth) {
+    AABB(const glm::tvec3<float> center, const float half_width, const float half_heigth, const float half_depth) {
         min = center - glm::tvec3<float>(half_width, half_heigth, half_depth);
         max = center + glm::tvec3<float>(half_width, half_heigth, half_depth);
     }
@@ -205,7 +199,7 @@ static void mouse_callback(GLFWwindow *window, camera::camera &cam) {
     last_x = x;
     last_y = y;
 
-    cam.mouse_update(off_set_x, off_set_y);
+    cam.mouse_update(off_set_x, off_set_y, CAMERA_SENSITIVITY);
 }
 
 int main(int argc, char *argv[]) {
@@ -245,13 +239,12 @@ int main(int argc, char *argv[]) {
 
     cam.disable_cursor (window);
     cam.set_speed      (CAMERA_SPEED);
-    cam.set_sensitivity(CAMERA_SENSITIVITY);
     cam.set_FOV        (CAMERA_FOV);
     cam.set_position   ({8.0f, 92.0f, 8.0f});
 
-    auto framebuffer_shader {shader::shader("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")};
-    auto skybox_shader      {shader::shader("./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl")};
-    auto chunk_shader       {shader::shader("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
+    auto framebuffer_shader {shader::shader_program {"./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl"}};
+    auto skybox_shader      {shader::shader_program {"./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl"}};
+    auto chunk_shader       {shader::shader_program {"./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl"}};
 
     std::vector<std::string> sky_texture {
         "img/skybox/right.bmp",

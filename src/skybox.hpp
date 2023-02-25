@@ -10,12 +10,12 @@ struct skybox {
     }
 
     ~skybox() {
-        glDeleteVertexArrays(1, &m_VAO);
-        glDeleteBuffers     (1, &m_VBO);
-        glDeleteBuffers     (1, &m_EBO);
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers     (1, &VBO);
+        glDeleteBuffers     (1, &EBO);
     }
 
-    void draw(shader::shader &shader, const unsigned int &texture, camera::camera &cam) const {
+    void draw(shader::shader_program &shader, const unsigned int &texture, camera::camera &cam) const {
         glDepthMask(false);
 
         shader.use     ();
@@ -23,33 +23,33 @@ struct skybox {
         shader.set_mat4("Projection", cam.get_projection_matrix());
 
         glBindTexture    (GL_TEXTURE_CUBE_MAP, texture);
-        glBindVertexArray(m_VAO);
-        glDrawElements   (GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, (void*)(0));
+        glBindVertexArray(VAO);
+        glDrawElements   (GL_TRIANGLES, indice.size(), GL_UNSIGNED_INT, (void*)(0));
         glBindVertexArray(0);
 
         glDepthMask(true);
     }
 
 protected:
-    unsigned int m_VAO {0u};
-    unsigned int m_VBO {0u};
-    unsigned int m_EBO {0u};
+    unsigned int VAO {0u};
+    unsigned int VBO {0u};
+    unsigned int EBO {0u};
 
-    std::vector<vertex_3d<float>> m_vertice;
-    std::vector<unsigned int>     m_indices;
+    std::vector<vertex_3d<float>> vertice;
+    std::vector<unsigned int>     indice;
 
     void mesh_setup() {
-        glGenVertexArrays(1, &m_VAO);
-        glGenBuffers     (1, &m_VBO);
-        glGenBuffers     (1, &m_EBO);
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers     (1, &VBO);
+        glGenBuffers     (1, &EBO);
 
-        glBindVertexArray(m_VAO);
+        glBindVertexArray(VAO);
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferData(GL_ARRAY_BUFFER, m_vertice.size() * sizeof(vertex_3d<float>), &m_vertice.at(0), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertice.size() * sizeof(vertex_3d<float>), &vertice.at(0), GL_STATIC_DRAW);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned int), &m_indices.at(0), GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indice.size() * sizeof(unsigned int), &indice.at(0), GL_STATIC_DRAW);
 
         glVertexAttribPointer    (0, 3, GL_FLOAT, false, sizeof(vertex_3d<float>), (void*)(0 * sizeof(float)));
         glEnableVertexAttribArray(0);
@@ -57,38 +57,38 @@ protected:
         glVertexAttribPointer    (1, 2, GL_FLOAT, false, sizeof(vertex_3d<float>), (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
-        if (m_VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'skybox'"};
+        if (VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'skybox'"};
 
         glBindVertexArray(0);
     }
 
     void mesh() {
-        m_vertice.push_back({-0.5f, 0.5f,-0.5f, 0.0f, 0.0f});
-        m_vertice.push_back({-0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
-        m_vertice.push_back({ 0.5f,-0.5f,-0.5f, 1.0f, 1.0f});
-        m_vertice.push_back({ 0.5f, 0.5f,-0.5f, 1.0f, 0.0f});
-        m_vertice.push_back({-0.5f, 0.5f, 0.5f, 0.0f, 0.0f});
-        m_vertice.push_back({-0.5f,-0.5f, 0.5f, 0.0f, 1.0f});
-        m_vertice.push_back({ 0.5f,-0.5f, 0.5f, 1.0f, 1.0f});
-        m_vertice.push_back({ 0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
-        m_vertice.push_back({ 0.5f, 0.5f,-0.5f, 0.0f, 0.0f});
-        m_vertice.push_back({ 0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
-        m_vertice.push_back({ 0.5f,-0.5f, 0.5f, 1.0f, 1.0f});
-        m_vertice.push_back({ 0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
-        m_vertice.push_back({-0.5f, 0.5f,-0.5f, 0.0f, 0.0f});
-        m_vertice.push_back({-0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
-        m_vertice.push_back({-0.5f,-0.5f, 0.5f, 1.0f, 1.0f});
-        m_vertice.push_back({-0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
-        m_vertice.push_back({-0.5f, 0.5f, 0.5f, 0.0f, 0.0f});
-        m_vertice.push_back({-0.5f, 0.5f,-0.5f, 0.0f, 1.0f});
-        m_vertice.push_back({ 0.5f, 0.5f,-0.5f, 1.0f, 1.0f});
-        m_vertice.push_back({ 0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
-        m_vertice.push_back({-0.5f,-0.5f, 0.5f, 0.0f, 0.0f});
-        m_vertice.push_back({-0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
-        m_vertice.push_back({ 0.5f,-0.5f,-0.5f, 1.0f, 1.0f});
-        m_vertice.push_back({ 0.5f,-0.5f, 0.5f, 1.0f, 0.0f});
+        vertice.push_back({-0.5f, 0.5f,-0.5f, 0.0f, 0.0f});
+        vertice.push_back({-0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
+        vertice.push_back({ 0.5f,-0.5f,-0.5f, 1.0f, 1.0f});
+        vertice.push_back({ 0.5f, 0.5f,-0.5f, 1.0f, 0.0f});
+        vertice.push_back({-0.5f, 0.5f, 0.5f, 0.0f, 0.0f});
+        vertice.push_back({-0.5f,-0.5f, 0.5f, 0.0f, 1.0f});
+        vertice.push_back({ 0.5f,-0.5f, 0.5f, 1.0f, 1.0f});
+        vertice.push_back({ 0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
+        vertice.push_back({ 0.5f, 0.5f,-0.5f, 0.0f, 0.0f});
+        vertice.push_back({ 0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
+        vertice.push_back({ 0.5f,-0.5f, 0.5f, 1.0f, 1.0f});
+        vertice.push_back({ 0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
+        vertice.push_back({-0.5f, 0.5f,-0.5f, 0.0f, 0.0f});
+        vertice.push_back({-0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
+        vertice.push_back({-0.5f,-0.5f, 0.5f, 1.0f, 1.0f});
+        vertice.push_back({-0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
+        vertice.push_back({-0.5f, 0.5f, 0.5f, 0.0f, 0.0f});
+        vertice.push_back({-0.5f, 0.5f,-0.5f, 0.0f, 1.0f});
+        vertice.push_back({ 0.5f, 0.5f,-0.5f, 1.0f, 1.0f});
+        vertice.push_back({ 0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
+        vertice.push_back({-0.5f,-0.5f, 0.5f, 0.0f, 0.0f});
+        vertice.push_back({-0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
+        vertice.push_back({ 0.5f,-0.5f,-0.5f, 1.0f, 1.0f});
+        vertice.push_back({ 0.5f,-0.5f, 0.5f, 1.0f, 0.0f});
 
-        const std::initializer_list<unsigned int> indices {
+        const std::initializer_list<unsigned int> indice {
              0u,  1u,  3u,  3u,  1u,  2u,
              5u,  4u,  7u,  5u,  7u,  6u,
              8u,  9u, 11u, 11u,  9u, 10u,
@@ -97,7 +97,7 @@ protected:
             21u, 20u, 23u, 21u, 23u, 22u
         };
 
-        m_indices.insert(m_indices.end(), indices);
+        this->indice.insert(this->indice.end(), indice);
     }
 };
 
