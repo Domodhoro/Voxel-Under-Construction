@@ -10,6 +10,7 @@ struct chunk {
         // test...................
 
         m_block.at(0 + 90 * CHUNK_SIZE_X + 0 * CHUNK_SIZE_X * CHUNK_SIZE_Y) = BLOCK_TYPE::STONE;
+        m_block.at(0 + 92 * CHUNK_SIZE_X + 0 * CHUNK_SIZE_X * CHUNK_SIZE_Y) = BLOCK_TYPE::GRASS;
 
         // test...................
 

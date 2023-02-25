@@ -52,8 +52,8 @@ extern "C" {
 #include "./lib/FastNoiseLite.hpp"
 
 constexpr auto FPS                {60};
-constexpr auto WINDOW_WIDTH       {1300};
-constexpr auto WINDOW_HEIGHT      {800};
+constexpr auto WINDOW_WIDTH       {800};
+constexpr auto WINDOW_HEIGHT      {500};
 constexpr auto WINDOW_TITLE       {"Voxel-Engine"};
 constexpr auto CAMERA_SPEED       {0.1f};
 constexpr auto CAMERA_FOV         {72.0f};
@@ -196,11 +196,10 @@ int main(int argc, char *argv[]) {
 
     auto mode {glfwGetVideoMode(glfwGetPrimaryMonitor())};
 
-    auto window_pos_x {(mode->width  - WINDOW_WIDTH)  / 2};
-    auto window_pos_y {(mode->height - WINDOW_HEIGHT) / 2};
+    const auto window_pos_x {(mode->width  - WINDOW_WIDTH)  / 2};
+    const auto window_pos_y {(mode->height - WINDOW_HEIGHT) / 2};
 
     glfwSetWindowPos(window, window_pos_x, window_pos_y);
-
     glfwSetCursorPos(window, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
 
     stb_image_wrapper::load_window_icon(window, "./img/icon.bmp");
@@ -233,6 +232,8 @@ int main(int argc, char *argv[]) {
     auto skybox_texture {stb_image_wrapper::load_cube_map_texture(sky_texture)};
     auto chunk_texture  {stb_image_wrapper::load_texture("./img/blocks.bmp")};
 
+    sky_texture.clear();
+
     terrain_generator::terrain_generator terrain {1007};
     framebuffer::framebuffer window_framebuffer  {WINDOW_WIDTH, WINDOW_HEIGHT, FRAMEBUFFER_TYPE::DEFAULT};
     skybox::skybox world_skybox                  {};
@@ -240,7 +241,8 @@ int main(int argc, char *argv[]) {
 
     // test...................
 
-    AABB object_AABB {{0.5f, 90.5f, 0.5f}, 0.5f, 0.5f, 0.5f};
+    AABB object_AABB_1 {{0.5f, 90.5f, 0.5f}, 0.5f, 0.5f, 0.5f};
+    AABB object_AABB_2 {{0.5f, 92.5f, 0.5f}, 0.5f, 0.5f, 0.5f};
 
     // test...................
 
@@ -260,7 +262,8 @@ int main(int argc, char *argv[]) {
 
             // test...................
 
-            collision::collision(cam, object_AABB);
+            collision::collision(cam, object_AABB_1);
+            collision::collision(cam, object_AABB_2);
 
             // test...................
 

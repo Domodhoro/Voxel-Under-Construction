@@ -8,7 +8,7 @@ void load_window_icon(GLFWwindow *window, const char *icon_path) {
 
     img.pixels = stbi_load(icon_path, &img.width, &img.height, 0, 4);
 
-    if (img.pixels == nullptr) my_exception {__FILE__, __LINE__, "falha ao carregar ícone da janela de visualização"};
+    if (img.pixels == nullptr) my_exception {__FILE__, __LINE__, "falha ao carregar o Ã­cone da janela de visualizaÃ§Ã£o"};
 
     glfwSetWindowIcon(window, 1, &img);
 
