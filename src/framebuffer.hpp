@@ -25,7 +25,7 @@ struct framebuffer {
         glClear          (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    void draw(shader::shader_program &shader) const {
+    void draw(shader::shader &shader) const {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDisable        (GL_DEPTH_TEST);
         glClearColor     (1.0f, 1.0f, 1.0f, 1.0f);

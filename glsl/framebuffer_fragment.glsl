@@ -4,8 +4,7 @@ uniform sampler2D screenTexture;
 
 out highp vec4 FragColor;
 in  highp vec2 FragTexture;
-
-uniform int Type;
+uniform int    Type;
 
 const highp float off_set = 0.01f;
 

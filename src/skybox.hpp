@@ -15,7 +15,7 @@ struct skybox {
         glDeleteBuffers     (1, &m_EBO);
     }
 
-    void draw(shader::shader_program &shader, const unsigned int &texture, camera::camera &cam) const {
+    void draw(shader::shader &shader, const unsigned int &texture, camera::camera &cam) const {
         glDepthMask(false);
 
         shader.use     ();

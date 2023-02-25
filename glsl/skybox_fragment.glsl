@@ -1,11 +1,9 @@
 #version 300 es
 
-out highp vec4 FragColor;
-
-uniform samplerCube cube;
-
-in highp vec3 FragTexture;
+out highp vec4      FragColor;
+in highp vec3       FragTexture;
+uniform samplerCube Cube;
 
 void main() {
-    FragColor = texture(cube, FragTexture);
+    FragColor = texture(Cube, FragTexture);
 }

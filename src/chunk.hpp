@@ -42,7 +42,7 @@ struct chunk {
 
     BLOCK_TYPE get_block_type(int x, int y, int z) const { return m_block.at(x + y * CHUNK_SIZE_X + z * CHUNK_SIZE_X * CHUNK_SIZE_Y); }
 
-    void draw(shader::shader_program &shader, const unsigned int &texture, camera::camera &camera) const {
+    void draw(shader::shader &shader, const unsigned int &texture, camera::camera &camera) const {
         glCullFace(GL_FRONT);
 
         shader.use     ();

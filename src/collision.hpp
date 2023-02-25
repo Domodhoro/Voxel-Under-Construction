@@ -3,7 +3,7 @@
 
 namespace collision {
 
-void collision(camera::camera &cam, const AABB &object_AABB) {
+static void collision(camera::camera &cam, const AABB &object_AABB) {
     AABB cam_AABB {cam.get_position(), 0.5f, 1.0f, 0.5f};
 
     auto detection = [](const AABB cam_AABB, const AABB &object_AABB) -> bool {

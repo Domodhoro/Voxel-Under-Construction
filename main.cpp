@@ -249,9 +249,9 @@ int main(int argc, char *argv[]) {
     cam.set_FOV        (CAMERA_FOV);
     cam.set_position   ({8.0f, 92.0f, 8.0f});
 
-    auto framebuffer_shader {shader::shader_program("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")};
-    auto skybox_shader      {shader::shader_program("./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl")};
-    auto chunk_shader       {shader::shader_program("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
+    auto framebuffer_shader {shader::shader("./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl")};
+    auto skybox_shader      {shader::shader("./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl")};
+    auto chunk_shader       {shader::shader("./glsl/chunk_vertex.glsl", "./glsl/chunk_fragment.glsl")};
 
     std::vector<std::string> sky_texture {
         "img/skybox/right.bmp",
