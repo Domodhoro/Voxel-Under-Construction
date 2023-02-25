@@ -10,12 +10,12 @@ struct camera {
 
     void disable_cursor(GLFWwindow *window) const { glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); }
 
-    void set_position   (const glm::tvec3<float> Position) { this->Position    = Position; }
-    void set_aspect     (const float aspect)               { this->aspect      = aspect; }
-    void set_speed      (const float speed)                { this->speed       = speed; }
-    void set_FOV        (const float FOV)                  { this->FOV         = FOV; }
-    void set_near_plane (const float near)                 { this->near        = near; }
-    void set_far_plane  (const float far)                  { this->far         = far; }
+    void set_position   (const glm::tvec3<float> Position) { this->Position = Position; }
+    void set_aspect     (const float aspect)               { this->aspect   = aspect; }
+    void set_speed      (const float speed)                { this->speed    = speed; }
+    void set_FOV        (const float FOV)                  { this->FOV      = FOV; }
+    void set_near_plane (const float near)                 { this->near     = near; }
+    void set_far_plane  (const float far)                  { this->far      = far; }
 
     glm::tvec3<float> get_position () const { return Position; }
     glm::mat4 get_projection_matrix() const { return glm::perspective<float>(glm::radians(FOV), aspect, near, far); }
