@@ -13,16 +13,16 @@ struct terrain_generator {
         noise.SetFrequency     (0.01f);
     }
 
-    void use(std::vector<BLOCK_TYPE> &block, int X, int Y, int Z) const {
+    void use(std::vector<BLOCK> &block, int X, int Y, int Z) const {
         for (auto z = 0; z != CHUNK_SIZE_Z; ++z) for (auto y = 0; y != CHUNK_SIZE_Y; ++y) for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
             const auto height {get_height(x + X, y + Y, z + Z)};
 
-            if      (y <=           3) block.push_back(BLOCK_TYPE::MAGMA);
-            else if (y <= height - 24) block.push_back(BLOCK_TYPE::FELDSPAR);
-            else if (y <= height -  4) block.push_back(BLOCK_TYPE::STONE);
-            else if (y <= height     ) block.push_back(BLOCK_TYPE::DIRT);
-            else if (y == height +  1) block.push_back(BLOCK_TYPE::GRASS);
-            else                       block.push_back(BLOCK_TYPE::AIR);
+            if      (y <=           3) block.push_back(BLOCK::MAGMA);
+            else if (y <= height - 24) block.push_back(BLOCK::FELDSPAR);
+            else if (y <= height -  4) block.push_back(BLOCK::STONE);
+            else if (y <= height     ) block.push_back(BLOCK::DIRT);
+            else if (y == height +  1) block.push_back(BLOCK::GRASS);
+            else                       block.push_back(BLOCK::AIR);
         }
     }
 

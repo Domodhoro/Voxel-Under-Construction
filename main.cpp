@@ -149,7 +149,7 @@ enum struct FRAMEBUFFER_TYPE : int {
     GRAY_SCALE
 };
 
-enum struct BLOCK_TYPE : int {
+enum struct BLOCK : int {
     AIR = 0,
     GRASS,
     DIRT,
@@ -213,7 +213,7 @@ int main(int argc, char *argv[]) {
     glfwWindowHint(GLFW_DECORATED, true);
     glfwWindowHint(GLFW_RESIZABLE, false);
 
-    auto window {
+    const auto window {
         glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr)
     };
 
@@ -221,10 +221,9 @@ int main(int argc, char *argv[]) {
 
     glfwMakeContextCurrent(window);
 
-    auto mode {glfwGetVideoMode(glfwGetPrimaryMonitor())};
-
-    const auto window_pos_x {(mode->width  - WINDOW_WIDTH)  / 2};
-    const auto window_pos_y {(mode->height - WINDOW_HEIGHT) / 2};
+    const auto video_mode   {glfwGetVideoMode(glfwGetPrimaryMonitor())};
+    const auto window_pos_x {(video_mode->width  - WINDOW_WIDTH)  / 2};
+    const auto window_pos_y {(video_mode->height - WINDOW_HEIGHT) / 2};
 
     glfwSetWindowPos(window, window_pos_x, window_pos_y);
     glfwSetCursorPos(window, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
@@ -237,10 +236,10 @@ int main(int argc, char *argv[]) {
 
     camera::camera cam {WINDOW_WIDTH, WINDOW_HEIGHT};
 
-    cam.disable_cursor (window);
-    cam.set_speed      (CAMERA_SPEED);
-    cam.set_FOV        (CAMERA_FOV);
-    cam.set_position   ({8.0f, 92.0f, 8.0f});
+    cam.disable_cursor(window);
+    cam.set_speed     (CAMERA_SPEED);
+    cam.set_FOV       (CAMERA_FOV);
+    cam.set_position  ({8.0f, 92.0f, 8.0f});
 
     auto framebuffer_shader {shader::shader_program {"./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl"}};
     auto skybox_shader      {shader::shader_program {"./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl"}};
@@ -265,13 +264,6 @@ int main(int argc, char *argv[]) {
     skybox::skybox world_skybox                  {};
     chunk::chunk spawn_chunk                     {0, 0, 0, terrain};
 
-    // test...................
-
-    AABB object_AABB_1 {{0.5f, 90.5f, 0.5f}, 0.5f, 0.5f, 0.5f};
-    AABB object_AABB_2 {{0.5f, 92.5f, 0.5f}, 0.5f, 0.5f, 0.5f};
-
-    // test...................
-
     glEnable   (GL_DEPTH_TEST);
     glEnable   (GL_CULL_FACE);
     glFrontFace(GL_CCW);
@@ -288,8 +280,13 @@ int main(int argc, char *argv[]) {
 
             // test...................
 
-            collision::collision(cam, object_AABB_1);
-            collision::collision(cam, object_AABB_2);
+            for (auto z = 0; z != CHUNK_SIZE_Z; ++z) for (auto y = 0; y != CHUNK_SIZE_Y; ++y) for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
+                if (spawn_chunk.get_block_at(x, y, z) != BLOCK::AIR) {
+                    AABB obj_AABB {{x + 0.5f, y + 0.5f, z + 0.5f}, 0.5f, 0.5f, 0.5f};
+
+                    collision::collision(cam, obj_AABB);
+                }
+            }
 
             // test...................
 
