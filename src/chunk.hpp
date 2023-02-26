@@ -9,7 +9,7 @@ struct chunk {
 
         // test...................
 
-        block.at(0 + 90 * CHUNK_SIZE_X + 0 * CHUNK_SIZE_X * CHUNK_SIZE_Y) = BLOCK::GRASS;
+        block.at(0 + 15 * CHUNK_SIZE_X + 0 * CHUNK_SIZE_X * CHUNK_SIZE_Y) = BLOCK::GRASS;
 
         // test...................
 

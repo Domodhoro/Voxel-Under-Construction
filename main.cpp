@@ -59,7 +59,7 @@ constexpr auto CAMERA_SPEED       {0.1f};
 constexpr auto CAMERA_FOV         {72.0f};
 constexpr auto CAMERA_SENSITIVITY {0.1f};
 constexpr auto CHUNK_SIZE_X       {16};
-constexpr auto CHUNK_SIZE_Y       {128};
+constexpr auto CHUNK_SIZE_Y       {16};
 constexpr auto CHUNK_SIZE_Z       {CHUNK_SIZE_X};
 
 struct my_exception {
@@ -239,7 +239,7 @@ int main(int argc, char *argv[]) {
     cam.disable_cursor(window);
     cam.set_speed     (CAMERA_SPEED);
     cam.set_FOV       (CAMERA_FOV);
-    cam.set_position  ({8.0f, 92.0f, 8.0f});
+    cam.set_position  ({8.0f, 16.0f, 8.0f});
 
     auto framebuffer_shader {shader::shader_program {"./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl"}};
     auto skybox_shader      {shader::shader_program {"./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl"}};
