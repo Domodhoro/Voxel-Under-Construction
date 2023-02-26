@@ -29,19 +29,19 @@ static void collision(camera::camera &cam, const AABB &obj_AABB) {
 
         auto new_position {cam.get_position()};
 
-        if (overlap.x <= overlap.y && overlap.x <= overlap.z) {
+        if (overlap.x < overlap.y && overlap.x < overlap.z) {
             if (cam_AABB.min.x < obj_AABB.min.x) {
                 new_position.x -= overlap.x;
             } else {
                 new_position.x += overlap.x;
             }
-        } else if (overlap.y <= overlap.x && overlap.y <= overlap.z) {
+        } else if (overlap.y < overlap.x && overlap.y < overlap.z) {
             if (cam_AABB.min.y < obj_AABB.min.y) {
                 new_position.y -= overlap.y;
             } else {
                 new_position.y += overlap.y;
             }
-        } else if (overlap.z <= overlap.x && overlap.z <= overlap.y) {
+        } else if (overlap.z < overlap.x && overlap.z < overlap.y) {
             if (cam_AABB.min.z < obj_AABB.min.z) {
                 new_position.z -= overlap.z;
             } else {
