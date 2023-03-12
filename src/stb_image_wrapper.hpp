@@ -8,7 +8,7 @@ static void load_window_icon(GLFWwindow *window, const char *icon_path) {
 
     img.pixels = stbi_load(icon_path, &img.width, &img.height, 0, 4);
 
-    if (img.pixels == nullptr) my_exception {__FILE__, __LINE__, "falha ao carregar o ícone da janela de visualização"};
+    if (img.pixels == nullptr) error_log(__FILE__, __LINE__, "falha ao carregar o ícone da janela de visualização");
 
     glfwSetWindowIcon(window, 1, &img);
 
@@ -33,7 +33,7 @@ static unsigned int load_texture(const char *texture_path) {
 
     auto pixels {stbi_load(texture_path, &width, &height, &channels, 0)};
 
-    if (pixels == nullptr) my_exception {__FILE__, __LINE__, "falha ao carregar textura"};
+    if (pixels == nullptr) error_log(__FILE__, __LINE__, "falha ao carregar textura");
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -64,7 +64,7 @@ static unsigned int load_cube_map_texture(const std::vector<std::string> &faces)
     for (size_t i = 0; i != faces.size(); ++i) {
         auto pixels {stbi_load(faces.at(i).c_str(), &width, &height, &channels, 0)};
 
-        if (pixels == nullptr) my_exception {__FILE__, __LINE__, "falha ao abrir os arquivos de textura"};
+        if (pixels == nullptr) error_log(__FILE__, __LINE__, "falha ao abrir os arquivos de textura");
 
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
@@ -82,7 +82,7 @@ static void gen_framebuffer_texture(const int width, const int height, unsigned 
     glTexParameteri       (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_color_buffer, 0);
 
-    if (texture_color_buffer == 0u) my_exception {__FILE__, __LINE__, "falha ao gerar 'framebuffer texture'"};
+    if (texture_color_buffer == 0u) error_log(__FILE__, __LINE__, "falha ao gerar 'framebuffer texture'");
 }
 
 }

@@ -13,7 +13,7 @@ static void collision(camera::camera &cam, const AABB &obj_AABB) {
     if (cam_AABB.max.z < obj_AABB.min.z || cam_AABB.min.z > obj_AABB.max.z) collision_detected = false;
 
     if (collision_detected) {
-        vec3<float> overlap {0.0f, 0.0f, 0.0f};
+        glm::tvec3<float> overlap {0.0f, 0.0f, 0.0f};
 
         if (cam_AABB.max.x > obj_AABB.min.x && cam_AABB.min.x < obj_AABB.max.x) {
             overlap.x = std::min(cam_AABB.max.x, obj_AABB.max.x) - std::max(cam_AABB.min.x, obj_AABB.min.x);

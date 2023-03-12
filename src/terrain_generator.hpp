@@ -1,18 +1,11 @@
-#ifndef GENERATE_TERRAIN_HPP
-#define GENERATE_TERRAIN_HPP
+#ifndef TERRAIN_GENERATOR_HPP
+#define TERRAIN_GENERATOR_HPP
 
 namespace terrain_generator {
 
 struct terrain_generator {
     terrain_generator(const int seed) : noise {seed} {
-        /*
-        noise.SetNoiseType     (FastNoiseLite::NoiseType::NoiseType_Perlin);
-        noise.SetFractalType   (FastNoiseLite::FractalType::FractalType_Ridged);
         noise.SetRotationType3D(FastNoiseLite::RotationType3D::RotationType3D_ImproveXZPlanes);
-        noise.SetFractalOctaves(1);
-        noise.SetFractalGain   (4.0f);
-        noise.SetFrequency     (0.01f);
-        */
     }
 
     void use(std::vector<BLOCK> &block, int X, int Y, int Z) const {
@@ -31,7 +24,7 @@ struct terrain_generator {
 protected:
     FastNoiseLite noise {};
 
-    int get_height(float x, float y, float z) const { return 8 + abs(floor(4.0f * noise.GetNoise(x, z))); }
+    int get_height(float x, float y, float z) const { return 64 + abs(floor(4.0f * noise.GetNoise(x, z))); }
 };
 
 }

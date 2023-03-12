@@ -13,7 +13,7 @@ struct shader_program {
 
         glGetProgramiv(shader, GL_LINK_STATUS, &success);
 
-        if (!success) my_exception {__FILE__, __LINE__, "falha ao compilar 'shader'"};
+        if (!success) error_log(__FILE__, __LINE__, "falha ao compilar 'shader'");
     }
 
     ~shader_program() { glDeleteProgram(shader); }
@@ -43,8 +43,8 @@ protected:
         glGetShaderiv(data, GL_COMPILE_STATUS, &success);
 
         if (success == 0u) {
-            if (type == GL_VERTEX_SHADER)   my_exception {__FILE__, __LINE__, "falha ao compilar 'vertex'"};
-            if (type == GL_FRAGMENT_SHADER) my_exception {__FILE__, __LINE__, "falha ao compilar 'fragment'"};
+            if (type == GL_VERTEX_SHADER)   error_log(__FILE__, __LINE__, "falha ao compilar 'vertex'");
+            if (type == GL_FRAGMENT_SHADER) error_log(__FILE__, __LINE__, "falha ao compilar 'fragment'");
         }
 
         return data;
@@ -54,7 +54,7 @@ protected:
         std::ifstream file     {file_path};
         std::stringstream code {};
 
-        if (!file.is_open()) my_exception {__FILE__, __LINE__, "falha ao abrir arquivo 'GLSL'"};
+        if (!file.is_open()) error_log(__FILE__, __LINE__, "falha ao abrir arquivo 'GLSL'");
 
         code << file.rdbuf();
 

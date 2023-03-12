@@ -57,36 +57,36 @@ protected:
         glVertexAttribPointer    (1, 2, GL_FLOAT, false, sizeof(vertex_3d<float>), (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
-        if (VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'skybox'"};
+        if (VAO == 0u) error_log(__FILE__, __LINE__, "falha ao criar VAO do 'skybox'");
 
         glBindVertexArray(0);
     }
 
     void mesh() {
-        vertice.push_back({-0.5f, 0.5f,-0.5f, 0.0f, 0.0f});
-        vertice.push_back({-0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
-        vertice.push_back({ 0.5f,-0.5f,-0.5f, 1.0f, 1.0f});
-        vertice.push_back({ 0.5f, 0.5f,-0.5f, 1.0f, 0.0f});
-        vertice.push_back({-0.5f, 0.5f, 0.5f, 0.0f, 0.0f});
-        vertice.push_back({-0.5f,-0.5f, 0.5f, 0.0f, 1.0f});
-        vertice.push_back({ 0.5f,-0.5f, 0.5f, 1.0f, 1.0f});
-        vertice.push_back({ 0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
-        vertice.push_back({ 0.5f, 0.5f,-0.5f, 0.0f, 0.0f});
-        vertice.push_back({ 0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
-        vertice.push_back({ 0.5f,-0.5f, 0.5f, 1.0f, 1.0f});
-        vertice.push_back({ 0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
-        vertice.push_back({-0.5f, 0.5f,-0.5f, 0.0f, 0.0f});
-        vertice.push_back({-0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
-        vertice.push_back({-0.5f,-0.5f, 0.5f, 1.0f, 1.0f});
-        vertice.push_back({-0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
-        vertice.push_back({-0.5f, 0.5f, 0.5f, 0.0f, 0.0f});
-        vertice.push_back({-0.5f, 0.5f,-0.5f, 0.0f, 1.0f});
-        vertice.push_back({ 0.5f, 0.5f,-0.5f, 1.0f, 1.0f});
-        vertice.push_back({ 0.5f, 0.5f, 0.5f, 1.0f, 0.0f});
-        vertice.push_back({-0.5f,-0.5f, 0.5f, 0.0f, 0.0f});
-        vertice.push_back({-0.5f,-0.5f,-0.5f, 0.0f, 1.0f});
-        vertice.push_back({ 0.5f,-0.5f,-0.5f, 1.0f, 1.0f});
-        vertice.push_back({ 0.5f,-0.5f, 0.5f, 1.0f, 0.0f});
+        vertice.push_back({{-0.5f, 0.5f,-0.5f}, {0.0f, 0.0f}});
+        vertice.push_back({{-0.5f,-0.5f,-0.5f}, {0.0f, 1.0f}});
+        vertice.push_back({{ 0.5f,-0.5f,-0.5f}, {1.0f, 1.0f}});
+        vertice.push_back({{ 0.5f, 0.5f,-0.5f}, {1.0f, 0.0f}});
+        vertice.push_back({{-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f}});
+        vertice.push_back({{-0.5f,-0.5f, 0.5f}, {0.0f, 1.0f}});
+        vertice.push_back({{ 0.5f,-0.5f, 0.5f}, {1.0f, 1.0f}});
+        vertice.push_back({{ 0.5f, 0.5f, 0.5f}, {1.0f, 0.0f}});
+        vertice.push_back({{ 0.5f, 0.5f,-0.5f}, {0.0f, 0.0f}});
+        vertice.push_back({{ 0.5f,-0.5f,-0.5f}, {0.0f, 1.0f}});
+        vertice.push_back({{ 0.5f,-0.5f, 0.5f}, {1.0f, 1.0f}});
+        vertice.push_back({{ 0.5f, 0.5f, 0.5f}, {1.0f, 0.0f}});
+        vertice.push_back({{-0.5f, 0.5f,-0.5f}, {0.0f, 0.0f}});
+        vertice.push_back({{-0.5f,-0.5f,-0.5f}, {0.0f, 1.0f}});
+        vertice.push_back({{-0.5f,-0.5f, 0.5f}, {1.0f, 1.0f}});
+        vertice.push_back({{-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f}});
+        vertice.push_back({{-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f}});
+        vertice.push_back({{-0.5f, 0.5f,-0.5f}, {0.0f, 1.0f}});
+        vertice.push_back({{ 0.5f, 0.5f,-0.5f}, {1.0f, 1.0f}});
+        vertice.push_back({{ 0.5f, 0.5f, 0.5f}, {1.0f, 0.0f}});
+        vertice.push_back({{-0.5f,-0.5f, 0.5f}, {0.0f, 0.0f}});
+        vertice.push_back({{-0.5f,-0.5f,-0.5f}, {0.0f, 1.0f}});
+        vertice.push_back({{ 0.5f,-0.5f,-0.5f}, {1.0f, 1.0f}});
+        vertice.push_back({{ 0.5f,-0.5f, 0.5f}, {1.0f, 0.0f}});
 
         const std::initializer_list<unsigned int> indice {
              0u,  1u,  3u,  3u,  1u,  2u,

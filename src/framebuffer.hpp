@@ -68,7 +68,7 @@ protected:
         glRenderbufferStorage    (GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
 
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) my_exception {__FILE__, __LINE__, "falha ao criar 'framebuffer'"};
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) error_log(__FILE__, __LINE__, "falha ao criar 'framebuffer'");
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
@@ -92,16 +92,16 @@ protected:
         glVertexAttribPointer    (1, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(2 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
-        if (VAO == 0u) my_exception {__FILE__, __LINE__, "falha ao criar VAO do 'framebuffer'"};
+        if (VAO == 0u) error_log(__FILE__, __LINE__, "falha ao criar VAO do 'framebuffer'");
 
         glBindVertexArray(0);
     }
 
     void mesh() {
-        vertice.push_back({-1.0f,-1.0f, 0.0f, 0.0f});
-        vertice.push_back({ 1.0f,-1.0f, 1.0f, 0.0f});
-        vertice.push_back({ 1.0f, 1.0f, 1.0f, 1.0f});
-        vertice.push_back({-1.0f, 1.0f, 0.0f, 1.0f});
+        vertice.push_back({{-1.0f,-1.0f}, {0.0f, 0.0f}});
+        vertice.push_back({{ 1.0f,-1.0f}, {1.0f, 0.0f}});
+        vertice.push_back({{ 1.0f, 1.0f}, {1.0f, 1.0f}});
+        vertice.push_back({{-1.0f, 1.0f}, {0.0f, 1.0f}});
 
         indices.insert(indices.end(), {0u,  1u,  3u,  3u,  1u,  2u});
     }

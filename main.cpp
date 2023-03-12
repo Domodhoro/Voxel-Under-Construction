@@ -1,27 +1,3 @@
-/*
-    MIT License
-
-    Copyright (c) 2023 Guilherme M. Aguiar (guilhermemaguiar2022@gmail.com)
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-*/
-
 #ifdef __cplusplus
 
 extern "C" {
@@ -35,11 +11,15 @@ extern "C" {
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "./lib/stb_image.h"
+
+#include "./lua54/luaconf.h"
+#include "./lua54/lua.h"
+#include "./lua54/lualib.h"
+#include "./lua54/lauxlib.h"
 }
 
 #endif
 
-#include <memory>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -59,71 +39,50 @@ constexpr auto CAMERA_SPEED       {0.1f};
 constexpr auto CAMERA_FOV         {72.0f};
 constexpr auto CAMERA_SENSITIVITY {0.1f};
 constexpr auto CHUNK_SIZE_X       {16};
-constexpr auto CHUNK_SIZE_Y       {16};
+constexpr auto CHUNK_SIZE_Y       {128};
 constexpr auto CHUNK_SIZE_Z       {CHUNK_SIZE_X};
 
-struct my_exception {
-    my_exception(const char *file, int line, const char *description) {
-        puts  ("Ops! Uma falha ocorreu.");
-        printf("File:        %s\n", file);
-        printf("Line:        %i\n", line);
-        printf("Description: %s\n", description);
-    }
+static void error_log(const char *file, const int line, const char *description) {
+    puts  ("A failure occurred!");
+    printf("File:        %s.\n", file);
+    printf("Line:        %i.\n", line);
+    printf("Description: %s.\n", description);
 
-    ~my_exception() { exit(EXIT_FAILURE); }
-};
-
-template<typename T>
-struct vec2 {
-    T x;
-    T y;
-};
-
-template<typename T>
-struct vec3 {
-    T x;
-    T y;
-    T z;
-};
+    exit(EXIT_FAILURE);
+}
 
 template<typename T>
 struct vertex_2d {
-    vec2<T> base;
-    T u;
-    T v;
+    glm::tvec2<T> position;
+    glm::tvec2<T> texture_UV;
+};
+
+template<typename T>
+struct vertex_2d_id {
+    glm::tvec2<T> position;
+    glm::tvec3<T> texture_UV;
 };
 
 template<typename T>
 struct vertex_3d {
-    vec3<T> base;
-    T u;
-    T v;
+    glm::tvec3<T> position;
+    glm::tvec2<T> texture_UV;
 };
 
 template<typename T>
-struct vertex_2d_t {
-    vec2<T> base;
-    T u;
-    T v;
-    T type;
+struct vertex_3d_id {
+    glm::tvec3<T> position;
+    glm::tvec3<T> texture_UV;
 };
 
 template<typename T>
-struct vertex_3d_t {
-    vec3<T> base;
-    T u;
-    T v;
-    T type;
-};
-
-template<typename T>
-struct face {
-    T F;
-    T B;
-    T R;
-    T L;
-    T U;
-    T D;
+struct block_face {
+    T Front;
+    T Back;
+    T Right;
+    T Left;
+    T Up;
+    T Down;
 };
 
 struct AABB {
@@ -159,6 +118,7 @@ enum struct BLOCK : int {
     FELDSPAR
 };
 
+#include "./src/lua_script.hpp"
 #include "./src/camera.hpp"
 #include "./src/collision.hpp"
 #include "./src/shader.hpp"
@@ -205,7 +165,9 @@ static void mouse_callback(GLFWwindow *window, camera::camera &cam) {
 int main(int argc, char *argv[]) {
     puts(argv[0]);
 
-    if (glfwInit() == GLFW_NOT_INITIALIZED) my_exception {__FILE__, __LINE__, "falha ao iniciar o GLFW"};
+    lua_script::lua_script {"./script.lua"};
+
+    if (glfwInit() == GLFW_NOT_INITIALIZED) error_log(__FILE__, __LINE__, "falha ao iniciar o GLFW");
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -217,7 +179,7 @@ int main(int argc, char *argv[]) {
         glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr)
     };
 
-    if (window == nullptr) my_exception {__FILE__, __LINE__, "falha ao criar a janela de visualização"};
+    if (window == nullptr) error_log(__FILE__, __LINE__, "falha ao criar a janela de visualização");
 
     glfwMakeContextCurrent(window);
 
@@ -232,14 +194,14 @@ int main(int argc, char *argv[]) {
 
     glewExperimental = true;
 
-    if (glewInit() != GLEW_OK) my_exception {__FILE__, __LINE__, "falha ao iniciar GLEW"};
+    if (glewInit() != GLEW_OK) error_log(__FILE__, __LINE__, "falha ao iniciar GLEW");
 
     camera::camera cam {WINDOW_WIDTH, WINDOW_HEIGHT};
 
     cam.disable_cursor(window);
     cam.set_speed     (CAMERA_SPEED);
     cam.set_FOV       (CAMERA_FOV);
-    cam.set_position  ({8.0f, 16.0f, 8.0f});
+    cam.set_position  ({8.0f, 72.0f, 8.0f});
 
     auto framebuffer_shader {shader::shader_program {"./glsl/framebuffer_vertex.glsl", "./glsl/framebuffer_fragment.glsl"}};
     auto skybox_shader      {shader::shader_program {"./glsl/skybox_vertex.glsl", "./glsl/skybox_fragment.glsl"}};
@@ -277,18 +239,6 @@ int main(int argc, char *argv[]) {
         if ((current_frame - last_frame) > (1.0f / FPS)) {
             keyboard_callback(window, cam);
             mouse_callback   (window, cam);
-
-            // test...................
-
-            for (auto z = 0; z != CHUNK_SIZE_Z; ++z) for (auto y = 0; y != CHUNK_SIZE_Y; ++y) for (auto x = 0; x != CHUNK_SIZE_X; ++x) {
-                if (spawn_chunk.get_block_at(x, y, z) != BLOCK::AIR) {
-                    AABB obj_AABB {{x + 0.5f, y + 0.5f, z + 0.5f}, 0.5f, 0.5f, 0.5f};
-
-                    collision::collision(cam, obj_AABB);
-                }
-            }
-
-            // test...................
 
             window_framebuffer.clear_color(0.0f, 0.0f, 0.0f);
             world_skybox.draw             (skybox_shader, skybox_texture, cam);
